@@ -138,7 +138,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                               ],
                                             ),
                                           );
-                                        } else {
+                                        } 
+                                        else {
                                           print(
                                               "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
                                           showDialog(

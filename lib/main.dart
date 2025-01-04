@@ -1,14 +1,27 @@
 import 'package:bb_vendor/screens/wellcome.dart';
-import 'package:timezone/data/latest.dart' as tz;
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bb_vendor/Colors/coustcolors.dart';
+import "package:bb_vendor/widgets/bottomnavigation.dart";
+import 'package:bb_vendor/Providers/auth.dart';
+import 'package:bb_vendor/Screens/addproperty.dart';
+import 'package:bb_vendor/Screens/alltransactions.dart';
+import 'package:bb_vendor/Screens/bookingdetails.dart';
+import 'package:bb_vendor/Screens/dashboard.dart';
+import 'package:bb_vendor/Screens/editprofile.dart';
+import 'package:bb_vendor/Screens/forgotpassword.dart';
+import 'package:bb_vendor/Screens/login.dart';
+import 'package:bb_vendor/Screens/manage.dart';
+import 'package:bb_vendor/Screens/managebookinng.dart';       
+import 'package:bb_vendor/Screens/manageproperty.dart';
+import 'package:bb_vendor/Screens/registration.dart';
+import 'package:bb_vendor/Screens/sales.dart';
+import 'package:bb_vendor/Screens/settings.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:bb_vendor/Screens/subscription_screen.dart';
+import "package:bb_vendor/Screens/managecalendar.dart";
+import "package:bb_vendor/Screens/calendarpropertieslist.dart";
 
-import 'colors/coustcolors.dart';
-import 'providers/auth.dart';
-import 'screens/login.dart';
-import 'widgets/bottomnavigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,59 +99,59 @@ class MyApp extends ConsumerWidget {
             },
           );
         },
-        // '/forgotpwd': (BuildContext context) {
-        //   return const ForgotpasswordScreen();
-        // },
-        // '/registration': (BuildContext context) {
-        //   return const RegistrationScreen();
-        // },
+        '/forgotpwd': (BuildContext context) {
+          return const ForgotpasswordScreen();
+        },
+        '/registration': (BuildContext context) {
+          return const RegistrationScreen();
+        },
         '/welcome': (BuildContext context) {
           //welcome page
           return const Wellcome();
         },
-        // '/home': (BuildContext context) {
-        //   //welcome page
-        //   return const DashboardScreen();
-        // },
-        // '/manage': (BuildContext context) {
-        //   //welcome page
-        //   return const ManageScreen();
-        // },
-        // '/sales': (BuildContext context) {
-        //   //welcome page
-        //   return const SalesScreen();
-        // },
-        // '/settings': (BuildContext context) {
-        //   //welcome page
-        //   return const SettingsScreen();
-        // },
-        // '/managebooking': (BuildContext context) {
-        //   return const ManageBookingScreen();
-        // },
-        // '/bookingdetails': (BuildContext context) {
-        //   return const BookingDetailsScreen();
-        // },
-        // '/manageproperty': (BuildContext context) {
-        //   return const ManagePropertyScreen();
-        // },
-        // '/addproperty': (BuildContext context) {
-        //   return const AddPropertyScreen();
-        // },
-        // '/alltransactions': (BuildContext context) {
-        //   return const TransactionsScreen();
-        // },
-        // '/editprofile': (BuildContext context) {
-        //   return const EditprofileSceren();
-        // },
-        // '/subscriptionScreen': (BuildContext context) {
-        //   return const Subscription();
-        // },
-        // '/manageCalendar': (BuildContext context) {
-        //   return const ManageCalendarScreen();
-        // },
-        // '/calendarPropertiesList': (BuildContext context) {
-        //   return const CalendarPropertiesList();
-        // },
+        '/home': (BuildContext context) {
+          //welcome page
+          return const DashboardScreen();
+        },
+        '/manage': (BuildContext context) {
+          //welcome page
+          return const ManageScreen();
+        },
+        '/sales': (BuildContext context) {
+          //welcome page
+          return const SalesScreen();
+        },
+        '/settings': (BuildContext context) {
+          //welcome page
+          return const SettingsScreen();
+        },
+        '/managebooking': (BuildContext context) {
+          return const ManageBookingScreen();
+        },
+        '/bookingdetails': (BuildContext context) {
+          return const BookingDetailsScreen();
+        },
+        '/manageproperty': (BuildContext context) {
+          return const ManagePropertyScreen();
+        },
+        '/addproperty': (BuildContext context) {
+          return const AddPropertyScreen();
+        },
+        '/alltransactions': (BuildContext context) {
+          return const TransactionsScreen();
+        },
+        '/editprofile': (BuildContext context) {
+          return const EditprofileSceren();
+        },
+        '/subscriptionScreen': (BuildContext context) {
+          return const Subscription();
+        },
+        '/manageCalendar': (BuildContext context) {
+          return const ManageCalendarScreen();
+        },
+        '/calendarPropertiesList': (BuildContext context) {
+          return const CalendarPropertiesList();
+        },
         '/login': (BuildContext context) {
           return const LoginScreen();
         }
