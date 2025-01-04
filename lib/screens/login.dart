@@ -140,24 +140,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           );
                                         } 
                                         else {
-                                          print(
-                                              "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Login Error'),
-                                              content: const Text(
-                                                  "Your services are de-activated, please contact admin."),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: const Text('OK'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
+                                           Navigator.of(context).pushNamed('/welcome'); 
+                                          // print(
+                                          //     "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
+                                          // showDialog(
+                                          //   context: context,
+                                          //   builder: (context) => AlertDialog(
+                                          //     title: const Text('Login Error'),
+                                          //     content: const Text(
+                                          //         "Your services are de-activated, please contact admin."),
+                                          //     actions: [
+                                          //       TextButton(
+                                          //         onPressed: () =>
+                                          //             Navigator.of(context)
+                                          //                 .pop(),
+                                          //         child: const Text('OK'),
+                                          //       ),
+                                          //     ],
+                                          //   ),
+                                          // );
                                         }
                                       }
                                     },

@@ -73,7 +73,7 @@ class MyApp extends ConsumerWidget {
               if (authState.data?.userStatus == true &&
                   authState.data?.userRole == "v") {
                 // Navigate to the welcome page if conditions are met
-                return const Wellcome(); // Welcome page
+                return const CoustNavigation(); // Welcome page
               }
 
               // If the user is not authenticated, attempt auto-login
@@ -91,7 +91,7 @@ class MyApp extends ConsumerWidget {
                   } else {
                     // Navigate based on the auto-login result
                     return snapshot.data == true
-                        ? const Wellcome() // Welcome page
+                        ? const CoustNavigation() // Welcome page
                         : const LoginScreen(); // Login page
                   }
                 },
@@ -107,7 +107,7 @@ class MyApp extends ConsumerWidget {
         },
         '/welcome': (BuildContext context) {
           //welcome page
-          return const Wellcome();
+          return const CoustNavigation();
         },
         '/home': (BuildContext context) {
           //welcome page
