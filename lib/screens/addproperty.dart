@@ -8,7 +8,6 @@ import 'package:bb_vendor/Widgets/elevatedbutton.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:bb_vendor/Widgets/textfield.dart';
 import 'package:bb_vendor/Providers/addpropertynotifier.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +41,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final _validationKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
   final ImagePicker _picker = ImagePicker();
+  File? _profileImage;
+
+   // Static category list for now
+  final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
+  String selectedCategory = "Residential"; // Default selected category
 
   void _searchLocation(WidgetRef ref) async {
     final response = await http.get(Uri.parse(
@@ -58,38 +62,73 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     }
   }
 
-  Future<void> _pickImage(
-      BuildContext context, ImageSource source, bool isProfile) async {
-    final pickedFile = await _picker.pickImage(source: source);
 
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+  try {
+    final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      {
-        ref
-            .read(addPropertyProvider.notifier)
-            .setPropertyImage(File(pickedFile.path));
+      File imageFile = File(pickedFile.path);
+
+      // Check the file size (maximum 2MB)
+      final fileSizeInBytes = await imageFile.length();
+      final maxFileSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (fileSizeInBytes > maxFileSize) {
+        // File size is too large, show an error
+        _showAlertDialog('Error', 'File size exceeds 2MB. Please select a smaller file.');
+      } else {
+        // Valid image size, proceed
+        setState(() {
+          _profileImage = imageFile;
+        });
       }
     }
+  } catch (e) {
+    _showAlertDialog('Error', 'Failed to pick image: $e');
   }
+}
 
-  Widget _buildImageUploadSection(
-      String label, File? imageFile, bool isProfile) {
+
+
+  Widget _buildImageUploadSection(String label) {
     return Padding(
-      padding: const EdgeInsets.all(0.0),
+      padding: const EdgeInsets.all(20.0),
+      
       child: InkWell(
-        onTap: () => _pickImage(context, ImageSource.gallery, isProfile),
+        onTap: () => _pickImage(context, ImageSource.gallery),
         child: Container(
           width: double.infinity,
-          height: 110,
-          color: CoustColors.colrButton1,
+          height: 150,
+          decoration: BoxDecoration(
+            color: CoustColors.colrButton1,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
           child: Center(
-            child: imageFile == null
-                ? coustText(sName: "Upload photo", align: TextAlign.center)
-                : Image.file(imageFile),
+            child: _profileImage != null
+                ? Image.file(
+                    _profileImage!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                      SizedBox(height: 10),
+                      coustText(
+                        sName: "Upload Profile Image",
+                        txtcolor: Colors.white,
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -135,15 +174,14 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                       padding: const EdgeInsets.all(20.0),
                       child: Container(
                         width: double.infinity,
-                        height: 150,
+                        height: 200,
                         color: CoustColors.colrButton1,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _buildImageUploadSection(
                               "Property Image",
-                              propertyPic,
-                              false,
+                              
                             ),
                           ],
                         ),
@@ -184,74 +222,51 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   ref,
                                   0,
                                   textFieldStates),
+                              const SizedBox(height: 15),
+                              // Category selection using radio buttons
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: CoustColors.colrMainbg,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: coustText(
+                                        sName: "Category",
+                                        textsize: 18,
+                                        fontweight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    ...categoryList.map((category) {
+                                      return RadioListTile<String>(
+                                        title: Text(category),
+                                        value: category,
+                                        groupValue: selectedCategory,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            selectedCategory = value!;
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(height: 10),
                               _buildTextField(
-                                  "Category",
-                                  category,
-                                  "Please Enter Category",
-                                  ref,
-                                  1,
-                                  textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField(
-                                  "Property Address line 1",
+                                  "Property Address",
                                   address1,
                                   "Please Enter Address 1",
                                   ref,
                                   2,
                                   textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField(
-                                  "Property Address line 2",
-                                  address2,
-                                  "Please Enter Address 2",
-                                  ref,
-                                  3,
-                                  textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField(
-                                  "State",
-                                  state,
-                                  "Please Enter State",
-                                  ref,
-                                  4,
-                                  textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField("City", city, "Please Enter City",
-                                  ref, 5, textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField(
-                                  "Pincode",
-                                  pincode,
-                                  "Please Enter Pin Number",
-                                  ref,
-                                  6,
-                                  textFieldStates),
-                              const SizedBox(height: 10),
-                              _buildTextField(
-                                  "start time",
-                                  startTime,
-                                  "Please Enter Start Time",
-                                  ref,
-                                  7,
-                                  textFieldStates),
-                              _buildTextField(
-                                  "End time",
-                                  endTime,
-                                  "Please Enter End Time",
-                                  ref,
-                                  7,
-                                  textFieldStates),
-                              const SizedBox(height: 10),
-                              const Padding(
-                                padding: EdgeInsets.only(left: 8.0),
-                                child: coustText(
-                                  sName: "Location",
-                                ),
-                              ),
+                              
                               Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: CoustTextfield(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: CoustTextfield(
                                   filled: textFieldStates[9],
                                   radius: 8.0,
                                   width: 10,
@@ -399,7 +414,94 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       ),
     );
   }
+
+  
+
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              
+              if (title == 'Error') {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+
+
+
+
+
+
+
+// const SizedBox(height: 10),
+                              // _buildTextField(
+                              //     "Property Address line 2",
+                              //     address2,
+                              //     "Please Enter Address 2",
+                              //     ref,
+                              //     3,
+                              //     textFieldStates),
+                              // const SizedBox(height: 10),
+                              // _buildTextField(
+                              //     "State",
+                              //     state,
+                              //     "Please Enter State",
+                              //     ref,
+                              //     4,
+                              //     textFieldStates),
+                              // const SizedBox(height: 10),
+                              // _buildTextField("City", city, "Please Enter City",
+                              //     ref, 5, textFieldStates),
+                              // const SizedBox(height: 10),
+                              // _buildTextField(
+                              //     "Pincode",
+                              //     pincode,
+                              //     "Please Enter Pin Number",
+                              //     ref,
+                              //     6,
+                              //     textFieldStates),
+                              // const SizedBox(height: 10),
+                              // _buildTextField(
+                              //     "start time",
+                              //     startTime,
+                              //     "Please Enter Start Time",
+                              //     ref,
+                              //     7,
+                              //     textFieldStates),
+                              // _buildTextField(
+                              //     "End time",
+                              //     endTime,
+                              //     "Please Enter End Time",
+                              //     ref,
+                              //     7,
+                              //     textFieldStates),
+                              // const SizedBox(height: 10),
+                              // const Padding(
+                              //   padding: EdgeInsets.only(left: 8.0),
+                              //   child: coustText(
+                              //     sName: "Location",
+                              //   ),
+                              // ),
+
+
+
+
+
+
+
 // import 'dart:convert';
 // import 'dart:io';
 // import 'package:banquetbookz_vendor/Colors/coustcolors.dart';
@@ -672,3 +774,41 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 //     );
 //   }
 // }
+
+
+
+  // Widget _buildImageUploadSection(
+  //     String label, File? imageFile, bool isProfile) {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(0.0),
+  //     child: InkWell(
+  //       onTap: () => _pickImage(context, ImageSource.gallery, isProfile),
+  //       child: Container(
+  //         width: double.infinity,
+  //         height: 110,
+  //         color: CoustColors.colrButton1,
+  //         child: Center(
+  //           child: imageFile == null
+  //               ? coustText(sName: "Upload photo", align: TextAlign.center)
+  //               : Image.file(imageFile),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+
+  
+  // Future<void> _pickImage(
+  //     BuildContext context, ImageSource source, bool isProfile) async {
+  //   final pickedFile = await _picker.pickImage(source: source);
+
+  //   if (pickedFile != null) {
+  //     {
+  //       ref
+  //           .read(addPropertyProvider.notifier)
+  //           .setPropertyImage(File(pickedFile.path));
+  //     }
+  //   }
+  // }
