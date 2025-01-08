@@ -1,4 +1,4 @@
-import 'package:bb_vendor/screens/wellcome.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Colors/coustcolors.dart';
@@ -39,6 +39,10 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authprovider);
     print('build main.dart');
+      print('Building the widget');
+  print("Auth state data: ${authState.data}");
+  print("User Role: ${authState.data?.userRole}");
+  print("User Status: ${authState.data?.userStatus}");
     return MaterialApp(
       title: 'Banquetbookz Vendor',
       theme: ThemeData(
@@ -105,10 +109,7 @@ class MyApp extends ConsumerWidget {
         '/registration': (BuildContext context) {
           return const RegistrationScreen();
         },
-        '/welcome': (BuildContext context) {
-          //welcome page
-          return const CoustNavigation();
-        },
+        
         '/home': (BuildContext context) {
           //welcome page
           return const DashboardScreen();
@@ -122,7 +123,7 @@ class MyApp extends ConsumerWidget {
           return const SalesScreen();
         },
         '/settings': (BuildContext context) {
-          //welcome page
+          
           return const SettingsScreen();
         },
         '/managebooking': (BuildContext context) {

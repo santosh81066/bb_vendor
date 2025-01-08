@@ -43,57 +43,120 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
 
-   // Static category list for now
-  final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
+  // Static category list for now
+  final List<String> categoryList = [
+    "Residential",
+    "Commercial",
+    "Industrial",
+    "Agricultural"
+  ];
   String selectedCategory = "Residential"; // Default selected category
+  final LatLng indiaCenter = LatLng(20.5937, 78.9629);
 
   void _searchLocation(WidgetRef ref) async {
+    // Ensure location text is not empty before searching
+    if (location.text.isEmpty) {
+      return;
+    }
+
     final response = await http.get(Uri.parse(
         'https://nominatim.openstreetmap.org/search?q=${location.text}&format=json&addressdetails=1&limit=1'));
+
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
       if (data.isNotEmpty) {
         double lat = double.parse(data[0]['lat']);
         double lon = double.parse(data[0]['lon']);
-        ref.read(latlangs.notifier).state = LatLng(lat, lon);
 
-        _mapController.move(ref.watch(latlangs), 15.0);
-      }
-    }
-  }
+        // Update the state with the new latitude and longitude
+        LatLng loc = LatLng(lat, lon);
+        ref.read(latlangs.notifier).state = loc;
 
+        // Move the map to the new coordinates
+        _mapController.move(loc, 10.0);
 
-  Future<void> _pickImage(BuildContext context, ImageSource source) async {
-  try {
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      File imageFile = File(pickedFile.path);
-
-      // Check the file size (maximum 2MB)
-      final fileSizeInBytes = await imageFile.length();
-      final maxFileSize = 2 * 1024 * 1024; // 2MB in bytes
-
-      if (fileSizeInBytes > maxFileSize) {
-        // File size is too large, show an error
-        _showAlertDialog('Error', 'File size exceeds 2MB. Please select a smaller file.');
-      } else {
-        // Valid image size, proceed
         setState(() {
-          _profileImage = imageFile;
+          location.text =
+              '${data[0]['display_name']}'; // Display full address in the location field
         });
       }
     }
-  } catch (e) {
-    _showAlertDialog('Error', 'Failed to pick image: $e');
   }
-}
 
+  void _onMapTap(LatLng latLng) async {
+    // Fetch the address from the tapped coordinates
+    String address = await _getAddressFromLatLng(latLng);
 
+    // Set the location text field to the fetched address
+    setState(() {
+      location.text = address;
+    });
+
+    // Update the state with the new location
+    ref.read(latlangs.notifier).state = latLng;
+
+    // Move the map to the tapped location
+    _mapController.move(latLng, 15.0);
+  }
+
+  Future<String> _getAddressFromLatLng(LatLng latLng) async {
+    final response = await http.get(Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?lat=${latLng.latitude}&lon=${latLng.longitude}&format=json&addressdetails=1'));
+
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
+      if (data['address'] != null) {
+        var address = data['address'];
+
+        // Handle possible null values for road, city, state, country
+        String road = address['road'] ?? '';
+        String city =
+            address['city'] ?? address['town'] ?? address['village'] ?? '';
+        String state = address['state'] ?? '';
+        String country = address['country'] ?? '';
+
+        // Build the formatted address
+        String formattedAddress = '$road, $city, $state, $country'
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+
+        return formattedAddress.isEmpty
+            ? 'Address not found'
+            : formattedAddress;
+      }
+    }
+    return 'Address not found';
+  }
+
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+    try {
+      final pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        File imageFile = File(pickedFile.path);
+
+        // Check the file size (maximum 2MB)
+        final fileSizeInBytes = await imageFile.length();
+        final maxFileSize = 2 * 1024 * 1024; // 2MB in bytes
+
+        if (fileSizeInBytes > maxFileSize) {
+          // File size is too large, show an error
+          _showAlertDialog(
+              'Error', 'File size exceeds 2MB. Please select a smaller file.');
+        } else {
+          // Valid image size, proceed
+          setState(() {
+            _profileImage = imageFile;
+          });
+        }
+      }
+    } catch (e) {
+      _showAlertDialog('Error', 'Failed to pick image: $e');
+    }
+  }
 
   Widget _buildImageUploadSection(String label) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      
       child: InkWell(
         onTap: () => _pickImage(context, ImageSource.gallery),
         child: Container(
@@ -128,7 +191,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +243,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                           children: [
                             _buildImageUploadSection(
                               "Property Image",
-                              
                             ),
                           ],
                         ),
@@ -263,10 +324,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   ref,
                                   2,
                                   textFieldStates),
-                              
+
                               Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: CoustTextfield(
+                                padding: const EdgeInsets.all(10.0),
+                                child: CoustTextfield(
                                   filled: textFieldStates[9],
                                   radius: 8.0,
                                   width: 10,
@@ -294,38 +355,43 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(left: 8.0),
                                 child: SizedBox(
-                                  height: 150,
-                                  width: double.infinity,
-                                  child: FlutterMap(
-                                    mapController: _mapController,
-                                    options: MapOptions(
-                                      initialCenter: ref.watch(latlangs),
-                                      initialZoom: 15.0,
-                                    ),
-                                    children: [
-                                      TileLayer(
-                                        urlTemplate:
-                                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                    height: 150,
+                                    width: double.infinity,
+                                    child: FlutterMap(
+                                      mapController: _mapController,
+                                      options: MapOptions(
+                                        initialCenter: LatLng(0.0,
+                                            0.0), // Set the center to (0, 0) for the whole world
+                                        initialZoom:
+                                            2.0, // Set zoom level to 2 to show the entire world
+                                        onTap: (tapPosition, latLng) {
+                                          _onMapTap(latLng);
+                                        },
                                       ),
-                                      MarkerLayer(
-                                        markers: [
-                                          Marker(
-                                            width: 80.0,
-                                            height: 80.0,
-                                            point: (ref.watch(latlangs)),
-                                            child: Container(
-                                              child: const Icon(
-                                                Icons.location_on,
-                                                color: Colors.red,
-                                                size: 40.0,
+                                      children: [
+                                        TileLayer(
+                                          urlTemplate:
+                                              "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", // OpenStreetMap Tile Layer
+                                        ),
+                                        MarkerLayer(
+                                          markers: [
+                                            Marker(
+                                              width: 80.0,
+                                              height: 80.0,
+                                              point: ref.watch(
+                                                  latlangs), // Your dynamic lat/lng value for the marker
+                                              child: Container(
+                                                child: const Icon(
+                                                  Icons.location_on,
+                                                  color: Colors.red,
+                                                  size: 40.0,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                          ],
+                                        ),
+                                      ],
+                                    )),
                               ),
                               SizedBox(
                                 width: double.infinity,
@@ -415,8 +481,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     );
   }
 
-  
-
   void _showAlertDialog(String title, String message) {
     showDialog(
       context: context,
@@ -426,7 +490,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              
               if (title == 'Error') {
                 Navigator.of(context).pop();
               }
@@ -439,68 +502,55 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   }
 }
 
-
-
-
-
-
-
-
 // const SizedBox(height: 10),
-                              // _buildTextField(
-                              //     "Property Address line 2",
-                              //     address2,
-                              //     "Please Enter Address 2",
-                              //     ref,
-                              //     3,
-                              //     textFieldStates),
-                              // const SizedBox(height: 10),
-                              // _buildTextField(
-                              //     "State",
-                              //     state,
-                              //     "Please Enter State",
-                              //     ref,
-                              //     4,
-                              //     textFieldStates),
-                              // const SizedBox(height: 10),
-                              // _buildTextField("City", city, "Please Enter City",
-                              //     ref, 5, textFieldStates),
-                              // const SizedBox(height: 10),
-                              // _buildTextField(
-                              //     "Pincode",
-                              //     pincode,
-                              //     "Please Enter Pin Number",
-                              //     ref,
-                              //     6,
-                              //     textFieldStates),
-                              // const SizedBox(height: 10),
-                              // _buildTextField(
-                              //     "start time",
-                              //     startTime,
-                              //     "Please Enter Start Time",
-                              //     ref,
-                              //     7,
-                              //     textFieldStates),
-                              // _buildTextField(
-                              //     "End time",
-                              //     endTime,
-                              //     "Please Enter End Time",
-                              //     ref,
-                              //     7,
-                              //     textFieldStates),
-                              // const SizedBox(height: 10),
-                              // const Padding(
-                              //   padding: EdgeInsets.only(left: 8.0),
-                              //   child: coustText(
-                              //     sName: "Location",
-                              //   ),
-                              // ),
-
-
-
-
-
-
+// _buildTextField(
+//     "Property Address line 2",
+//     address2,
+//     "Please Enter Address 2",
+//     ref,
+//     3,
+//     textFieldStates),
+// const SizedBox(height: 10),
+// _buildTextField(
+//     "State",
+//     state,
+//     "Please Enter State",
+//     ref,
+//     4,
+//     textFieldStates),
+// const SizedBox(height: 10),
+// _buildTextField("City", city, "Please Enter City",
+//     ref, 5, textFieldStates),
+// const SizedBox(height: 10),
+// _buildTextField(
+//     "Pincode",
+//     pincode,
+//     "Please Enter Pin Number",
+//     ref,
+//     6,
+//     textFieldStates),
+// const SizedBox(height: 10),
+// _buildTextField(
+//     "start time",
+//     startTime,
+//     "Please Enter Start Time",
+//     ref,
+//     7,
+//     textFieldStates),
+// _buildTextField(
+//     "End time",
+//     endTime,
+//     "Please Enter End Time",
+//     ref,
+//     7,
+//     textFieldStates),
+// const SizedBox(height: 10),
+// const Padding(
+//   padding: EdgeInsets.only(left: 8.0),
+//   child: coustText(
+//     sName: "Location",
+//   ),
+// ),
 
 // import 'dart:convert';
 // import 'dart:io';
@@ -775,40 +825,35 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 //   }
 // }
 
+// Widget _buildImageUploadSection(
+//     String label, File? imageFile, bool isProfile) {
+//   return Padding(
+//     padding: const EdgeInsets.all(0.0),
+//     child: InkWell(
+//       onTap: () => _pickImage(context, ImageSource.gallery, isProfile),
+//       child: Container(
+//         width: double.infinity,
+//         height: 110,
+//         color: CoustColors.colrButton1,
+//         child: Center(
+//           child: imageFile == null
+//               ? coustText(sName: "Upload photo", align: TextAlign.center)
+//               : Image.file(imageFile),
+//         ),
+//       ),
+//     ),
+//   );
+// }
 
+// Future<void> _pickImage(
+//     BuildContext context, ImageSource source, bool isProfile) async {
+//   final pickedFile = await _picker.pickImage(source: source);
 
-  // Widget _buildImageUploadSection(
-  //     String label, File? imageFile, bool isProfile) {
-  //   return Padding(
-  //     padding: const EdgeInsets.all(0.0),
-  //     child: InkWell(
-  //       onTap: () => _pickImage(context, ImageSource.gallery, isProfile),
-  //       child: Container(
-  //         width: double.infinity,
-  //         height: 110,
-  //         color: CoustColors.colrButton1,
-  //         child: Center(
-  //           child: imageFile == null
-  //               ? coustText(sName: "Upload photo", align: TextAlign.center)
-  //               : Image.file(imageFile),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-
-
-  
-  // Future<void> _pickImage(
-  //     BuildContext context, ImageSource source, bool isProfile) async {
-  //   final pickedFile = await _picker.pickImage(source: source);
-
-  //   if (pickedFile != null) {
-  //     {
-  //       ref
-  //           .read(addPropertyProvider.notifier)
-  //           .setPropertyImage(File(pickedFile.path));
-  //     }
-  //   }
-  // }
+//   if (pickedFile != null) {
+//     {
+//       ref
+//           .read(addPropertyProvider.notifier)
+//           .setPropertyImage(File(pickedFile.path));
+//     }
+//   }
+// }

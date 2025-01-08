@@ -1,3 +1,4 @@
+import 'package:bb_vendor/screens/editprofile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Colors/coustcolors.dart';
 import 'package:flutter/material.dart';
@@ -18,101 +19,101 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     print("screenheight$screenHeight");
 
     return Scaffold(
-      backgroundColor: Colors.white,  
-      
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
-      preferredSize: Size.fromHeight(125), // Adjust height as needed
-      child: Container(
-        // padding: const EdgeInsets.only(top: 32.0),
-           decoration: const BoxDecoration(
+        preferredSize: Size.fromHeight(125), // Adjust height as needed
+        child: Container(
+          // padding: const EdgeInsets.only(top: 32.0),
+          decoration: const BoxDecoration(
             color: Color(0xff6418c3),
             shape: BoxShape.rectangle,
             borderRadius: BorderRadiusDirectional.only(
-            bottomEnd: Radius.circular(25),
-            bottomStart: Radius.circular(25),
-          ),
-        ),
-        padding: EdgeInsets.all(screenWidth * 0.04),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-         
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Banquet Bookz',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 35,
-                  ),
-                  onPressed: () {
-                    // Notification action
-                  },
-                ),
-              ],
+              bottomEnd: Radius.circular(25),
+              bottomStart: Radius.circular(25),
             ),
-            SizedBox(height: screenHeight * 0.01),
-            Row(
-              
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  padding: EdgeInsets.all(screenWidth * 0.03),
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Color(0xff6418c3),
-                  ),
-                ),
-                SizedBox(width: screenWidth * 0.04),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Suresh Ramesh',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+          ),
+          padding: EdgeInsets.all(screenWidth * 0.02),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Banquet Bookz',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        // Profile action
-                      },
-                      child: const Text(
-                        'View Profile',
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications,
+                      color: Colors.white,
+                      size: 35,
+                    ),
+                    onPressed: () {
+                      // Notification action
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: screenHeight * 0.01),
+              Row(
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: EdgeInsets.all(screenWidth * 0.03),
+                    child: const Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Color(0xff6418c3),
+                    ),
+                  ),
+                  SizedBox(width: screenWidth * 0.04),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Suresh Ramesh',
                         style: TextStyle(
                           color: Colors.white,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditprofileSceren(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'View Profile',
+                          style: TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
       body: Column(
         children: [
-         
-
           // Main Content Section
           Expanded(
             child: Container(
@@ -148,19 +149,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     // Quick Actions
                     const Text(
                       'Quick actions',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildStateCard(Icons.person, 'Manage Bookings', screenWidth, screenHeight),
+                          _buildStateCard(Icons.person, 'Manage Bookings',
+                              screenWidth, screenHeight),
                           SizedBox(width: screenWidth * 0.02),
-                          _buildStateCard(Icons.storefront, 'Manage Properties', screenWidth, screenHeight),
+                          _buildStateCard(Icons.storefront, 'Manage Properties',
+                              screenWidth, screenHeight),
                           SizedBox(width: screenWidth * 0.02),
-                          _buildStateCard(Icons.currency_rupee, 'Manage Transactions', screenWidth, screenHeight),
-                          
+                          _buildStateCard(Icons.currency_rupee,
+                              'Manage Transactions', screenWidth, screenHeight),
                         ],
                       ),
                     ),
@@ -169,15 +173,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     // Stats Section
                     const Text(
                       'Stats',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildStatCard(Icons.storefront, '10 bookings', 'received\nin last 7 days', screenWidth, screenHeight),
+                        _buildStatCard(
+                            Icons.storefront,
+                            '10 bookings',
+                            'received\nin last 7 days',
+                            screenWidth,
+                            screenHeight),
                         SizedBox(width: screenWidth * 0.02),
-                        _buildStatCard(Icons.currency_rupee, '₹ 89,928', 'earned\nin last 7 days', screenWidth, screenHeight),
+                        _buildStatCard(
+                            Icons.currency_rupee,
+                            '₹ 89,928',
+                            'earned\nin last 7 days',
+                            screenWidth,
+                            screenHeight),
                       ],
                     ),
                     SizedBox(height: screenHeight * 0.03),
@@ -207,7 +222,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           SizedBox(height: 4),
                           Text(
                             'Made with ❤️ in India by GoCode Creations',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -222,7 +238,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildStateCard(IconData icon, String label, double screenWidth, double screenHeight) {
+  Widget _buildStateCard(
+      IconData icon, String label, double screenWidth, double screenHeight) {
     return Container(
       width: screenWidth * 0.3,
       padding: EdgeInsets.all(screenWidth * 0.03),
@@ -242,17 +259,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         children: [
           Icon(icon, color: const Color(0xff6418c3), size: screenWidth * 0.08),
           SizedBox(height: screenHeight * 0.01),
-          Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
+          Text(label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14)),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(IconData icon, String value, String subtitle, double screenWidth, double screenHeight) {
+  Widget _buildStatCard(IconData icon, String value, String subtitle,
+      double screenWidth, double screenHeight) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(screenWidth * 0.02),
-        height: screenHeight*0.10,
+        height: screenHeight * 0.10,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(screenWidth * 0.02),
@@ -266,16 +286,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, size: screenWidth * 0.08, color: const Color(0xff6418c3)),
+            Icon(icon,
+                size: screenWidth * 0.08, color: const Color(0xff6418c3)),
             SizedBox(width: screenWidth * 0.04),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
           ],
@@ -286,7 +309,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildTransactionCard(double screenWidth, double screenHeight) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.03)),
       color: const Color(0xff6418c3),
       child: Padding(
         padding: EdgeInsets.all(screenWidth * 0.04),
@@ -298,7 +322,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: const [
                 Text(
                   'Last 5 Transactions',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
                 ),
                 Text(
                   'View All',
@@ -317,7 +344,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: 5,
-              separatorBuilder: (context, index) => const Divider(color: Colors.white54),
+              separatorBuilder: (context, index) =>
+                  const Divider(color: Colors.white54),
               itemBuilder: (context, index) {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,7 +355,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       children: [
                         Text(
                           '15dfdf45dfdf4d12',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14),
                         ),
                         SizedBox(height: 4),
                         Text(
@@ -338,7 +369,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     Text(
                       '₹ 11,000',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14),
                     ),
                   ],
                 );
@@ -352,7 +386,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildListingStatsCard(double screenWidth, double screenHeight) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.03)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.03)),
       color: Colors.white,
       child: Padding(
         padding: EdgeInsets.all(screenWidth * 0.04),
@@ -396,7 +431,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   side: const BorderSide(color: Color(0xff6418c3)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(screenWidth * 0.02)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(screenWidth * 0.02)),
                   padding: EdgeInsets.symmetric(
                     vertical: screenHeight * 0.01,
                     horizontal: screenWidth * 0.04,
