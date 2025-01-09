@@ -77,12 +77,12 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         loadingState.state = false;
 
         // Parse the response body to AdminAuth model
-        AdminAuth adminAuth = AdminAuth.fromJson(responseBody!);
+        // AdminAuth adminAuth = AdminAuth.fromJson(responseBody!);
 
         // Update the state with the returned data
         state = state.copyWith(
           data: state.data?.copyWith(
-            userId: responseBody['data']['user_id'],
+            userId: responseBody!['data']['user_id'],
             username: responseBody['data']['username'],
             email: responseBody['data']['email'],
             address: responseBody['data']['address'],
@@ -98,7 +98,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
                 ['refresh_token_expires_at'],
             profilePic: responseBody['data']['profile_pic'],
           ),
-          statusCode: responseBody['statusCode'],
+          statusCode: responseBody!['statusCode'],
           success: responseBody['success'],
           messages: List<String>.from(responseBody['messages']),
         );
@@ -110,7 +110,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         print("SharedPreferences fetched successfully");
 
         // Store the entire AdminAuth object in SharedPreferences
-        final userData = json.encode(adminAuth.toJson());
+        final userData = json.encode(state.data!.toJson());
         bool saveResult = await prefs.setString('userData', userData);
 
         if (!saveResult) {
@@ -118,8 +118,8 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         }
 
         // Also saving the access token separately if needed
-        bool tokenSaveResult = await prefs.setString(
-            'accessToken', adminAuth.data?.accessToken ?? '');
+        bool tokenSaveResult =
+            await prefs.setString('accessToken', state.data?.accessToken ?? '');
         if (!tokenSaveResult) {
           print("Failed to save access token to SharedPreferences.");
         }

@@ -22,7 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-bool _isLoggedIn = false;
+  bool _isLoggedIn = false;
   @override
   void dispose() {
     _emailController.dispose();
@@ -32,7 +32,7 @@ bool _isLoggedIn = false;
 
   @override
   Widget build(BuildContext context) {
-     if (_isLoggedIn) {
+    if (_isLoggedIn) {
       return CoustNavigation(); // Replace with your actual Dashboard widget
     }
     final screenWidth = MediaQuery.of(context).size.width;
@@ -65,6 +65,13 @@ bool _isLoggedIn = false;
                       key: _formKey,
                       child: Column(
                         children: [
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final authState = ref.watch(authprovider);
+                              return Text(
+                                  "State token${authState.data!.accessToken} ");
+                            },
+                          ),
                           CustomTextFormField(
                             applyDecoration: true,
                             width: screenWidth * 0.8,
@@ -117,62 +124,62 @@ bool _isLoggedIn = false;
 
                                       if (_formKey.currentState!.validate()) {
                                         // Perform login
-                                        final LoginResult result =
-                                            await login.adminLogin(
+                                        // final LoginResult result =
+                                        await login.adminLogin(
                                           _emailController.text.trim(),
                                           _passwordController.text.trim(),
                                           ref,
                                         );
 
-                                        if (result.statusCode == 401) {
-                                          // Show error dialog for unauthorized access
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Login Error'),
-                                              content: Text(result
-                                                      .errorMessage ??
-                                                  'An unknown error occurred.'), // Default message
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: const Text('OK'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        } 
-                                        else {
-                                           setState(() {
-                                            _isLoggedIn = true;
-                                          });
-                                           Navigator.of(context).pushNamed('/welcome'); 
-                                          print(
-                                              "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
-                                          
-                                          if(result.responseBody ?['data']?['user_status'] == false)
-                                          {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Login Error'),
-                                              content: const Text(
-                                                  "Your services are de-activated, please contact admin."),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: const Text('OK'),
-                                                ),
-                                              ],
-                                            ),
-                                          
-                                          );
-                                          }
-                                        }
+                                        // if (result.statusCode == 401) {
+                                        //   // Show error dialog for unauthorized access
+                                        //   showDialog(
+                                        //     context: context,
+                                        //     builder: (context) => AlertDialog(
+                                        //       title: const Text('Login Error'),
+                                        //       content: Text(result
+                                        //               .errorMessage ??
+                                        //           'An unknown error occurred.'), // Default message
+                                        //       actions: [
+                                        //         TextButton(
+                                        //           onPressed: () =>
+                                        //               Navigator.of(context)
+                                        //                   .pop(),
+                                        //           child: const Text('OK'),
+                                        //         ),
+                                        //       ],
+                                        //     ),
+                                        //   );
+                                        // }
+                                        // else {
+                                        //    setState(() {
+                                        //     _isLoggedIn = true;
+                                        //   });
+                                        //    Navigator.of(context).pushNamed('/welcome');
+                                        //   print(
+                                        //       "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
+
+                                        //   if(result.responseBody ?['data']?['user_status'] == false)
+                                        //   {
+                                        //   showDialog(
+                                        //     context: context,
+                                        //     builder: (context) => AlertDialog(
+                                        //       title: const Text('Login Error'),
+                                        //       content: const Text(
+                                        //           "Your services are de-activated, please contact admin."),
+                                        //       actions: [
+                                        //         TextButton(
+                                        //           onPressed: () =>
+                                        //               Navigator.of(context)
+                                        //                   .pop(),
+                                        //           child: const Text('OK'),
+                                        //         ),
+                                        //       ],
+                                        //     ),
+
+                                        //   );
+                                        //   }
+                                        // }
                                       }
                                     },
                               isLoading: isLoading,
