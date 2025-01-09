@@ -1,3 +1,4 @@
+import 'package:bb_vendor/widgets/bottomnavigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import '../widgets/customelevatedbutton.dart';
 import '../widgets/customtextfield.dart';
 import '../widgets/heading.dart';
 import '../widgets/text.dart';
+import 'dashboard.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,7 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+bool _isLoggedIn = false;
   @override
   void dispose() {
     _emailController.dispose();
@@ -30,6 +32,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+     if (_isLoggedIn) {
+      return CoustNavigation(); // Replace with your actual Dashboard widget
+    }
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -140,25 +145,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           );
                                         } 
                                         else {
+                                           setState(() {
+                                            _isLoggedIn = true;
+                                          });
                                            Navigator.of(context).pushNamed('/welcome'); 
-                                          // print(
-                                          //     "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
-                                          // showDialog(
-                                          //   context: context,
-                                          //   builder: (context) => AlertDialog(
-                                          //     title: const Text('Login Error'),
-                                          //     content: const Text(
-                                          //         "Your services are de-activated, please contact admin."),
-                                          //     actions: [
-                                          //       TextButton(
-                                          //         onPressed: () =>
-                                          //             Navigator.of(context)
-                                          //                 .pop(),
-                                          //         child: const Text('OK'),
-                                          //       ),
-                                          //     ],
-                                          //   ),
-                                          // );
+                                          print(
+                                              "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
+                                          
+                                          if(result.responseBody ?['data']?['user_status'] == false)
+                                          {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Login Error'),
+                                              content: const Text(
+                                                  "Your services are de-activated, please contact admin."),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(),
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            ),
+                                          
+                                          );
+                                          }
                                         }
                                       }
                                     },

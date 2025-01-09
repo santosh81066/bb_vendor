@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Models/get_properties_model.dart';
 
+
 class ManagePropertyScreen extends ConsumerStatefulWidget {
   const ManagePropertyScreen({super.key});
 
@@ -16,10 +17,12 @@ class ManagePropertyScreen extends ConsumerStatefulWidget {
 
 class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
   String filter = 'All';
+  
 
   @override
   Widget build(BuildContext context) {
     final propertyListAsyncValue = ref.watch(propertyListProvider);
+     
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
@@ -82,39 +85,43 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
             ),
           ),
           // Expanded(
-          //   child: propertyListAsyncValue.when(
-          //     data: (properties) {
-          //       final filteredProperties = properties
-          //           .where((property) => (filter == "All" ||
-          //               (filter == "Subscribed" &&
-          //                   property.activationStatus == "Subscribed") ||
-          //               (filter == "Deactivated" &&
-          //                   property.activationStatus == "Deactivated") ||
-          //               (filter == "UnSubscribed" &&
-          //                   property.activationStatus == "UnSubscribed")))
-          //           .toList();
+            // child: propertyListAsyncValue.when(
+            //   data: (properties) {
+            //     final filteredProperties = properties
+            //         .where((property) => (filter == "All" ||
+            //             (filter == "Subscribed" &&
+            //                 property.activationStatus == "Subscribed") ||
+            //             (filter == "Deactivated" &&
+            //                 property.activationStatus == "Deactivated") ||
+            //             (filter == "UnSubscribed" &&
+            //                 property.activationStatus == "UnSubscribed")))
+            //         .toList();
 
-          //       return ListView.builder(
-          //         itemCount: filteredProperties.length,
-          //         itemBuilder: (context, index) {
-          //           final property = filteredProperties[index];
-          //           return _buildPlanCard(property);
-          //         },
-          //       );
-          //     },
-          //     loading: () => const Center(child: CircularProgressIndicator()),
-          //     error: (error, stack) => Center(child: Text('Error: $error')),
-          //   ),
-          // _buildPlanCard(property);
-          // ),
+            //     return ListView.builder(
+            //       itemCount: filteredProperties.length,
+            //       itemBuilder: (context, index) {
+            //         final property = filteredProperties[index];
+            //         return _buildPlanCard(property);
+            //       },
+            //     );
+            //   },
+            //   loading: () => const Center(child: CircularProgressIndicator()),
+            //   error: (error, stack) => Center(child: Text('Error: $error')),
+            // ),
+            // 
+          // )
+          // ,
           _buildPlanCard()
         ],
-
       ),
     );
   }
+  
 
   Widget _buildPlanCard() {
+     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
@@ -140,60 +147,157 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text(
-                            // property.propertyName ?? 'Unknown Name',
-                            "swagat grand",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                          child: Center(
+                            child: Text(
+                              // Text.propertyName ?? 'Unknown Name',
+                            'BANQUET STANDARD',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                              // overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 4),
-                    Text(
-                      // property.address1 ?? 'Unknown Address',
-                      "miyapur",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+
+                          // Display Image
+                  Center(
+                    child: Image.asset(
+                      'assets/images/img1.png',
+                      width: screenWidth * 0.9, // Adjust size as needed
+                      height: screenHeight * 0.25, // Adjust size as needed
+                      fit: BoxFit.cover,
+                      // errorBuilder: (context, error, stackTrace) {
+                      //   return const Text(
+                      //     "Image not found",
+                      //     style: TextStyle(color: Colors.red),
+                      //   );
+                      // },
                     ),
+                  ),
+                   
+
                     const SizedBox(height: 4),
-                    const Text(
-                      "Revenue Generated: ₹89,928",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
+
+                          Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Edit Button
+            OutlinedButton(
+              onPressed: () {
+                // Handle edit action
+              },
+              style: OutlinedButton.styleFrom(
+                
+                side: BorderSide(color: Color.fromARGB(167, 88, 11, 181)), // Border color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // Rounded edges
+                ),
+              ),
+              child: const Text(
+                "Edit",
+                style: TextStyle(color: Color.fromARGB(167, 88, 11, 181)), // Text color
+              ),
+            ),
+            const SizedBox(width: 10), // Spacing between buttons
+
+            // Delete Button
+            OutlinedButton(
+              onPressed: () {
+                // Handle delete action
+              },
+              style: OutlinedButton.styleFrom(
+                // backgroundColor: Color.fromARGB(157, 188, 24, 164),
+                side: BorderSide(color: Color.fromARGB(167, 88, 11, 181)), // Border color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  
+                ),
+              ),
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Color.fromARGB(167, 88, 11, 181)), // Text color
+              ),
+            ),
+          ],
+        ),
+
+         const SizedBox(height: 1),
+          Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Review Button
+            Padding(
+              // padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 40),
+               padding: EdgeInsets.all(1),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Handle review action
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize:Size (160,40),
+                   backgroundColor:Color.fromARGB(167, 88, 11, 181),
+                  
+                  elevation: 0, // No shadow
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                  ),
+                ),
+                child: const Text(
+                  "Add Hall",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+            const SizedBox(width: 1), // Spacing between buttons
+
+            // Publish Button
+            Padding(
+              //  minimumSize: const Size(120, 50),
+              // padding:  EdgeInsets.symmetric(screenWidth ),
+               padding: EdgeInsets.all(1),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Handle publish action
+                },
+                style: ElevatedButton.styleFrom(
+                   minimumSize:Size (160,40),
+                   backgroundColor: Color.fromARGB(167, 88, 11, 181),
+                  // primary: Colors.blue, // Background color (blue)
+                  // onPrimary: Colors.white, // Text color
+                  elevation: 0, // No shadow
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                  ),
+                ),
+                child: const Text(
+                  "Subscribe",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+
+
+                    
                     const SizedBox(height: 4),
-                    const Text(
-                      "Last Subscribed: 28th Feb, 2024 at 06:35 PM",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    
                     const SizedBox(height: 4),
-                    Text(
-                      // ${property.activationStatus ?? 'Unknown Status'}
-                      "Status: activate",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
+                    
                   ],
                 ),
               ),
               // if (property.propertyPic != null)
                 Container(
                   width: double.infinity,
-                  height: 150, // Adjust height as needed
+                  height: 1, // Adjust height as needed
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(4),
@@ -206,32 +310,32 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     // ),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigator.of(context).pushNamed(
-                    //   '/subscriptionScreen',
-                    //   arguments: property,
-                    // );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    minimumSize:
-                        const Size(double.infinity, double.minPositive),
-                  ),
-                  child: const Text(
-                    'Subscribe',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.all(8.0),
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       Navigator.of(context).pushNamed(
+              //         '/subscriptionScreen',
+              //         // arguments: property,
+              //       );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(12),
+              //       ),
+              //       padding: const EdgeInsets.symmetric(vertical: 12),
+              //       minimumSize:
+              //           const Size(double.infinity, double.minPositive),
+              //     ),
+              //     child: const Text(
+              //       'Add Plan',
+              //       style: TextStyle(
+              //         fontSize: 14,
+              //         color: Colors.white,
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
