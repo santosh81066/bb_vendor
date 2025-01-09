@@ -6,4 +6,5 @@ class Bbapi {
   static const String registration = "$baseUrl/bbusereg";
   static const String addproperty = "$baseUrl/add_property/";
   static const String subscriptions = '$baseUrl/subscription-plans/';
+  static const String getcategory="$baseUrl/bbaddpropcat";
 }

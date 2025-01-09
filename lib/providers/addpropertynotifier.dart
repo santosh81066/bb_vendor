@@ -30,7 +30,7 @@ class AddPropertyNotifier extends StateNotifier<PropertyModel> {
     BuildContext context,
     WidgetRef ref,
     String? propertyName,
-    String? category,
+    String?selectedCategory,
     String? address1,
     String? address2,
     String? location,
@@ -74,7 +74,7 @@ class AddPropertyNotifier extends StateNotifier<PropertyModel> {
 
     // Add the text fields to the request
     request.fields['property_name'] = propertyName ?? '';
-    request.fields['category'] = category ?? '';
+    request.fields['category'] = selectedCategory ?? '';
     request.fields['address_1'] = address1 ?? '';
     request.fields['address_2'] = address2 ?? '';
     request.fields['location'] = location ?? '';
