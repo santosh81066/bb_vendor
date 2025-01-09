@@ -81,37 +81,40 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
               },
             ),
           ),
-          Expanded(
-            child: propertyListAsyncValue.when(
-              data: (properties) {
-                final filteredProperties = properties
-                    .where((property) => (filter == "All" ||
-                        (filter == "Subscribed" &&
-                            property.activationStatus == "Subscribed") ||
-                        (filter == "Deactivated" &&
-                            property.activationStatus == "Deactivated") ||
-                        (filter == "UnSubscribed" &&
-                            property.activationStatus == "UnSubscribed")))
-                    .toList();
+          // Expanded(
+          //   child: propertyListAsyncValue.when(
+          //     data: (properties) {
+          //       final filteredProperties = properties
+          //           .where((property) => (filter == "All" ||
+          //               (filter == "Subscribed" &&
+          //                   property.activationStatus == "Subscribed") ||
+          //               (filter == "Deactivated" &&
+          //                   property.activationStatus == "Deactivated") ||
+          //               (filter == "UnSubscribed" &&
+          //                   property.activationStatus == "UnSubscribed")))
+          //           .toList();
 
-                return ListView.builder(
-                  itemCount: filteredProperties.length,
-                  itemBuilder: (context, index) {
-                    final property = filteredProperties[index];
-                    return _buildPlanCard(property);
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-            ),
-          ),
+          //       return ListView.builder(
+          //         itemCount: filteredProperties.length,
+          //         itemBuilder: (context, index) {
+          //           final property = filteredProperties[index];
+          //           return _buildPlanCard(property);
+          //         },
+          //       );
+          //     },
+          //     loading: () => const Center(child: CircularProgressIndicator()),
+          //     error: (error, stack) => Center(child: Text('Error: $error')),
+          //   ),
+          // _buildPlanCard(property);
+          // ),
+          _buildPlanCard()
         ],
+
       ),
     );
   }
 
-  Widget _buildPlanCard(Property property) {
+  Widget _buildPlanCard() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
@@ -138,7 +141,8 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            property.propertyName ?? 'Unknown Name',
+                            // property.propertyName ?? 'Unknown Name',
+                            "swagat grand",
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -151,7 +155,8 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      property.address1 ?? 'Unknown Address',
+                      // property.address1 ?? 'Unknown Address',
+                      "miyapur",
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -175,7 +180,8 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Status: ${property.activationStatus ?? 'Unknown Status'}",
+                      // ${property.activationStatus ?? 'Unknown Status'}
+                      "Status: activate",
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -184,7 +190,7 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                   ],
                 ),
               ),
-              if (property.propertyPic != null)
+              // if (property.propertyPic != null)
                 Container(
                   width: double.infinity,
                   height: 150, // Adjust height as needed
@@ -192,22 +198,22 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(4),
                     ),
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        'http://93.127.172.164:8080${property.propertyPic}',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
+                    // image: DecorationImage(
+                    //   image: NetworkImage(
+                    //     'http://93.127.172.164:8080${property.propertyPic}',
+                    //   ),
+                    //   fit: BoxFit.cover,
+                    // ),
                   ),
                 ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      '/subscriptionScreen',
-                      arguments: property,
-                    );
+                    // Navigator.of(context).pushNamed(
+                    //   '/subscriptionScreen',
+                    //   arguments: property,
+                    // );
                   },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(

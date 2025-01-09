@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import "package:bb_vendor/providers/categoryprovider.dart";
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key});
@@ -38,14 +39,24 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       StateNotifierProvider<AddPropertyNotifier, PropertyModel>(
     (ref) => AddPropertyNotifier(),
   );
+   @override
+void initState() {
+  super.initState();
+  _fetchCategories();
+}
+void _fetchCategories() {
+  ref.read(categoryProvider.notifier).getCategory();
+}
+
   final _validationKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
 
    // Static category list for now
-  final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
-  String selectedCategory = "Residential"; // Default selected category
+    
+  // final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
+  String selectedCategory = ""; // Default selected category
 
   void _searchLocation(WidgetRef ref) async {
     final response = await http.get(Uri.parse(
@@ -91,6 +102,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 
 
   Widget _buildImageUploadSection(String label) {
+   
     return Padding(
       padding: const EdgeInsets.all(20.0),
       
@@ -133,6 +145,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   @override
   Widget build(BuildContext context) {
     final propertyPic = ref.watch(addPropertyProvider).propertyImage;
+     final category = ref.watch(categoryProvider);
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
@@ -224,37 +237,73 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   textFieldStates),
                               const SizedBox(height: 15),
                               // Category selection using radio buttons
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: CoustColors.colrMainbg,
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: coustText(
-                                        sName: "Category",
-                                        textsize: 18,
-                                        fontweight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    ...categoryList.map((category) {
-                                      return RadioListTile<String>(
-                                        title: Text(category),
-                                        value: category,
-                                        groupValue: selectedCategory,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            selectedCategory = value!;
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ],
-                                ),
+                             // Category selection using radio buttons
+                            Container(
+                              decoration: BoxDecoration(
+                                color: CoustColors.colrMainbg,
+                                borderRadius: BorderRadius.circular(10.0),
                               ),
+                              child: Consumer(
+                                builder: (context, ref, child) {
+                                  // Watch the provider for AsyncValue<Category>
+                                  final categoryState = ref.watch(categoryProvider);
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: coustText(
+                                          sName: "Category",
+                                          textsize: 18,
+                                          fontweight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      categoryState.when(
+                                        data: (category) {
+                                          // Check if data is null or empty
+                                          if (category.data == null || category.data!.isEmpty) {
+                                            return const Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text("No categories available"),
+                                            );
+                                          }
+
+                                          return Column(
+                                            children: category.data!.map((data) {
+                                              return RadioListTile<String>(
+                                                title: Text(data.name ?? ""),
+                                                value: data.name ?? "",
+                                                groupValue: selectedCategory,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    selectedCategory = value!;
+                                                  });
+                                                },
+                                              );
+                                            }).toList(),
+                                          );
+                                        },
+                                        loading: () => const Center(
+                                          child: Padding(
+                                            padding: EdgeInsets.all(16.0),
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                        error: (error, stack) => Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Center(
+                                            child: Text('Failed to load categories: $error'),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+
+
                               const SizedBox(height: 10),
                               _buildTextField(
                                   "Property Address",
@@ -353,7 +402,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                                 context,
                                                 ref,
                                                 propertyname.text.trim(),
-                                                category.text.trim(),
+                                                selectedCategory,
                                                 address1.text.trim(),
                                                 address2.text.trim(),
                                                 sLoc,
