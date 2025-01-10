@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Colors/coustcolors.dart';
@@ -12,7 +11,7 @@ import 'package:bb_vendor/Screens/editprofile.dart';
 import 'package:bb_vendor/Screens/forgotpassword.dart';
 import 'package:bb_vendor/Screens/login.dart';
 import 'package:bb_vendor/Screens/manage.dart';
-import 'package:bb_vendor/Screens/managebookinng.dart';       
+import 'package:bb_vendor/Screens/managebookinng.dart';
 import 'package:bb_vendor/Screens/manageproperty.dart';
 import 'package:bb_vendor/Screens/registration.dart';
 import 'package:bb_vendor/Screens/sales.dart';
@@ -22,7 +21,6 @@ import 'package:bb_vendor/Screens/subscription_screen.dart';
 import "package:bb_vendor/Screens/managecalendar.dart";
 import "package:bb_vendor/Screens/calendarpropertieslist.dart";
 import "package:bb_vendor/screens/addhall.dart";
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,12 +36,9 @@ class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authprovider);
     print('build main.dart');
-      print('Building the widget');
-  print("Auth state data: ${authState.data}");
-  print("User Role: ${authState.data?.userRole}");
-  print("User Status: ${authState.data?.userStatus}");
+    print('Building the widget');
+
     return MaterialApp(
       title: 'Banquetbookz Vendor',
       theme: ThemeData(
@@ -68,6 +63,7 @@ class MyApp extends ConsumerWidget {
         '/': (context) {
           return Consumer(
             builder: (context, ref, child) {
+              final authState = ref.watch(authprovider);
               print('Auth state updated: ${authState.toJson()}');
               // Debugging logs for understanding the state
               print("Auth state data: ${authState.data}");
@@ -75,8 +71,7 @@ class MyApp extends ConsumerWidget {
               print("User Status: ${authState.data?.userStatus}");
 
               // Check if the user is authenticated and has a valid role and status
-              if (authState.data?.userStatus == true &&
-                  authState.data?.userRole == "v") {
+              if (authState.data?.accessToken != null) {
                 // Navigate to the welcome page if conditions are met
                 return const CoustNavigation(); // Welcome page
               }
@@ -110,7 +105,6 @@ class MyApp extends ConsumerWidget {
         '/registration': (BuildContext context) {
           return const RegistrationScreen();
         },
-        
         '/home': (BuildContext context) {
           //welcome page
           return const DashboardScreen();
@@ -124,7 +118,6 @@ class MyApp extends ConsumerWidget {
           return const SalesScreen();
         },
         '/settings': (BuildContext context) {
-          
           return const SettingsScreen();
         },
         '/managebooking': (BuildContext context) {
