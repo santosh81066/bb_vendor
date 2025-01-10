@@ -1,5 +1,6 @@
-import 'package:bb_vendor/Models/addpropertymodel.dart';
+import 'package:bb_vendor/models/addpropertymodel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import "package:bb_vendor/models/get_properties_model.dart";
 import 'dart:convert';
 import 'dart:io';
 import 'package:bb_vendor/utils/bbapi.dart';
@@ -7,24 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AddPropertyNotifier extends StateNotifier<PropertyModel> {
-  AddPropertyNotifier()
-      : super(PropertyModel(
-            propertyName: '',
-            category: '',
-            address1: '',
-            propertyImage: null,
-            location: '',
-            address2: '',
-            state: '',
-            city: '',
-            pincode: '',
-            startTime: '',
-            endTime: ''));
+class AddPropertyNotifier extends StateNotifier<Property> {
+  AddPropertyNotifier(): super(Property.initial());
 
-  void setPropertyImage(File image) {
-    state = state.copyWith(propertyImage: image);
-  }
+  // void setPropertyImage(File image) {
+  //   state = state.copyWith(propertyImage: image);
+  // }
 
   Future<void> addProperty(
     BuildContext context,
@@ -157,15 +146,47 @@ class AddPropertyNotifier extends StateNotifier<PropertyModel> {
       );
     }
   }
+
+ Future<void> getproperty() async {
+    print("fetching getproperties");
+
+    try {
+      // Ensure the correct endpoint for fetching property is used.
+      final response = await http.get(
+        Uri.parse(Bbapi.addproperty), // Use the appropriate endpoint here.
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+    if (response.statusCode == 200) {
+      
+      final decodedResponse = json.decode(response.body);
+      print('Decoded Response: $decodedResponse');
+
+      // Parse the response into the Property model
+      Property property = Property.fromJson(decodedResponse);
+      print('Parsed Properties: ${property.data![0]}');
+
+      // Update the state with the fetched data
+      state = property;
+      // Debugging the state
+      print("Updated state: ${state.data}");
+    } else {
+      final errorMessage = 'Error fetching properties: ${response.body}';
+      print(errorMessage);
+
+      // Optionally, handle the error in the state
+      state = Property.initial().copyWith(messages: [errorMessage]);
+    }
+  } catch (e) {
+    print("Error fetching properties: $e");
+
+    // Optionally, handle the error in the state
+    state = Property.initial().copyWith(messages: [e.toString()]);
+  }
+  }
 }
 
-// import 'package:banquetbookz_vendor/Models/addpropertymodel.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'dart:convert';
-// import 'dart:io';
-// import 'package:banquetbookz_vendor/utils/bbapi.dart';
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:shared_preferences/shared_preferences.dart';
-// class SubscribersNotifier extends StateNotifier<subscription> {
-//   SubscribersNotifier() : super(PropertyModel());
+final propertyNotifierProvider =StateNotifierProvider<AddPropertyNotifier,Property>((ref){
+  return AddPropertyNotifier();
+});

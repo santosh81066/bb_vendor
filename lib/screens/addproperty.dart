@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bb_vendor/Colors/coustcolors.dart';
-import 'package:bb_vendor/Models/addpropertymodel.dart';
+import 'package:bb_vendor/models/addpropertymodel.dart';
 import 'package:bb_vendor/Providers/stateproviders.dart';
 import 'package:bb_vendor/Providers/textfieldstatenotifier.dart';
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:bb_vendor/Widgets/textfield.dart';
-import 'package:bb_vendor/Providers/addpropertynotifier.dart';
+import 'package:bb_vendor/providers/addpropertynotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,10 +35,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final TextEditingController startTime = TextEditingController();
   final TextEditingController endTime = TextEditingController();
 
-  final addPropertyProvider =
-      StateNotifierProvider<AddPropertyNotifier, PropertyModel>(
-    (ref) => AddPropertyNotifier(),
-  );
+  // final addPropertyProvider =
+  //     StateNotifierProvider<AddPropertyNotifier, Property>(
+  //   (ref) => AddPropertyNotifier(),
+  // );
    @override
 void initState() {
   super.initState();
@@ -144,7 +144,7 @@ void _fetchCategories() {
 
   @override
   Widget build(BuildContext context) {
-    final propertyPic = ref.watch(addPropertyProvider).propertyImage;
+    // final propertyPic = ref.watch(addPropertyProvider).propertyImage;
      final category = ref.watch(categoryProvider);
 
     return Scaffold(
@@ -397,7 +397,7 @@ void _fetchCategories() {
                                               '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
                                           ref
                                               .read(
-                                                  addPropertyProvider.notifier)
+                                                  propertyNotifierProvider.notifier)
                                               .addProperty(
                                                 context,
                                                 ref,
@@ -411,7 +411,7 @@ void _fetchCategories() {
                                                 pincode.text.trim(),
                                                 endTime.text.trim(),
                                                 startTime.text.trim(),
-                                                propertyPic, // New field
+                                                _profileImage, // New field
                                               );
                                         }
                                       },

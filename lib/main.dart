@@ -21,6 +21,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:bb_vendor/Screens/subscription_screen.dart';
 import "package:bb_vendor/Screens/managecalendar.dart";
 import "package:bb_vendor/Screens/calendarpropertieslist.dart";
+import "package:bb_vendor/screens/addhall.dart";
 
 
 void main() async {
@@ -138,6 +139,9 @@ class MyApp extends ConsumerWidget {
         '/addproperty': (BuildContext context) {
           return const AddPropertyScreen();
         },
+           '/addhall': (BuildContext context) {
+          return const PropertyHallScreen();
+          },
         '/alltransactions': (BuildContext context) {
           return const TransactionsScreen();
         },
