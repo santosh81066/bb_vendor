@@ -16,8 +16,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import "package:bb_vendor/providers/categoryprovider.dart";
 
-import 'Location.dart';
-
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key});
 
@@ -62,34 +60,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   String selectedCategory = ""; // Default selected category
 
   void _searchLocation(WidgetRef ref) async {
-    if (location.text.isEmpty) {
-      _showAlertDialog('Error', 'Please enter a location to search.');
-      return;
-    }
-
     final response = await http.get(Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(location.text)}&format=json&addressdetails=1&limit=1'));
-
+        'https://nominatim.openstreetmap.org/search?q=${location.text}&format=json&addressdetails=1&limit=1'));
     if (response.statusCode == 200) {
       var data = json.decode(response.body);
-
       if (data.isNotEmpty) {
         double lat = double.parse(data[0]['lat']);
         double lon = double.parse(data[0]['lon']);
         ref.read(latlangs.notifier).state = LatLng(lat, lon);
 
-        // Move map to the searched location
-        _mapController.move(LatLng(lat, lon), 15.0);
-
-        // Update the location field with the display name
-        setState(() {
-          location.text = data[0]['display_name'];
-        });
-      } else {
-        _showAlertDialog('Error', 'No results found for the entered location.');
+        _mapController.move(ref.watch(latlangs), 15.0);
       }
-    } else {
-      _showAlertDialog('Error', 'Failed to fetch location data.');
     }
   }
 
@@ -332,6 +313,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   ref,
                                   2,
                                   textFieldStates),
+
                               Padding(
                                 padding: const EdgeInsets.all(10.0),
                                 child: CoustTextfield(
@@ -339,6 +321,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   radius: 8.0,
                                   width: 10,
                                   isVisible: true,
+                                  iconwidget:
+                                      const Icon(Icons.location_searching),
                                   suficonColor: CoustColors.colrMainText,
                                   title: "Location",
                                   controller: location,
@@ -357,62 +341,49 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   },
                                 ),
                               ),
-                              SizedBox(height: 10),
-
-// Add a button to open the map page
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  // Action for selecting on map
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RapidoMapPage(), // Replace with your map page
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: SizedBox(
+                                  height: 150,
+                                  width: double.infinity,
+                                  child: FlutterMap(
+                                    mapController: _mapController,
+                                    options: MapOptions(
+                                      initialCenter: ref.watch(latlangs),
+                                      initialZoom: 15.0,
                                     ),
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.location_pin,
-                                  color: Colors.blueAccent,
-                                ),
-                                label: const Text(
-                                  "Select on map",
-                                  style: TextStyle(
-                                    color: Colors.blueAccent,
-                                    fontWeight: FontWeight.bold,
+                                    children: [
+                                      TileLayer(
+                                        urlTemplate:
+                                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                      ),
+                                      MarkerLayer(
+                                        markers: [
+                                          Marker(
+                                            width: 80.0,
+                                            height: 80.0,
+                                            point: (ref.watch(latlangs)),
+                                            child: Container(
+                                              child: const Icon(
+                                                Icons.location_on,
+                                                color: Colors.red,
+                                                size: 40.0,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  elevation: 2,
-                                  backgroundColor:
-                                      Colors.white, // Background color
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        20), // Rounded corners
-                                    side: const BorderSide(
-                                        color:
-                                            Colors.blueAccent), // Border color
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10), // Padding
                                 ),
                               ),
-
-                              SizedBox(height: 10),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: 8.0),
-                              //   child: SizedBox(
-                              //       height: 50,
-                              //       width: 180,
-                              //       child: ),
-                              // ),
                               SizedBox(
                                 width: double.infinity,
                                 child: Consumer(
                                   builder: (BuildContext context, WidgetRef ref,
                                       Widget? child) {
                                     return CoustElevatedButton(
-                                      buttonName: "Add Property",
+                                      buttonName: "Register",
                                       width: double.infinity,
                                       bgColor: CoustColors.colrButton3,
                                       radius: 8,

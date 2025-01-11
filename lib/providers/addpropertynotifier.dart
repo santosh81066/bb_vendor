@@ -7,6 +7,7 @@ import 'package:bb_vendor/utils/bbapi.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bb_vendor/providers/loader.dart';
 
 class AddPropertyNotifier extends StateNotifier<Property> {
   AddPropertyNotifier(): super(Property.initial());
@@ -15,137 +16,207 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   //   state = state.copyWith(propertyImage: image);
   // }
 
-  Future<void> addProperty(
-    BuildContext context,
-    WidgetRef ref,
-    String? propertyName,
-    String?selectedCategory,
-    String? address1,
-    String? address2,
-    String? location,
-    String? state,
-    String? city,
-    String? pincode,
-    String? startTime,
-    String? endTime,
-    File? propertyImage,
-  ) async {
-    Uri url = Uri.parse(Bbapi.addproperty);
+  // Future<void> addProperty(
+  //   BuildContext context,
+  //   WidgetRef ref,
+  //   String? propertyName,
+  //   String?selectedCategory,
+  //   String? address1,
+  //   String? address2,
+  //   String? location,
+  //   String? state,
+  //   String? city,
+  //   String? pincode,
+  //   String? startTime,
+  //   String? endTime,
+  //   File? propertyImage,
+  // ) async {
+  //   Uri url = Uri.parse(Bbapi.addproperty);
 
-    final request = http.MultipartRequest('POST', url);
+  //   final request = http.MultipartRequest('POST', url);
 
-    // Retrieve the token from SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userData = prefs.getString('userData');
+  //   // Retrieve the token from SharedPreferences
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   String? userData = prefs.getString('userData');
 
-    String? token;
-    if (userData != null) {
-      final extractedData = json.decode(userData) as Map<String, dynamic>;
-      token = extractedData['token'];
-    }
+  //   String? token;
+  //   if (userData != null) {
+  //     final extractedData = json.decode(userData) as Map<String, dynamic>;
+  //     token = extractedData['token'];
+  //   }
 
-    // Debugging token
-    print('Access Token: $token');
+  //   // Debugging token
+  //   print('Access Token: $token');
 
-    if (token != null) {
-      request.headers['Authorization'] = 'Token $token';
-    }
+  //   if (token != null) {
+  //     request.headers['Authorization'] = 'Token $token';
+  //   }
 
-    if (propertyImage != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'property_pic',
-        propertyImage.path,
-      ));
+  //   if (propertyImage != null) {
+  //     request.files.add(await http.MultipartFile.fromPath(
+  //       'property_pic',
+  //       propertyImage.path,
+  //     ));
 
-      // Debugging file path
-      print('Property Image Path: ${propertyImage.path}');
-    }
+  //     // Debugging file path
+  //     print('Property Image Path: ${propertyImage.path}');
+  //   }
 
-    // Add the text fields to the request
-    request.fields['property_name'] = propertyName ?? '';
-    request.fields['category'] = selectedCategory ?? '';
-    request.fields['address_1'] = address1 ?? '';
-    request.fields['address_2'] = address2 ?? '';
-    request.fields['location'] = location ?? '';
-    request.fields['state'] = state ?? '';
-    request.fields['city'] = city ?? '';
-    request.fields['pincode'] = pincode ?? '';
-    request.fields['start_time'] = startTime ?? '';
-    request.fields['end_time'] = endTime ?? '';
+  //   // Add the text fields to the request
+  //   request.fields['property_name'] = propertyName ?? '';
+  //   request.fields['category'] = selectedCategory ?? '';
+  //   request.fields['address_1'] = address1 ?? '';
+  //   request.fields['address_2'] = address2 ?? '';
+  //   request.fields['location'] = location ?? '';
+  //   request.fields['state'] = state ?? '';
+  //   request.fields['city'] = city ?? '';
+  //   request.fields['pincode'] = pincode ?? '';
+  //   request.fields['start_time'] = startTime ?? '';
+  //   request.fields['end_time'] = endTime ?? '';
 
-    try {
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-      final responseData = json.decode(responseBody);
+  //   try {
+  //     final response = await request.send();
+  //     final responseBody = await response.stream.bytesToString();
+  //     final responseData = json.decode(responseBody);
 
-      // Print the response body
-      print('Response Body: $responseBody');
+  //     // Print the response body
+  //     print('Response Body: $responseBody');
 
-      if (response.statusCode == 201) {
-        // Handle the success response
-        print(responseData);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Property added successfully'),
-              actions: [
-                ElevatedButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-        Navigator.of(context)
-            .pushNamed('/'); // Navigate to the home page or another page
-      } else {
-        // Handle the error response
-        print('Property addition failed with status: ${response.statusCode}');
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: Text(
-                  'Property addition failed: ${responseData['message'] ?? 'Unknown error'}'),
-              actions: [
-                ElevatedButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      print('An error occurred: $e');
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred: $e'),
-            actions: [
-              ElevatedButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
+  //     if (response.statusCode == 201) {
+  //       // Handle the success response
+  //       print(responseData);
+  //       showDialog(
+  //         context: context,
+  //         builder: (BuildContext context) {
+  //           return AlertDialog(
+  //             title: const Text('Success'),
+  //             content: const Text('Property added successfully'),
+  //             actions: [
+  //               ElevatedButton(
+  //                 child: const Text('OK'),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //       Navigator.of(context)
+  //           .pushNamed('/'); // Navigate to the home page or another page
+  //     } else {
+  //       // Handle the error response
+  //       print('Property addition failed with status: ${response.statusCode}');
+  //       showDialog(
+  //         context: context,
+  //         builder: (BuildContext context) {
+  //           return AlertDialog(
+  //             title: const Text('Error'),
+  //             content: Text(
+  //                 'Property addition failed: ${responseData['message'] ?? 'Unknown error'}'),
+  //             actions: [
+  //               ElevatedButton(
+  //                 child: const Text('OK'),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('An error occurred: $e');
+  //     showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: const Text('Error'),
+  //           content: Text('An error occurred: $e'),
+  //           actions: [
+  //             ElevatedButton(
+  //               child: const Text('OK'),
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //               },
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     );
+  //   }
+  // }
+
+  Future<void> addhallproperty(
+  String? propertyname,
+  int? properid,
+  List<Map<String, TimeOfDay>>? slots,
+  List<File>? images,
+) async {
+  if (propertyname == null || propertyname.trim().isEmpty) {
+    throw Exception("Property name cannot be null or empty.");
   }
+  if (properid == null) {
+    throw Exception("Property ID cannot be null.");
+  }
+
+  final url = Uri.parse(Bbapi.addhall);
+  try {
+    var request = http.MultipartRequest('POST', url);
+
+    // Add images
+    if (images != null && images.isNotEmpty) {
+      for (var image in images) {
+        request.files.add(await http.MultipartFile.fromPath('images[]', image.path));
+      }
+    }
+
+    // Convert slots to JSON string
+    String slotsJson = jsonEncode(slots?.map((slot) {
+      return {
+        'check_in_time': slot['check_in_time'] != null
+            ? '${slot['check_in_time']?.hour}:${slot['check_in_time']?.minute}'
+            : null,
+        'check_out_time': slot['check_out_time'] != null
+            ? '${slot['check_out_time']?.hour}:${slot['check_out_time']?.minute}'
+            : null,
+      };
+    }).toList());
+
+    print("Before API call - slots: $slotsJson");
+    print("Before API call - images count: ${images?.length}");
+
+    // Add attributes to the request
+    request.fields['attributes'] = jsonEncode({
+      'property_id': properid.toString(),
+      'name': propertyname,
+      'slots': slotsJson,
+    });
+
+    // Send the request
+    final response = await request.send();
+    final res = await http.Response.fromStream(response);
+
+    var responseBody = json.decode(res.body);
+    var statusCode = res.statusCode;
+
+    print("API Response Status Code: $statusCode");
+    print("API Response Body: ${res.body}");
+
+    if (statusCode == 200 || statusCode == 201) {
+      print('Hall added successfully: $responseBody');
+      // Fetch updated categories or perform other actions
+      await getproperty();
+    } else {
+      throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
+    }
+  } catch (e) {
+    print('Error adding hall: $e');
+    rethrow;
+  }
+}
+
 
  Future<void> getproperty() async {
     print("fetching getproperties");
