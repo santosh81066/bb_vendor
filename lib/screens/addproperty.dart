@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import "package:bb_vendor/providers/categoryprovider.dart";
+import "package:bb_vendor/providers/auth.dart";
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key});
@@ -376,49 +377,72 @@ void _fetchCategories() {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                width: double.infinity,
-                                child: Consumer(
-                                  builder: (BuildContext context, WidgetRef ref,
-                                      Widget? child) {
-                                    return CoustElevatedButton(
-                                      buttonName: "Register",
-                                      width: double.infinity,
-                                      bgColor: CoustColors.colrButton3,
-                                      radius: 8,
-                                      FontSize: 20,
-                                      onPressed: () {
-                                        if (_validationKey.currentState!
-                                            .validate()) {
-                                          var loc = (ref
+                              Center(
+                                child: ElevatedButton(
+                                  
+                                  onPressed: () {
+                                    var vendordata =ref.watch(authprovider).data;
+                                    var loc = (ref
                                               .read(latlangs.notifier)
                                               .state);
                                           String sLoc =
                                               '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
-                                          ref
-                                              .read(
-                                                  propertyNotifierProvider.notifier)
-                                              .addProperty(
-                                                context,
-                                                ref,
-                                                propertyname.text.trim(),
-                                                selectedCategory,
-                                                address1.text.trim(),
-                                                address2.text.trim(),
-                                                sLoc,
-                                                state.text.trim(),
-                                                city.text.trim(),
-                                                pincode.text.trim(),
-                                                endTime.text.trim(),
-                                                startTime.text.trim(),
-                                                _profileImage, // New field
-                                              );
-                                        }
-                                      },
-                                    );
+                                    
+                                    print('userid: ${vendordata?.userId}');
+                                    print('Property Name: ${propertyname.text}');
+                                    print('Images: $_profileImage');
+                                    print('location: $sLoc');
+                                    print('category:$selectedCategory');
+                                    print('address:${address1.text}');
                                   },
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 50),
+                                    backgroundColor: const Color(0xff6418c3),
+                                  ),
+                                  child: const Text('Submit', style: TextStyle(color: Colors.white)),
                                 ),
                               ),
+                                              // SizedBox(
+                              //   width: double.infinity,
+                              //   child: Consumer(
+                              //     builder: (BuildContext context, WidgetRef ref,
+                              //         Widget? child) {
+                              //       return CoustElevatedButton(
+                              //         buttonName: "Register",
+                              //         width: double.infinity,
+                              //         bgColor: CoustColors.colrButton3,
+                              //         radius: 8,
+                              //         FontSize: 20,
+                              //         onPressed: () {
+                              //           if (_validationKey.currentState!
+                              //               .validate()) {
+                              //             var loc = (ref
+                              //                 .read(latlangs.notifier)
+                              //                 .state);
+                              //             String sLoc =
+                              //                 '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
+                              //                 print("location$sLoc");
+                              //                 ref
+                              //                 .read(
+                              //                     propertyNotifierProvider.notifier)
+                              //                 .addProperty(
+                              //                   context,
+                              //                   ref,
+                              //                   propertyname.text.trim(),
+                              //                   selectedCategory,
+                              //                   address1.text.trim(),
+                              //                 
+                              //                   sLoc,
+                                             
+                              //                   _profileImage, // New field
+                                                
+                              //                 );
+                              //           }
+                              //         },
+                              //       );
+                              //     },
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),

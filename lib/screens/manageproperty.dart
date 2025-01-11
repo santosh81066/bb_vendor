@@ -1,17 +1,21 @@
+import 'package:bb_vendor/Colors/coustcolors.dart';
+import 'package:bb_vendor/Models/new_subscriptionplan.dart';
+import 'package:bb_vendor/providers/addpropertynotifier.dart';
+import 'package:bb_vendor/providers/property_repository.dart';
+import 'package:bb_vendor/Widgets/tabbar.dart';
+import 'package:bb_vendor/Widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bb_vendor/Colors/coustcolors.dart';
 import 'package:bb_vendor/models/get_properties_model.dart';
-import 'package:bb_vendor/providers/addpropertynotifier.dart';
 
 class ManagePropertyScreen extends ConsumerStatefulWidget {
-  const ManagePropertyScreen({super.key});
+  const ManagePropertyScreen({Key? key}) : super(key: key);
 
   @override
-  _ManagePropertyScreenState createState() => _ManagePropertyScreenState();
+  ManagePropertyScreenState createState() => ManagePropertyScreenState();
 }
 
-class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
+class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
   String filter = 'All';
 
   @override
@@ -29,58 +33,72 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
     final filteredProperties = propertyState.where((property) {
       switch (filter) {
         case 'Subscribed':
-          return property.category == 1; // Example: Filter for subscribed
+          return property.category == 1; // Subscribed properties
         case 'Deactivated':
-          return property.category == 2; // Example: Filter for deactivated
+          return property.category == 2; // Deactivated properties
         case 'UnSubscribed':
-          return property.category == 3; // Example: Filter for unsubscribed
+          return property.category == 3; // Unsubscribed properties
         default:
-          return true; // 'All' case
+          return true; // All properties
       }
     }).toList();
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
       appBar: AppBar(
-        title: const Text('Manage Properties'),
+        title: const coustText(
+          sName: 'Manage Properties',
+          txtcolor: CoustColors.colrEdtxt2,
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: CoustColors.colrHighlightedText,
+          ),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: <Widget>[
           IconButton(
             iconSize: 40,
-            padding: const EdgeInsets.only(right: 25),
+            padding: EdgeInsets.only(right: screenWidth * 0.05),
+            color: CoustColors.colrHighlightedText,
             icon: const Icon(Icons.add),
             tooltip: 'Add Property',
-            onPressed: () {
-              Navigator.of(context).pushNamed('/addproperty');
-            },
+            onPressed: () => Navigator.of(context).pushNamed('/addproperty'),
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TabBarWidget(
-              filter: filter,
-              onFilterSelected: (selectedFilter) {
-                setState(() {
-                  filter = selectedFilter;
-                });
-              },
+          SizedBox(
+              height: 50, // Specify a fixed height for TabBar
+              child: CoustTabbar(
+                filter: filter,
+                length: 4,
+                tab0: "All",
+                tab1: "Subscribed",
+                tab2: "Deactivated",
+                tab3: "UnSubscribed",
+                onTap: (int? selected) {
+                  setState(() {
+                    if (selected != null) {
+                      filter = ['All', 'Subscribed', 'Deactivated', 'UnSubscribed'][selected];
+                    }
+                  });
+                },
+              ),
             ),
-          ),
+
           Expanded(
             child: filteredProperties.isNotEmpty
                 ? ListView.builder(
                     itemCount: filteredProperties.length,
                     itemBuilder: (context, index) {
                       final property = filteredProperties[index];
-                      return _buildPlanCard(property);
+                      return _buildPlanCard(property, screenWidth, screenHeight);
                     },
                   )
                 : const Center(
@@ -95,127 +113,120 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
     );
   }
 
-  Widget _buildPlanCard(Data property) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+ Widget _buildPlanCard(Data property, double screenWidth, double screenHeight) {
+  return Padding(
+    padding: EdgeInsets.symmetric(
+      horizontal: screenWidth * 0.05,
+      vertical: screenHeight * 0.01,
+    ),
+    child: GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed(
+          '/plansScreen',
+          arguments: property,
+        );
+      },
       child: Card(
         color: Colors.white,
         elevation: 4,
+        margin: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
               title: Text(
                 property.propertyName ?? 'No Name',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               subtitle: Text(property.address ?? 'No Address'),
             ),
             if (property.coverPic != null)
-              SizedBox(
-                height: 150,
-                width: double.infinity,
+              Container(
+                constraints: const BoxConstraints(
+                  maxWidth: double.infinity,
+                  maxHeight: 200, // Fixed height
+                ),
                 child: Image.network(
                   'https://your-image-url.com/${property.coverPic}',
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Text("Image not found"),
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Center(child: Text("Image not found")),
                 ),
               ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/addhall', arguments: property);
+                    // Handle edit
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CoustColors.colrHighlightedText,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color.fromARGB(167, 88, 11, 181)),
                   ),
-                  child: const Text('Add Hall'),
+                  child: const Text("Edit"),
                 ),
-                ElevatedButton(
+                OutlinedButton(
                   onPressed: () {
-                    // Navigate to subscription
+                    // Handle delete
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CoustColors.colrHighlightedText,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color.fromARGB(167, 88, 11, 181)),
                   ),
-                  child: const Text('Subscribe'),
+                  child: const Text("Delete"),
                 ),
               ],
             ),
             const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                  context,
+                  '/addhall',
+                  arguments: {
+                    'propertyid': property.propertyId,
+                    'propertyname': property.propertyName,
+                    
+                  },
+                );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff6418c3),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                  child: const Text("Add Hall"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Handle subscribe
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff6418c3),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                  child: const Text("Subscribe"),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
-
-class TabBarWidget extends StatelessWidget {
-  final String filter;
-  final Function(String) onFilterSelected;
-
-  const TabBarWidget({
-    required this.filter,
-    required this.onFilterSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        FilterTab(
-          label: 'All',
-          isSelected: filter == 'All',
-          onTap: () => onFilterSelected('All'),
-        ),
-        FilterTab(
-          label: 'Subscribed',
-          isSelected: filter == 'Subscribed',
-          onTap: () => onFilterSelected('Subscribed'),
-        ),
-        FilterTab(
-          label: 'Deactivated',
-          isSelected: filter == 'Deactivated',
-          onTap: () => onFilterSelected('Deactivated'),
-        ),
-        FilterTab(
-          label: 'UnSubscribed',
-          isSelected: filter == 'UnSubscribed',
-          onTap: () => onFilterSelected('UnSubscribed'),
-        ),
-      ],
-    );
-  }
-}
-
-class FilterTab extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const FilterTab({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.blue : Colors.black,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
 }
