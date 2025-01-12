@@ -349,8 +349,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   child: FlutterMap(
                                     mapController: _mapController,
                                     options: MapOptions(
-                                      initialCenter: ref.watch(latlangs),
-                                      initialZoom: 15.0,
+                                      center: ref.watch(latlangs),
+                                      zoom: 15.0,
                                     ),
                                     children: [
                                       TileLayer(
