@@ -363,13 +363,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                             width: 80.0,
                                             height: 80.0,
                                             point: (ref.watch(latlangs)),
-                                            child: Container(
-                                              child: const Icon(
+                                            builder: (BuildContext context) {
+                                              return const Icon(
                                                 Icons.location_on,
                                                 color: Colors.red,
                                                 size: 40.0,
-                                              ),
-                                            ),
+                                              );
+                                            },
                                           ),
                                         ],
                                       ),
