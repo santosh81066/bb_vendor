@@ -349,8 +349,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   child: FlutterMap(
                                     mapController: _mapController,
                                     options: MapOptions(
-                                      center: ref.watch(latlangs),
-                                      zoom: 15.0,
+                                      initialCenter: ref.watch(latlangs),
+                                      initialZoom: 15.0,
                                     ),
                                     children: [
                                       TileLayer(
@@ -363,13 +363,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                             width: 80.0,
                                             height: 80.0,
                                             point: (ref.watch(latlangs)),
-                                            builder: (BuildContext context) {
-                                              return const Icon(
+                                            child: Container(
+                                              child: const Icon(
                                                 Icons.location_on,
                                                 color: Colors.red,
                                                 size: 40.0,
-                                              );
-                                            },
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
