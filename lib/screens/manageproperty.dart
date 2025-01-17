@@ -288,7 +288,7 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                             ),
                             const Divider(),
 
-                            // Slots for hall
+                            // Slots for this hall
                             ...hallSlots.map((slot) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(

@@ -7,15 +7,15 @@ class Property {
   Property({this.statusCode, this.success, this.messages, this.data});
 
   Property.fromJson(Map<String, dynamic> json) {
-  statusCode = json['statusCode'];
-  success = json['success'];
-  messages = json['messages']?.cast<String>() ?? [];
-  if (json['data'] != null) {
-    data = List<Data>.from(json['data'].map((v) => Data.fromJson(v)));
-  } else {
-    data = [];
+    statusCode = json['statusCode'];
+    success = json['success'];
+    messages = json['messages']?.cast<String>() ?? [];
+    if (json['data'] != null) {
+      data = List<Data>.from(json['data'].map((v) => Data.fromJson(v)));
+    } else {
+      data = [];
+    }
   }
-}
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
@@ -134,42 +134,48 @@ class Data {
 
 class Hall {
   int? hallId;
-  String? hallName;
-  int? capacity;
+  String? slotFromTime;
+  String? slotToTime;
+  String? name;
 
-  Hall({this.hallId, this.hallName, this.capacity});
+  Hall({this.hallId, this.slotFromTime, this.slotToTime, this.name});
 
   Hall.fromJson(Map<String, dynamic> json) {
     hallId = json['hall_id'];
-    hallName = json['hall_name'];
-    capacity = json['capacity'];
+    slotFromTime = json['slot_from_time'];
+    slotToTime = json['slot_to_time'];
+    name = json['Name'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['hall_id'] = hallId;
-    data['hall_name'] = hallName;
-    data['capacity'] = capacity;
+    data['slot_from_time'] = slotFromTime;
+    data['slot_to_time'] = slotToTime;
+    data['Name'] = name;
     return data;
   }
 
   Hall copyWith({
     int? hallId,
-    String? hallName,
-    int? capacity,
+    String? slotFromTime,
+    String? slotToTime,
+    String? name,
   }) {
     return Hall(
       hallId: hallId ?? this.hallId,
-      hallName: hallName ?? this.hallName,
-      capacity: capacity ?? this.capacity,
+      slotFromTime: slotFromTime ?? this.slotFromTime,
+      slotToTime: slotToTime ?? this.slotToTime,
+      name: name ?? this.name,
     );
   }
 
   static Hall initial() {
     return Hall(
       hallId: 0,
-      hallName: "",
-      capacity: 0,
+      slotFromTime: "",
+      slotToTime: "",
+      name: "",
     );
   }
 }
