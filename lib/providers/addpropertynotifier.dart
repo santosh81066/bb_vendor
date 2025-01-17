@@ -154,6 +154,33 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   List<Map<String, TimeOfDay>>? slots,
   List<File>? images,
 ) async {
+  print("add hall is working------------------");
+  print("propertyname-$propertyname");
+  print("propertyid-$properid");
+
+  // Print slots
+  if (slots != null && slots.isNotEmpty) {
+    print("Slots:");
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      var checkInTime = slot['check_in_time'];
+      var checkOutTime = slot['check_out_time'];
+      print("Slot ${i + 1}: Check-in: ${checkInTime?.hour}:${checkInTime?.minute}, Check-out: ${checkOutTime?.hour}:${checkOutTime?.minute}");
+    }
+  } else {
+    print("No slots available.");
+  }
+
+  // Print images
+  if (images != null && images.isNotEmpty) {
+    print("Images:");
+    for (var i = 0; i < images.length; i++) {
+      print("Image ${i + 1}: Path = ${images[i].path}");
+    }
+  } else {
+    print("No images available.");
+  }
+
   if (propertyname == null || propertyname.trim().isEmpty) {
     throw Exception("Property name cannot be null or empty.");
   }
@@ -162,39 +189,31 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   }
 
   final url = Uri.parse(Bbapi.addhall);
+
   try {
     var request = http.MultipartRequest('POST', url);
 
-    // Add images
     if (images != null && images.isNotEmpty) {
       for (var image in images) {
         request.files.add(await http.MultipartFile.fromPath('images[]', image.path));
       }
     }
 
-    // Convert slots to JSON string
-    String slotsJson = jsonEncode(slots?.map((slot) {
-      return {
-        'check_in_time': slot['check_in_time'] != null
-            ? '${slot['check_in_time']?.hour}:${slot['check_in_time']?.minute}'
-            : null,
-        'check_out_time': slot['check_out_time'] != null
-            ? '${slot['check_out_time']?.hour}:${slot['check_out_time']?.minute}'
-            : null,
-      };
-    }).toList());
-
-    print("Before API call - slots: $slotsJson");
-    print("Before API call - images count: ${images?.length}");
-
     // Add attributes to the request
     request.fields['attributes'] = jsonEncode({
-      'property_id': properid.toString(),
+      'property_id': properid,
       'name': propertyname,
-      'slots': slotsJson,
+      'slots': slots?.map((slot) {
+        return {
+          'check_in_time': '${slot['check_in_time']?.hour}:${slot['check_in_time']?.minute}',
+          'check_out_time': '${slot['check_out_time']?.hour}:${slot['check_out_time']?.minute}',
+        };
+      }).toList(),
     });
 
-    // Send the request
+    print("Final request payload:");
+    print(request.fields);
+
     final response = await request.send();
     final res = await http.Response.fromStream(response);
 
@@ -206,8 +225,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
 
     if (statusCode == 200 || statusCode == 201) {
       print('Hall added successfully: $responseBody');
-      // Fetch updated categories or perform other actions
-      await getproperty();
     } else {
       throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
     }
@@ -216,6 +233,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     rethrow;
   }
 }
+
 
 
  Future<void> getproperty() async {

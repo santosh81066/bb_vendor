@@ -114,6 +114,15 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
   }
 
  Widget _buildPlanCard(Data property, double screenWidth, double screenHeight) {
+   // Group halls by their name
+  final Map<String, List<Hall>> groupedHalls = {};
+  for (var hall in property.halls ?? []) {
+    if (hall.name != null) {
+      groupedHalls.putIfAbsent(hall.name!, () => []).add(hall);
+    }
+  }
+  print("groupesdHalls:::${groupedHalls.values}");
+  
   return Padding(
     padding: EdgeInsets.symmetric(
       horizontal: screenWidth * 0.05,
@@ -181,7 +190,120 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+              // Display grouped halls
+           // Display grouped halls
+            const SizedBox(height: 8),
+          if (groupedHalls.isNotEmpty)
+            Column(
+              
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: groupedHalls.entries.map((entry) {
+                final hallName = entry.key;
+                final hallSlots = entry.value;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            
+                  child: Card(
+                    elevation: 2,
+                    color: CoustColors.colrHighlightedText,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      
+                      children: [
+                        // Hall name
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                hallName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.white),
+                                    onPressed: () {
+                                      
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/addhall',
+                                      arguments: {
+                                        'propertyid': property.propertyId,
+                                        'propertyname': property.propertyName,
+                                        'hallName': hallName,
+                                        
+                                      },
+                                    );
+                                   },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.white),
+                                    onPressed: () {
+                                      // Handle hall delete
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Delete Hall'),
+                                          content: const Text(
+                                              'Are you sure you want to delete this hall?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                // Call delete function here
+                                                // ref
+                                                //     .read(propertyNotifierProvider.notifier)
+                                                //     .deleteHall(hallSlots.first.hallId);
+                                                // Navigator.pop(context);
+                                              },
+                                              child: const Text('Delete'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(),
+
+                        // Slots for this hall
+                        ...hallSlots.map((slot) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 4.0),
+                            child: Text(
+                              'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
+                              style: const TextStyle(fontSize: 12 ,color: Colors.white ),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+
+
+            
+
+          const SizedBox(height: 8),
+
+          // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
