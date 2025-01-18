@@ -71,10 +71,10 @@ class MyApp extends ConsumerWidget {
               print("User Status: ${authState.data?.userStatus}");
 
               // Check if the user is authenticated and has a valid role and status
-              if (authState.data?.accessToken != null) {
-                // Navigate to the welcome page if conditions are met
-                return const CoustNavigation(); // Welcome page
-              }
+              // if (authState.data?.accessToken != null) {
+              //   // Navigate to the welcome page if conditions are met
+              //   return const CoustNavigation(); // Welcome page
+              // }
 
               // If the user is not authenticated, attempt auto-login
               return FutureBuilder(
@@ -105,9 +105,9 @@ class MyApp extends ConsumerWidget {
         '/registration': (BuildContext context) {
           return const RegistrationScreen();
         },
-        '/home': (BuildContext context) {
+        '/welcome': (BuildContext context) {
           //welcome page
-          return const DashboardScreen();
+          return const CoustNavigation();
         },
         '/manage': (BuildContext context) {
           //welcome page
@@ -132,7 +132,7 @@ class MyApp extends ConsumerWidget {
         '/addproperty': (BuildContext context) {
           return const AddPropertyScreen();
         },
-           '/addhall': (BuildContext context) {
+        '/addhall': (BuildContext context) {
           return const PropertyHallScreen();
           },
         '/alltransactions': (BuildContext context) {

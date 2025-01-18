@@ -181,6 +181,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         //   }
                                         // }
                                       }
+                                      else{
+                                        Navigator.of(context).pushNamed('/welcome');
+                                      }
                                     },
                               isLoading: isLoading,
                               backGroundColor: const Color(0xFF6418C3),

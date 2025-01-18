@@ -1,17 +1,21 @@
+import 'package:bb_vendor/Colors/coustcolors.dart';
+import 'package:bb_vendor/Models/new_subscriptionplan.dart';
+import 'package:bb_vendor/providers/addpropertynotifier.dart';
+import 'package:bb_vendor/providers/property_repository.dart';
+import 'package:bb_vendor/Widgets/tabbar.dart';
+import 'package:bb_vendor/Widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:bb_vendor/Colors/coustcolors.dart';
 import 'package:bb_vendor/models/get_properties_model.dart';
-import 'package:bb_vendor/providers/addpropertynotifier.dart';
 
 class ManagePropertyScreen extends ConsumerStatefulWidget {
-  const ManagePropertyScreen({super.key});
+  const ManagePropertyScreen({Key? key}) : super(key: key);
 
   @override
-  _ManagePropertyScreenState createState() => _ManagePropertyScreenState();
+  ManagePropertyScreenState createState() => ManagePropertyScreenState();
 }
 
-class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
+class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
   String filter = 'All';
 
   @override
@@ -29,47 +33,65 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
     final filteredProperties = propertyState.where((property) {
       switch (filter) {
         case 'Subscribed':
-          return property.category == 1; // Example: Filter for subscribed
+          return property.category == 1; // Subscribed properties
         case 'Deactivated':
-          return property.category == 2; // Example: Filter for deactivated
+          return property.category == 2; // Deactivated properties
         case 'UnSubscribed':
-          return property.category == 3; // Example: Filter for unsubscribed
+          return property.category == 3; // Unsubscribed properties
         default:
-          return true; // 'All' case
+          return true; // All properties
       }
     }).toList();
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
       appBar: AppBar(
-        title: const Text('Manage Properties'),
+        title: const coustText(
+          sName: 'Manage Properties',
+          txtcolor: CoustColors.colrEdtxt2,
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: CoustColors.colrHighlightedText,
+          ),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: <Widget>[
           IconButton(
             iconSize: 40,
-            padding: const EdgeInsets.only(right: 25),
+            padding: EdgeInsets.only(right: screenWidth * 0.05),
+            color: CoustColors.colrHighlightedText,
             icon: const Icon(Icons.add),
             tooltip: 'Add Property',
-            onPressed: () {
-              Navigator.of(context).pushNamed('/addproperty');
-            },
+            onPressed: () => Navigator.of(context).pushNamed('/addproperty'),
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: TabBarWidget(
+          SizedBox(
+            height: 50, // Specify a fixed height for TabBar
+            child: CoustTabbar(
               filter: filter,
-              onFilterSelected: (selectedFilter) {
+              length: 4,
+              tab0: "All",
+              tab1: "Subscribed",
+              tab2: "Deactivated",
+              tab3: "UnSubscribed",
+              onTap: (int? selected) {
                 setState(() {
-                  filter = selectedFilter;
+                  if (selected != null) {
+                    filter = [
+                      'All',
+                      'Subscribed',
+                      'Deactivated',
+                      'UnSubscribed'
+                    ][selected];
+                  }
                 });
               },
             ),
@@ -80,7 +102,8 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     itemCount: filteredProperties.length,
                     itemBuilder: (context, index) {
                       final property = filteredProperties[index];
-                      return _buildPlanCard(property);
+                      return _buildPlanCard(
+                          property, screenWidth, screenHeight);
                     },
                   )
                 : const Center(
@@ -95,125 +118,240 @@ class _ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
     );
   }
 
-  Widget _buildPlanCard(Data property) {
+  Widget _buildPlanCard(
+      Data property, double screenWidth, double screenHeight) {
+    // Group halls by their name
+    final Map<String, List<Hall>> groupedHalls = {};
+    for (var hall in property.halls ?? []) {
+      if (hall.name != null) {
+        groupedHalls.putIfAbsent(hall.name!, () => []).add(hall);
+      }
+    }
+    print("groupesdHalls:::${groupedHalls.values}");
+
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Card(
-        color: Colors.white,
-        elevation: 4,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              title: Text(
-                property.propertyName ?? 'No Name',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(property.address ?? 'No Address'),
-            ),
-            if (property.coverPic != null)
-              SizedBox(
-                height: 150,
-                width: double.infinity,
-                child: Image.network(
-                  'https://your-image-url.com/${property.coverPic}',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Text("Image not found"),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/addhall', arguments: property);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CoustColors.colrHighlightedText,
-                  ),
-                  child: const Text('Add Hall'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Navigate to subscription
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CoustColors.colrHighlightedText,
-                  ),
-                  child: const Text('Subscribe'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.05,
+        vertical: screenHeight * 0.01,
       ),
-    );
-  }
-}
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            '/plansScreen',
+            arguments: property,
+          );
+        },
+        child: Card(
+          color: Colors.white,
+          elevation: 4,
+          margin: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                title: Text(
+                  property.propertyName ?? 'No Name',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                subtitle: Text(property.address ?? 'No Address'),
+              ),
+              if (property.coverPic != null)
+                Container(
+                  constraints: const BoxConstraints(
+                    maxWidth: double.infinity,
+                    maxHeight: 200, // Fixed height
+                  ),
+                  child: Image.network(
+                    'https://your-image-url.com/${property.coverPic}',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Text("Image not found")),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {
+                      // Handle edit
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: Color.fromARGB(167, 88, 11, 181)),
+                    ),
+                    child: const Text("Edit"),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      // Handle delete
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: Color.fromARGB(167, 88, 11, 181)),
+                    ),
+                    child: const Text("Delete"),
+                  ),
+                ],
+              ),
+              // Display grouped halls
+              // Display grouped halls
+              const SizedBox(height: 8),
+              if (groupedHalls.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: groupedHalls.entries.map((entry) {
+                    final hallName = entry.key;
+                    final hallSlots = entry.value;
 
-class TabBarWidget extends StatelessWidget {
-  final String filter;
-  final Function(String) onFilterSelected;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      child: Card(
+                        elevation: 2,
+                        color: CoustColors.colrHighlightedText,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Hall name
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    hallName,
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.white),
+                                        onPressed: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            '/addhall',
+                                            arguments: {
+                                              'propertyid': property.propertyId,
+                                              'propertyname':
+                                                  property.propertyName,
+                                              'hallName': hallName,
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.white),
+                                        onPressed: () {
+                                          // Handle hall delete
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Delete Hall'),
+                                              content: const Text(
+                                                  'Are you sure you want to delete this hall?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(context),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    // Call delete function here
+                                                    // ref
+                                                    //     .read(propertyNotifierProvider.notifier)
+                                                    //     .deleteHall(hallSlots.first.hallId);
+                                                    // Navigator.pop(context);
+                                                  },
+                                                  child: const Text('Delete'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(),
 
-  const TabBarWidget({
-    required this.filter,
-    required this.onFilterSelected,
-  });
+                            // Slots for this hall
+                            ...hallSlots.map((slot) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                child: Text(
+                                  'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.white),
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        FilterTab(
-          label: 'All',
-          isSelected: filter == 'All',
-          onTap: () => onFilterSelected('All'),
-        ),
-        FilterTab(
-          label: 'Subscribed',
-          isSelected: filter == 'Subscribed',
-          onTap: () => onFilterSelected('Subscribed'),
-        ),
-        FilterTab(
-          label: 'Deactivated',
-          isSelected: filter == 'Deactivated',
-          onTap: () => onFilterSelected('Deactivated'),
-        ),
-        FilterTab(
-          label: 'UnSubscribed',
-          isSelected: filter == 'UnSubscribed',
-          onTap: () => onFilterSelected('UnSubscribed'),
-        ),
-      ],
-    );
-  }
-}
+              const SizedBox(height: 8),
 
-class FilterTab extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const FilterTab({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.blue : Colors.black,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              // Action buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/addhall',
+                        arguments: {
+                          'propertyid': property.propertyId,
+                          'propertyname': property.propertyName,
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff6418c3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                    child: const Text("Add Hall"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Handle subscribe
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff6418c3),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                    child: const Text("Subscribe"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
