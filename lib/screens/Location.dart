@@ -143,12 +143,21 @@ class _RapidoMapPageState extends State<RapidoMapPage> {
                   const SizedBox(height: 10),
 
                   // Select Drop button
+                  // In the RapidoMapPage:
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context, {
-                        'location': _currentLocation,
-                        'address': _address,
-                      });
+                      if (_currentLocation != null && _address.isNotEmpty) {
+                        Navigator.pop(context, {
+                          'location': _currentLocation,
+                          'address': _address,
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Please select a location on the map')),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: CoustColors.colrButton3,
@@ -167,7 +176,7 @@ class _RapidoMapPageState extends State<RapidoMapPage> {
                         ),
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
