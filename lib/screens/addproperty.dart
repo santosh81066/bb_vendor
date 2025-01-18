@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bb_vendor/Colors/coustcolors.dart';
-import 'package:bb_vendor/models/addpropertymodel.dart';
 import 'package:bb_vendor/Providers/stateproviders.dart';
 import 'package:bb_vendor/Providers/textfieldstatenotifier.dart';
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
@@ -15,7 +14,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import "package:bb_vendor/providers/categoryprovider.dart";
-
 import 'Location.dart';
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
@@ -28,7 +26,7 @@ class AddPropertyScreen extends ConsumerStatefulWidget {
 class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final TextEditingController propertyname = TextEditingController();
   final TextEditingController category = TextEditingController();
-  final TextEditingController address1 = TextEditingController();
+  final TextEditingController address = TextEditingController();
   final TextEditingController address2 = TextEditingController();
   final TextEditingController state = TextEditingController();
   final TextEditingController city = TextEditingController();
@@ -37,10 +35,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final TextEditingController startTime = TextEditingController();
   final TextEditingController endTime = TextEditingController();
 
-  // final addPropertyProvider =
-  //     StateNotifierProvider<AddPropertyNotifier, Property>(
-  //   (ref) => AddPropertyNotifier(),
-  // );
   @override
   void initState() {
     super.initState();
@@ -55,10 +49,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final MapController _mapController = MapController();
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
-
-  // Static category list for now
-
-  // final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
   String selectedCategory = ""; // Default selected category
 
   void _searchLocation(WidgetRef ref) async {
@@ -92,7 +82,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       _showAlertDialog('Error', 'Failed to fetch location data.');
     }
   }
-// Navigate to RapidoMapPage
 
   Future<void> _pickImage(BuildContext context, ImageSource source) async {
     try {
@@ -162,6 +151,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   Widget build(BuildContext context) {
     // final propertyPic = ref.watch(addPropertyProvider).propertyImage;
     final category = ref.watch(categoryProvider);
+    String userid = "2";
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
@@ -252,7 +242,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   textFieldStates),
                               const SizedBox(height: 15),
                               // Category selection using radio buttons
-                              // Category selection using radio buttons
                               Container(
                                 decoration: BoxDecoration(
                                   color: CoustColors.colrMainbg,
@@ -328,7 +317,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                               const SizedBox(height: 10),
                               _buildTextField(
                                   "Property Address",
-                                  address1,
+                                  address,
                                   "Please Enter Address 1",
                                   ref,
                                   2,
@@ -362,8 +351,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                               ),
 
                               SizedBox(height: 10),
-
-// Add a button to open the map page
                               ElevatedButton.icon(
                                 onPressed: () {
                                   // Action for selecting on map
@@ -403,13 +390,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                               ),
 
                               SizedBox(height: 10),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: 8.0),
-                              //   child: SizedBox(
-                              //       height: 50,
-                              //       width: 180,
-                              //       child: ),
-                              // ),
                               SizedBox(
                                 width: double.infinity,
                                 child: Consumer(
@@ -424,29 +404,55 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                       onPressed: () {
                                         if (_validationKey.currentState!
                                             .validate()) {
-                                          var loc = (ref
-                                              .read(latlangs.notifier)
-                                              .state);
+                                          var loc =
+                                              ref.read(latlangs.notifier).state;
+
+                                          // Ensure location is available
+                                          if (loc.latitude == 0.0 &&
+                                              loc.longitude == 0.0) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(
+                                                      "Invalid location. Please select a valid location.")),
+                                            );
+                                            return;
+                                          }
+
                                           String sLoc =
                                               '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
+
+                                          if (_profileImage == null) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(
+                                                      "Please select a profile image.")),
+                                            );
+                                            return;
+                                          }
+
                                           ref
                                               .read(propertyNotifierProvider
                                                   .notifier)
                                               .addProperty(
                                                 context,
                                                 ref,
+                                                address.text.trim(),
+                                                sLoc,
+                                                userid,
                                                 propertyname.text.trim(),
                                                 selectedCategory,
-                                                address1.text.trim(),
-                                                address2.text.trim(),
-                                                sLoc,
-                                                state.text.trim(),
-                                                city.text.trim(),
-                                                pincode.text.trim(),
-                                                endTime.text.trim(),
-                                                startTime.text.trim(),
                                                 _profileImage, // New field
                                               );
+
+                                          // Show a loading indicator (optional)
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content:
+                                                    Text("Adding property...")),
+                                          );
                                         }
                                       },
                                     );
