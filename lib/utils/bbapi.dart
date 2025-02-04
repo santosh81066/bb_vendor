@@ -1,5 +1,5 @@
 class Bbapi {
-  static const String baseUrl = "http://www.gocodedesigners.com";
+  static const String baseUrl = "https://www.gocodedesigners.com";
   static const String login = "$baseUrl/bbadminlogin";
   static const String mobilecheck = "$baseUrl/check_mobile_exists/";
   static const String profilePic = '$baseUrl/bbgetprofilepic';
