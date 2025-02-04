@@ -146,43 +146,77 @@ Future<String> _getTimezoneFromLocation(Position position) async {
 }
 
 
-  Widget _buildImageUploadSection(String label) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: InkWell(
-        onTap: () => _pickImage(context, ImageSource.gallery),
-        child: Container(
-          width: double.infinity,
-          height: 150,
-          decoration: BoxDecoration(
-            color: CoustColors.colrButton1,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Center(
-            child: _profileImage != null
-                ? Image.file(
-                    _profileImage!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.camera_alt, size: 40, color: Colors.white),
-                      SizedBox(height: 10),
-                      coustText(
-                        sName: "Upload Profile Image",
-                        txtcolor: Colors.white,
-                      ),
-                    ],
-                  ),
+ Widget _buildImageUploadSection(String label) {
+  return Padding(
+    padding: const EdgeInsets.all(20.0),
+    child: Column(
+      children: [
+        InkWell(
+          onTap: () => _showImageSourceDialog(context),
+          child: Container(
+            width: double.infinity,
+            height: 150,
+            decoration: BoxDecoration(
+              color: CoustColors.colrButton1,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: _profileImage != null
+                  ? Image.file(
+                      _profileImage!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                        SizedBox(height: 10),
+                        coustText(
+                          sName: "Upload Profile Image",
+                          txtcolor: Colors.white,
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+void _showImageSourceDialog(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(context, ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(context, ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

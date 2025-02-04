@@ -1,5 +1,5 @@
 import 'package:bb_vendor/Colors/coustcolors.dart';
-import 'package:bb_vendor/Models/new_subscriptionplan.dart';
+
 import 'package:bb_vendor/providers/addpropertynotifier.dart';
 import 'package:bb_vendor/providers/property_repository.dart';
 import 'package:bb_vendor/Widgets/tabbar.dart';
@@ -336,7 +336,7 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      // Handle subscribe
+                         Navigator.pushNamed(context,'/subscriptionScreen',arguments:{'propertyid': property.propertyId,} );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff6418c3),

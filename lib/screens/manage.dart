@@ -18,14 +18,14 @@ class _ManageScreenState extends State<ManageScreen> {
       body: Consumer(
         builder: (BuildContext context, WidgetRef ref, Widget? child) {
           return Padding(
-            padding: const EdgeInsets.only(top: 32.0),
+            padding: const EdgeInsets.only(top: 0.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   width: double.infinity,
-                  height: 90,
+                  height: 110,
                   // ignore: unnecessary_const
                   decoration: const BoxDecoration(
                       color: CoustColors.colrHighlightedText,
@@ -34,11 +34,13 @@ class _ManageScreenState extends State<ManageScreen> {
                           bottomEnd: Radius.circular(25),
                           bottomStart: Radius.circular(25))),
                   child: const Padding(
-                      padding: EdgeInsets.only(top: 25.0, left: 15),
+                      padding: EdgeInsets.only(top: 32.0, left: 15),
                       child: coustText(
                         sName: "Manage",
                         txtcolor: CoustColors.colrEdtxt4,
-                        textsize: 20,
+                        textsize: 24,
+                        fontweight:FontWeight.bold,
+                        
                       )),
                 ),
                 Expanded(

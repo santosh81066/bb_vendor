@@ -9,7 +9,7 @@ import '../widgets/customelevatedbutton.dart';
 import '../widgets/customtextfield.dart';
 import '../widgets/heading.dart';
 import '../widgets/text.dart';
-import 'dashboard.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -65,13 +65,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final authState = ref.watch(authprovider);
-                              return Text(
-                                  "State token${authState.data!.accessToken} ");
-                            },
-                          ),
+                          // Consumer(
+                          //   builder: (context, ref, child) {
+                          //     final authState = ref.watch(authprovider);
+                          //     return Text(
+                          //         "State token${authState.data!.accessToken} ");
+                          //   },
+                          // ),
                           CustomTextFormField(
                             applyDecoration: true,
                             width: screenWidth * 0.8,
@@ -119,13 +119,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed: isLoading
                                   ? null
                                   : () async {
-                                      final authState = ref.watch(
-                                          authprovider); // Accessing the AuthNotifier
-
+                                     
                                       if (_formKey.currentState!.validate()) {
                                         // Perform login
                                         // final LoginResult result =
                                         await login.adminLogin(
+                                          context,
                                           _emailController.text.trim(),
                                           _passwordController.text.trim(),
                                           ref,
@@ -143,46 +142,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         //       actions: [
                                         //         TextButton(
                                         //           onPressed: () =>
-                                        //               Navigator.of(context)
-                                        //                   .pop(),
+                                        //               Navigator.of(context).pop(),
                                         //           child: const Text('OK'),
                                         //         ),
                                         //       ],
                                         //     ),
                                         //   );
                                         // }
-                                        // else {
-                                        //    setState(() {
-                                        //     _isLoggedIn = true;
-                                        //   });
+                                        // else{
                                         //    Navigator.of(context).pushNamed('/welcome');
-                                        //   print(
-                                        //       "userstatus ${result.responseBody?['data']?['user_status']}"); // If user services are deactivated
-
-                                        //   if(result.responseBody ?['data']?['user_status'] == false)
-                                        //   {
-                                        //   showDialog(
-                                        //     context: context,
-                                        //     builder: (context) => AlertDialog(
-                                        //       title: const Text('Login Error'),
-                                        //       content: const Text(
-                                        //           "Your services are de-activated, please contact admin."),
-                                        //       actions: [
-                                        //         TextButton(
-                                        //           onPressed: () =>
-                                        //               Navigator.of(context)
-                                        //                   .pop(),
-                                        //           child: const Text('OK'),
-                                        //         ),
-                                        //       ],
-                                        //     ),
-
-                                        //   );
-                                        //   }
                                         // }
-                                      }
-                                      else{
-                                        Navigator.of(context).pushNamed('/welcome');
                                       }
                                     },
                               isLoading: isLoading,

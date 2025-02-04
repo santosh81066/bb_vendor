@@ -29,13 +29,13 @@ class _SalesScreenState extends State<SalesScreen> {
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
       body: Padding(
-        padding: const EdgeInsets.only(top: 32.0),
+        padding: const EdgeInsets.only(top: 0.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              height: 90,
+              height: 110,
               decoration: const BoxDecoration(
                 color: CoustColors.colrHighlightedText,
                 shape: BoxShape.rectangle,
@@ -49,7 +49,9 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: coustText(
                   sName: "Sales",
                   txtcolor: CoustColors.colrEdtxt4,
-                  textsize: 20,
+                  textsize: 24,
+                  fontweight:FontWeight.bold,
+
                 ),
               ),
             ),

@@ -3,34 +3,164 @@ import 'package:bb_vendor/Providers/textfieldstatenotifier.dart';
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:bb_vendor/Widgets/textfield.dart';
+import 'package:bb_vendor/providers/auth.dart';
+import 'package:bb_vendor/utils/bbapi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class EditprofileSceren extends StatefulWidget{
+class EditprofileSceren extends ConsumerStatefulWidget{
   const EditprofileSceren({super.key});
 
   @override
-  State<EditprofileSceren> createState() => _EditprofileScerenState();
+  ConsumerState<EditprofileSceren> createState() => _EditprofileScerenState();
 }
 
-class _EditprofileScerenState extends State<EditprofileSceren> {
+class _EditprofileScerenState extends ConsumerState<EditprofileSceren> {
   
   final TextEditingController name = TextEditingController();
   final TextEditingController emailid = TextEditingController();
-  final TextEditingController pwd = TextEditingController();
   final TextEditingController mobile = TextEditingController();
-  final TextEditingController add1 = TextEditingController();
-  final TextEditingController add2 = TextEditingController();
-  final TextEditingController state = TextEditingController();
-  final TextEditingController city = TextEditingController();
-  final TextEditingController pin = TextEditingController();
-  final TextEditingController location = TextEditingController();
   final _validationkey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
+  File? _profileImage;
+  
+  
+  @override
+  void initState() {
+    super.initState();
+    _initializeUserData();
+  }
 
+  void _initializeUserData() {
+    // Fetch user data from the provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userNotifier = ref.read(authprovider);
+      final currentUser = userNotifier.data;
+
+      if (currentUser != null) {
+        name.text = currentUser.username ?? '';
+        emailid.text = currentUser.email ?? '';
+        mobile.text = currentUser.mobileNo ?? '';
+        setState(() {
+          // Profile image URL initialization (if needed)
+          // _profileImage = File.fromUri(Uri.parse(currentUser.profilePic ?? ''));
+        });
+      }
+    });
+  }
+
+
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+  try {
+    final pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      File imageFile = File(pickedFile.path);
+
+      // Check the file size (maximum 2MB)
+      final fileSizeInBytes = await imageFile.length();
+      final maxFileSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (fileSizeInBytes > maxFileSize) {
+        // File size is too large, show an error
+        _showAlertDialog('Error', 'File size exceeds 2MB. Please select a smaller file.');
+      } else {
+        // Valid image size, proceed
+        setState(() {
+          _profileImage = imageFile;
+        });
+      }
+    }
+  } catch (e) {
+    _showAlertDialog('Error', 'Failed to pick image: $e');
+  }
+}
+
+
+
+Widget _buildImageUploadSection() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => _showImageSourceDialog(context),
+            child: Container(
+              width: double.infinity,
+              height: 150,
+              decoration: BoxDecoration(
+                color: CoustColors.colrButton1,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Center(
+                child: _profileImage != null
+                    ? Image.file(
+                        _profileImage!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      )
+                    : Consumer(
+                        builder: (context, ref, child) {
+                          final userNotifier = ref.watch(authprovider);
+                          final currentUser = userNotifier.data;
+
+                          return currentUser?.profilePic != null
+                              ? CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    '${Bbapi.profilePic}/${currentUser?.userId}?timestamp=${DateTime.now().millisecondsSinceEpoch}',
+                                  ),
+                                  radius: 50,
+                                )
+                              : const Icon(
+                                  Icons.account_circle,
+                                  size: 50,
+                                  color: Colors.grey,
+                                );
+                        },
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+void _showImageSourceDialog(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(context, ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(context, ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     
-    return Scaffold(
+  return Scaffold(
       backgroundColor: CoustColors.colrFill,
       appBar: AppBar(
         backgroundColor: CoustColors.colrFill,
@@ -53,137 +183,38 @@ class _EditprofileScerenState extends State<EditprofileSceren> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: CoustColors.colrMainbg,
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const coustText(
-                      sName: "Profile Photo",
-                      textsize: 18,
-                      fontweight: FontWeight.bold,
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Container(
-                        width: double.infinity,
-                        height: 150,
-                        color: CoustColors.colrButton1,
-                       
-                      ), //set Upload file
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                   
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
               Consumer(
                 builder: (BuildContext context, WidgetRef ref, Widget? child) {
-                  final textFieldStates = ref.watch(textFieldStateProvider);
                   return Form(
                     key: _validationkey,
                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                            decoration: BoxDecoration(
-                              color: CoustColors.colrMainbg,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                regform(
-                                    "Full name",
-                                    name,
-                                    "Please Enter  Name",
-                                    ref,
-                                    0,
-                                    textFieldStates),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                regform(
-                                    "Email Id",
-                                    emailid,
-                                    "Please Enter Email id",
-                                    ref,
-                                    1,
-                                    textFieldStates),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                regform(
-                                    "Password",
-                                    pwd,
-                                    "Please Enter Password",
-                                    ref,
-                                    2,
-                                    textFieldStates),
-                              ],
-                            )),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        TextButton(onPressed: (){}, child: coustText(sName: "Change password",txtcolor: CoustColors.colrEdtxt2,decoration: TextDecoration.underline,decorationcolor: CoustColors.colrHighlightedText,)),
-                        Container(
-                           decoration: BoxDecoration(
-                              color: CoustColors.colrMainbg,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                           child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                regform(
-                                    "Current Password",
-                                    name,
-                                    "Please Enter Current Password",
-                                    ref,
-                                    0,
-                                    textFieldStates),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                regform(
-                                    "New Password",
-                                    emailid,
-                                    "Please Enter New Password",
-                                    ref,
-                                    1,
-                                    textFieldStates),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                regform(
-                                    "Confirm Password",
-                                    pwd,
-                                    "Please Enter Confirm Password",
-                                    ref,
-                                    2,
-                                    textFieldStates),
-                              ],
-                            )),
+                        _buildImageUploadSection(),
+                        regform("User Name", name, "Please Enter User Name", ref, 0),
+                        regform("Email Id", emailid, "Please Enter Email Id", ref, 1),
+                        regform("Contact Number", mobile, "Please Enter Contact Number", ref, 2),
                         SizedBox(
                           width: double.infinity,
                           child: CoustElevatedButton(
-                            buttonName: "Save",
+                            buttonName: "save",
                             width: double.infinity,
                             bgColor: CoustColors.colrButton3,
                             radius: 8,
                             FontSize: 20,
-                            onPressed: () {
-                              if (_validationkey.currentState!.validate()) {}
+                            onPressed: () async {
+                              if (_validationkey.currentState!.validate()) {
+                        
+                               await ref.read(authprovider.notifier).updateUser(
+                              
+                                  
+                                  name.text.trim(),
+                                  emailid.text.trim(),
+                                   mobile.text.trim(),
+                                  _profileImage,
+                                  ref,
+                                  
+                                );
+                              }
                             },
                           ),
                         ),
@@ -191,7 +222,7 @@ class _EditprofileScerenState extends State<EditprofileSceren> {
                     ),
                   );
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -199,29 +230,45 @@ class _EditprofileScerenState extends State<EditprofileSceren> {
     );
   }
 
-  Widget regform(String name, TextEditingController txtController,
-      String erromsg, WidgetRef ref, int index, List<bool> textFieldStates) {
+  Widget regform(String label, TextEditingController controller, String errorMsg, WidgetRef ref, int index) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: CoustTextfield(
-        filled: textFieldStates[index],
         radius: 8.0,
-        width: 10,
+        width: 10.0,
         isVisible: true,
-        hint: name,
-        title: name,
-        controller: txtController,
-        onChanged: (txtController) {
-          ref.read(textFieldStateProvider.notifier).update(index, false);
-          return null;
-        },
-        validator: (txtController) {
-          if (txtController == null || txtController.isEmpty) {
-            return erromsg;
+        hint: label,
+        title: label,
+        controller: controller,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return errorMsg;
           }
           return null;
         },
       ),
     );
   }
+
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              
+              if (title == 'Error') {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

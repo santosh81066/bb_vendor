@@ -10,6 +10,7 @@ class coustText extends StatelessWidget {
   final TextOverflow? overflow;
   final TextAlign? align;
   final FontWeight? fontweight;
+  
 
   @override
   Widget build(BuildContext context) {

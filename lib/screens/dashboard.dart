@@ -59,7 +59,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: screenHeight * 0.01),
+              SizedBox(height: screenHeight * 0.00),
               Row(
                 children: [
                   Container(
@@ -172,7 +172,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                     // Stats Section
                     const Text(
-                      'Stats',
+                      'States',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -239,8 +239,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildStateCard(
-      IconData icon, String label, double screenWidth, double screenHeight) {
-    return Container(
+    IconData icon, String label, double screenWidth, double screenHeight) {
+  return GestureDetector(
+    onTap: () {
+      _navigateToPage(label); // Call the navigation function with the label
+    },
+    child: Container(
       width: screenWidth * 0.3,
       padding: EdgeInsets.all(screenWidth * 0.03),
       decoration: BoxDecoration(
@@ -264,8 +268,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               style: const TextStyle(fontSize: 14)),
         ],
       ),
-    );
+    ),
+  );
+}
+
+void _navigateToPage(String label) {
+  switch (label) {
+    case 'Manage Bookings':
+      Navigator.of(context).pushNamed('/managebooking');
+
+      break;
+    case 'Manage Properties':
+      Navigator.of(context).pushNamed('/manageproperty');
+
+      break;
+    case 'Manage Transactions':
+       Navigator.of(context).pushNamed('/alltransactions');
+
+      break;
+    default:
+      print('No page found for $label');
   }
+}
 
   Widget _buildStatCard(IconData icon, String value, String subtitle,
       double screenWidth, double screenHeight) {

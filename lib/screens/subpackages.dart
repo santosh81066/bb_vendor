@@ -1,135 +1,135 @@
-import 'package:flutter/material.dart';
-import 'package:bb_vendor/models/new_subscriptionplan.dart';
+// import 'package:flutter/material.dart';
+// import 'package:bb_vendor/models/new_subscriptionplan.dart';
 
-class Subpackages extends StatelessWidget {
-  final List<SubscriptionPlan> plans;
-  final String title;
-  final Color cardColor;
+// class Subpackages extends StatelessWidget {
+//   final List<SubscriptionPlan> plans;
+//   final String title;
+//   final Color cardColor;
 
-  const Subpackages({
-    Key? key,
-    required this.plans,
-    required this.title,
-    required this.cardColor,
-  }) : super(key: key);
+//   const Subpackages({
+//     Key? key,
+//     required this.plans,
+//     required this.title,
+//     required this.cardColor,
+//   }) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('$title Subscriptions'),
-        backgroundColor: cardColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: plans.length,
-          itemBuilder: (context, index) {
-            final plan = plans[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            plan.plan,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Frequency: ${plan.frequency}'),
-                          Text('Bookings: ${plan.bookings}'),
-                          Text('Pricing: ${plan.pricing.toString()}'),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) =>
-                            //         EditSubscriptionScreen(plan: plan),
-                            //   ),
-                            // );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            _showDeleteConfirmationDialog(context, plan, index);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('$title Subscriptions'),
+//         backgroundColor: cardColor,
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: ListView.builder(
+//           itemCount: plans.length,
+//           itemBuilder: (context, index) {
+//             final plan = plans[index];
+//             return Card(
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(16),
+//               ),
+//               elevation: 4,
+//               margin: const EdgeInsets.symmetric(vertical: 8.0),
+//               child: Padding(
+//                 padding: const EdgeInsets.all(16.0),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                   children: [
+//                     Expanded(
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Text(
+//                             plan.plan,
+//                             style: const TextStyle(
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                           const SizedBox(height: 8),
+//                           Text('Frequency: ${plan.frequency}'),
+//                           Text('Bookings: ${plan.bookings}'),
+//                           Text('Pricing: ${plan.pricing.toString()}'),
+//                         ],
+//                       ),
+//                     ),
+//                     Row(
+//                       children: [
+//                         IconButton(
+//                           icon: const Icon(Icons.edit),
+//                           onPressed: () {
+//                             // Navigator.push(
+//                             //   context,
+//                             //   MaterialPageRoute(
+//                             //     builder: (context) =>
+//                             //         EditSubscriptionScreen(plan: plan),
+//                             //   ),
+//                             // );
+//                           },
+//                         ),
+//                         IconButton(
+//                           icon: const Icon(Icons.delete),
+//                           onPressed: () {
+//                             _showDeleteConfirmationDialog(context, plan, index);
+//                           },
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             );
+//           },
+//         ),
+//       ),
+//     );
+//   }
 
-  void _showDeleteConfirmationDialog(
-      BuildContext context, SubscriptionPlan plan, int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Subscription'),
-          content: Text(
-              'Are you sure you want to delete the subscription plan "${plan.plan}"?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Perform the delete action here
-                _deleteSubscriptionPlan(context, plan, index);
-                Navigator.of(context).pop();
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+//   void _showDeleteConfirmationDialog(
+//       BuildContext context, SubscriptionPlan plan, int index) {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           title: const Text('Delete Subscription'),
+//           content: Text(
+//               'Are you sure you want to delete the subscription plan "${plan.plan}"?'),
+//           actions: [
+//             TextButton(
+//               onPressed: () {
+//                 Navigator.of(context).pop();
+//               },
+//               child: const Text('Cancel'),
+//             ),
+//             TextButton(
+//               onPressed: () {
+//                 // Perform the delete action here
+//                 _deleteSubscriptionPlan(context, plan, index);
+//                 Navigator.of(context).pop();
+//               },
+//               child: const Text('Delete'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
 
-  void _deleteSubscriptionPlan(
-      BuildContext context, SubscriptionPlan plan, int index) {
-    plans.removeAt(index);
+//   void _deleteSubscriptionPlan(
+//       BuildContext context, SubscriptionPlan plan, int index) {
+//     plans.removeAt(index);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Deleted subscription plan "${plan.plan}"'),
-      ),
-    );
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text('Deleted subscription plan "${plan.plan}"'),
+//       ),
+//     );
 
-    (context as Element).rebuild();
-  }
-}
+//     (context as Element).rebuild();
+//   }
+// }
 
 
 
