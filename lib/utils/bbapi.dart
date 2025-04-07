@@ -10,4 +10,5 @@ class Bbapi {
   static const String getcategory="$baseUrl/bbaddpropcat";
   static const String addplantoproperty="$baseUrl/bbaddpropertyplan";
   static const String updateeuser = '$baseUrl/bbupdateuser';
+  static const String updateeusdd = '$baseUrl/bbupdateuser';
 }
