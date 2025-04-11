@@ -1,4 +1,5 @@
 import 'package:bb_vendor/models/addpropertymodel.dart';
+import 'package:bb_vendor/providers/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:bb_vendor/models/get_properties_model.dart";
 import 'dart:convert';
@@ -16,137 +17,139 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   //   state = state.copyWith(propertyImage: image);
   // }
 
-  // Future<void> addProperty(
-  //   BuildContext context,
-  //   WidgetRef ref,
-  //   String? propertyName,
-  //   String?selectedCategory,
-  //   String? address1,
-  //   String? address2,
-  //   String? location,
-  //   String? state,
-  //   String? city,
-  //   String? pincode,
-  //   String? startTime,
-  //   String? endTime,
-  //   File? propertyImage,
-  // ) async {
-  //   Uri url = Uri.parse(Bbapi.addproperty);
+  Future<void> addProperty(
+    BuildContext context,
+    WidgetRef ref,
+    String? propertyname,
+    int? selectedCategoryid,
+    String? address1,
+    File? _profileImage,
+    String? sLoc,
+  
+  ) async {
+    final venderlogin = ref.watch(authprovider).data?.userId;
+    print("user id.....$venderlogin");
 
-  //   final request = http.MultipartRequest('POST', url);
+    Uri url = Uri.parse(Bbapi.addproperty);
 
-  //   // Retrieve the token from SharedPreferences
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   String? userData = prefs.getString('userData');
+    final request = http.MultipartRequest('POST', url);
 
-  //   String? token;
-  //   if (userData != null) {
-  //     final extractedData = json.decode(userData) as Map<String, dynamic>;
-  //     token = extractedData['token'];
-  //   }
+    // Retrieve the token from SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userData = prefs.getString('userData');
 
-  //   // Debugging token
-  //   print('Access Token: $token');
+    String? token;
+      String? userId;
+    if (userData != null) {
+      final extractedData = json.decode(userData) as Map<String, dynamic>;
+      token = extractedData['data']?['access_token'];
+       userId = extractedData['data']?['user_id']?.toString();
+    }
+    
+    // Debugging token
+    print('Access Token: $token');
 
-  //   if (token != null) {
-  //     request.headers['Authorization'] = 'Token $token';
-  //   }
+    if (token != null) {
+      request.headers['Authorization'] = 'Token $token';
+    }
+   
+  // Add attributes as JSON string with all required details
+  Map<String, dynamic> attributes = {
+    'address': address1 ?? '',
+    'propertyname': propertyname ?? '',
+    'location': sLoc ?? '',
+    'userid': venderlogin.toString(),
+    'category': selectedCategoryid?.toString() ?? '',
+  };
 
-  //   if (propertyImage != null) {
-  //     request.files.add(await http.MultipartFile.fromPath(
-  //       'property_pic',
-  //       propertyImage.path,
-  //     ));
+  // Add attributes as a JSON string
+  request.fields['attributes'] = json.encode(attributes);
+  print('Sending attributes: ${json.encode(attributes)}');
 
-  //     // Debugging file path
-  //     print('Property Image Path: ${propertyImage.path}');
-  //   }
 
-  //   // Add the text fields to the request
-  //   request.fields['property_name'] = propertyName ?? '';
-  //   request.fields['category'] = selectedCategory ?? '';
-  //   request.fields['address_1'] = address1 ?? '';
-  //   request.fields['address_2'] = address2 ?? '';
-  //   request.fields['location'] = location ?? '';
-  //   request.fields['state'] = state ?? '';
-  //   request.fields['city'] = city ?? '';
-  //   request.fields['pincode'] = pincode ?? '';
-  //   request.fields['start_time'] = startTime ?? '';
-  //   request.fields['end_time'] = endTime ?? '';
+    if (_profileImage != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'coverpic',
+        _profileImage.path,
+      ));
 
-  //   try {
-  //     final response = await request.send();
-  //     final responseBody = await response.stream.bytesToString();
-  //     final responseData = json.decode(responseBody);
+      // Debugging file path
+      print('Property Image Path: ${_profileImage.path}');
+    }
 
-  //     // Print the response body
-  //     print('Response Body: $responseBody');
+    try {
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseData = json.decode(responseBody);
 
-  //     if (response.statusCode == 201) {
-  //       // Handle the success response
-  //       print(responseData);
-  //       showDialog(
-  //         context: context,
-  //         builder: (BuildContext context) {
-  //           return AlertDialog(
-  //             title: const Text('Success'),
-  //             content: const Text('Property added successfully'),
-  //             actions: [
-  //               ElevatedButton(
-  //                 child: const Text('OK'),
-  //                 onPressed: () {
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //       Navigator.of(context)
-  //           .pushNamed('/'); // Navigate to the home page or another page
-  //     } else {
-  //       // Handle the error response
-  //       print('Property addition failed with status: ${response.statusCode}');
-  //       showDialog(
-  //         context: context,
-  //         builder: (BuildContext context) {
-  //           return AlertDialog(
-  //             title: const Text('Error'),
-  //             content: Text(
-  //                 'Property addition failed: ${responseData['message'] ?? 'Unknown error'}'),
-  //             actions: [
-  //               ElevatedButton(
-  //                 child: const Text('OK'),
-  //                 onPressed: () {
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('An error occurred: $e');
-  //     showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return AlertDialog(
-  //           title: const Text('Error'),
-  //           content: Text('An error occurred: $e'),
-  //           actions: [
-  //             ElevatedButton(
-  //               child: const Text('OK'),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //             ),
-  //           ],
-  //         );
-  //       },
-  //     );
-  //   }
-  // }
+      // Print the response body
+      print('Response Body: $responseBody');
+
+      if (response.statusCode == 201) {
+        // Handle the success response
+        print(responseData);
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Property added successfully'),
+              actions: [
+                ElevatedButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+        Navigator.of(context)
+            .pushNamed('/'); // Navigate to the home page or another page
+      } else {
+        // Handle the error response
+        print('Property addition failed with status: ${response.statusCode}');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: Text(
+                  'Property addition failed: ${responseData['message'] ?? 'Unknown error'}'),
+              actions: [
+                ElevatedButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('An error occurred: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text('An error occurred: $e'),
+            actions: [
+              ElevatedButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   Future<void> addhallproperty(
     String? propertyname,

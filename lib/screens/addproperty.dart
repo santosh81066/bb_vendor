@@ -28,12 +28,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final TextEditingController category = TextEditingController();
   final TextEditingController address1 = TextEditingController();
   final TextEditingController address2 = TextEditingController();
-  final TextEditingController state = TextEditingController();
-  final TextEditingController city = TextEditingController();
-  final TextEditingController pincode = TextEditingController();
   final TextEditingController location = TextEditingController();
-  final TextEditingController startTime = TextEditingController();
-  final TextEditingController endTime = TextEditingController();
+ 
 
   // final addPropertyProvider =
   //     StateNotifierProvider<AddPropertyNotifier, Property>(
@@ -58,6 +54,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 
   // final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
   String selectedCategory = ""; // Default selected category
+  int? selectedCategoryid ; 
 
   void _searchLocation(WidgetRef ref) async {
     final response = await http.get(Uri.parse(
@@ -277,6 +274,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                                   groupValue: selectedCategory,
                                                   onChanged: (value) {
                                                     setState(() {
+                                                      selectedCategoryid = data.id;
                                                       selectedCategory = value!;
                                                     });
                                                   },
@@ -356,13 +354,16 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                       TileLayer(
                                         urlTemplate:
                                         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                      subdomains: const ['a', 'b', 'c'],
+                                      userAgentPackageName: 'com.example.bb_vendor',
                                       ),
                                       MarkerLayer(
                                         markers: [
                                           Marker(
+                                           
+                                            point: ref.watch(latlangs),
                                             width: 80.0,
                                             height: 80.0,
-                                            point: (ref.watch(latlangs)),
                                             builder: (BuildContext context) {
                                               return const Icon(
                                                 Icons.location_on,
@@ -389,32 +390,27 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                       radius: 8,
                                       FontSize: 20,
                                       onPressed: () {
-                                        // if (_validationKey.currentState!
-                                        //     .validate()) {
-                                        //   var loc = (ref
-                                        //       .read(latlangs.notifier)
-                                        //       .state);
-                                        //   String sLoc =
-                                        //       '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
-                                        //   ref
-                                        //       .read(propertyNotifierProvider
-                                        //       .notifier)
-                                        //       .addProperty(
-                                        //     context,
-                                        //     ref,
-                                        //     propertyname.text.trim(),
-                                        //     selectedCategory,
-                                        //     address1.text.trim(),
-                                        //     address2.text.trim(),
-                                        //     sLoc,
-                                        //     state.text.trim(),
-                                        //     city.text.trim(),
-                                        //     pincode.text.trim(),
-                                        //     endTime.text.trim(),
-                                        //     startTime.text.trim(),
-                                        //     _profileImage, // New field
-                                        //   );
-                                        // }
+                                        if (_validationKey.currentState!
+                                            .validate()) {
+                                          var loc = (ref
+                                              .read(latlangs.notifier)
+                                              .state);
+                                          String sLoc =
+                                              '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
+                                          ref
+                                              .read(propertyNotifierProvider
+                                              .notifier)
+                                              .addProperty(
+                                            context,
+                                            ref,
+                                            propertyname.text.trim(),
+                                            selectedCategoryid,
+                                            address1.text.trim(),
+                                           
+                                            _profileImage, // New field
+                                             sLoc,
+                                          );
+                                        }
                                       },
                                     );
                                   },
@@ -485,6 +481,21 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // const SizedBox(height: 10),
 // _buildTextField(
