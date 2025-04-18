@@ -37,14 +37,16 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     // Retrieve the token from SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userData = prefs.getString('userData');
+    print('Raw SharedPrefs userData: $userData');
 
     String? token;
       String? userId;
-    if (userData != null) {
-      final extractedData = json.decode(userData) as Map<String, dynamic>;
-      token = extractedData['data']?['access_token'];
-       userId = extractedData['data']?['user_id']?.toString();
-    }
+   if (userData != null) {
+  final extractedData = json.decode(userData) as Map<String, dynamic>;
+  token = extractedData['access_token']; 
+  userId = extractedData['user_id']?.toString(); 
+  }
+
     
     // Debugging token
     print('Access Token: $token');
@@ -56,9 +58,9 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   // Add attributes as JSON string with all required details
   Map<String, dynamic> attributes = {
     'address': address1 ?? '',
-    'propertyname': propertyname ?? '',
+    'propertyName': propertyname ?? '',
     'location': sLoc ?? '',
-    'userid': venderlogin.toString(),
+    'userid': userId ?? '',
     'category': selectedCategoryid?.toString() ?? '',
   };
 

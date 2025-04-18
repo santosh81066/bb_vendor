@@ -113,7 +113,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         print("SharedPreferences fetched successfully");
 
         // Store the entire AdminAuth object in SharedPreferences
-        final userData = json.encode(state.data!.toJson());
+        final userData = json.encode(state.toJson());
         bool saveResult = await prefs.setString('userData', userData);
 
         
