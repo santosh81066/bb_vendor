@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bb_vendor/Colors/coustcolors.dart';
-import 'package:bb_vendor/models/addpropertymodel.dart';
 import 'package:bb_vendor/Providers/stateproviders.dart';
 import 'package:bb_vendor/Providers/textfieldstatenotifier.dart';
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
@@ -15,6 +14,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import "package:bb_vendor/providers/categoryprovider.dart";
+import 'package:geocoding/geocoding.dart';
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key});
@@ -29,7 +29,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   final TextEditingController address1 = TextEditingController();
   final TextEditingController address2 = TextEditingController();
   final TextEditingController location = TextEditingController();
- 
 
   // final addPropertyProvider =
   //     StateNotifierProvider<AddPropertyNotifier, Property>(
@@ -54,7 +53,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 
   // final List<String> categoryList = ["Residential", "Commercial", "Industrial", "Agricultural"];
   String selectedCategory = ""; // Default selected category
-  int? selectedCategoryid ; 
+  int? selectedCategoryid;
 
   void _searchLocation(WidgetRef ref) async {
     final response = await http.get(Uri.parse(
@@ -113,22 +112,22 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           child: Center(
             child: _profileImage != null
                 ? Image.file(
-              _profileImage!,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            )
+                    _profileImage!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
                 : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.camera_alt, size: 40, color: Colors.white),
-                SizedBox(height: 10),
-                coustText(
-                  sName: "Upload Profile Image",
-                  txtcolor: Colors.white,
-                ),
-              ],
-            ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                      SizedBox(height: 10),
+                      coustText(
+                        sName: "Upload Profile Image",
+                        txtcolor: Colors.white,
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -239,11 +238,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   builder: (context, ref, child) {
                                     // Watch the provider for AsyncValue<Category>
                                     final categoryState =
-                                    ref.watch(categoryProvider);
+                                        ref.watch(categoryProvider);
 
                                     return Column(
                                       crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Padding(
                                           padding: EdgeInsets.all(8.0),
@@ -267,14 +266,15 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 
                                             return Column(
                                               children:
-                                              category.data!.map((data) {
+                                                  category.data!.map((data) {
                                                 return RadioListTile<String>(
                                                   title: Text(data.name ?? ""),
                                                   value: data.name ?? "",
                                                   groupValue: selectedCategory,
                                                   onChanged: (value) {
                                                     setState(() {
-                                                      selectedCategoryid = data.id;
+                                                      selectedCategoryid =
+                                                          data.id;
                                                       selectedCategory = value!;
                                                     });
                                                   },
@@ -286,7 +286,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                             child: Padding(
                                               padding: EdgeInsets.all(16.0),
                                               child:
-                                              CircularProgressIndicator(),
+                                                  CircularProgressIndicator(),
                                             ),
                                           ),
                                           error: (error, stack) => Padding(
@@ -320,7 +320,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   width: 10,
                                   isVisible: true,
                                   iconwidget:
-                                  const Icon(Icons.location_searching),
+                                      const Icon(Icons.location_searching),
                                   suficonColor: CoustColors.colrMainText,
                                   title: "Location",
                                   controller: location,
@@ -349,18 +349,42 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                     options: MapOptions(
                                       center: ref.watch(latlangs),
                                       zoom: 15.0,
+                                      onPositionChanged:
+                                          (position, hasGesture) async {
+                                        final center = position.center!;
+                                        ref.read(latlangs.notifier).state =
+                                            center;
+
+                                        try {
+                                          List<Placemark> placemarks =
+                                              await placemarkFromCoordinates(
+                                            center.latitude,
+                                            center.longitude,
+                                          );
+
+                                          if (placemarks.isNotEmpty) {
+                                            final placemark = placemarks.first;
+                                            final address =
+                                                '${placemark.street}, ${placemark.locality}, ${placemark.country}';
+                                            location.text = address;
+                                          }
+                                        } catch (e) {
+                                          location.text =
+                                              "Unable to fetch address";
+                                        }
+                                      },
                                     ),
                                     children: [
                                       TileLayer(
                                         urlTemplate:
-                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                                      subdomains: const ['a', 'b', 'c'],
-                                      userAgentPackageName: 'com.example.bb_vendor',
+                                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                        subdomains: const ['a', 'b', 'c'],
+                                        userAgentPackageName:
+                                            'com.example.bb_vendor',
                                       ),
                                       MarkerLayer(
                                         markers: [
                                           Marker(
-                                           
                                             point: ref.watch(latlangs),
                                             width: 80.0,
                                             height: 80.0,
@@ -399,17 +423,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                               '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
                                           ref
                                               .read(propertyNotifierProvider
-                                              .notifier)
+                                                  .notifier)
                                               .addProperty(
-                                            context,
-                                            ref,
-                                            propertyname.text.trim(),
-                                            selectedCategoryid,
-                                            address1.text.trim(),
-                                           
-                                            _profileImage, // New field
-                                             sLoc,
-                                          );
+                                                context,
+                                                ref,
+                                                propertyname.text.trim(),
+                                                selectedCategoryid,
+                                                address1.text.trim(),
+
+                                                _profileImage, // New field
+                                                sLoc,
+                                              );
                                         }
                                       },
                                     );
@@ -432,13 +456,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   }
 
   Widget _buildTextField(
-      String labelText,
-      TextEditingController controller,
-      String validationText,
-      WidgetRef ref,
-      int index,
-      List<bool> textFieldStates,
-      ) {
+    String labelText,
+    TextEditingController controller,
+    String validationText,
+    WidgetRef ref,
+    int index,
+    List<bool> textFieldStates,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: CoustTextfield(
@@ -481,21 +505,6 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // const SizedBox(height: 10),
 // _buildTextField(

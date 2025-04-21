@@ -134,48 +134,101 @@ class Data {
 
 class Hall {
   int? hallId;
-  String? slotFromTime;
-  String? slotToTime;
-  String? name;
+  String? hallName; // Changed from 'name' to 'hallName'
+  List<Slot>? slots; // Added slots list
+  List<HallImage>? images; // Added images list
 
-  Hall({this.hallId, this.slotFromTime, this.slotToTime, this.name});
+  Hall({this.hallId, this.hallName, this.slots, this.images});
 
   Hall.fromJson(Map<String, dynamic> json) {
     hallId = json['hall_id'];
-    slotFromTime = json['slot_from_time'];
-    slotToTime = json['slot_to_time'];
-    name = json['Name'];
+    hallName = json['hall_name']; // Changed from 'Name' to 'hall_name'
+
+    // Parse slots array
+    if (json['slots'] != null) {
+      slots = List<Slot>.from(json['slots'].map((v) => Slot.fromJson(v)));
+    } else {
+      slots = [];
+    }
+
+    // Parse images array
+    if (json['images'] != null) {
+      images = List<HallImage>.from(
+          json['images'].map((v) => HallImage.fromJson(v)));
+    } else {
+      images = [];
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['hall_id'] = hallId;
-    data['slot_from_time'] = slotFromTime;
-    data['slot_to_time'] = slotToTime;
-    data['Name'] = name;
+    data['hall_name'] = hallName;
+    if (slots != null) {
+      data['slots'] = slots!.map((v) => v.toJson()).toList();
+    }
+    if (images != null) {
+      data['images'] = images!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 
   Hall copyWith({
     int? hallId,
-    String? slotFromTime,
-    String? slotToTime,
-    String? name,
+    String? hallName,
+    List<Slot>? slots,
+    List<HallImage>? images,
   }) {
     return Hall(
       hallId: hallId ?? this.hallId,
-      slotFromTime: slotFromTime ?? this.slotFromTime,
-      slotToTime: slotToTime ?? this.slotToTime,
-      name: name ?? this.name,
+      hallName: hallName ?? this.hallName,
+      slots: slots ?? this.slots,
+      images: images ?? this.images,
     );
   }
 
   static Hall initial() {
     return Hall(
       hallId: 0,
-      slotFromTime: "",
-      slotToTime: "",
-      name: "",
+      hallName: "",
+      slots: [],
+      images: [],
     );
+  }
+}
+
+// Add these additional classes for slots and images
+class Slot {
+  String? slotFromTime;
+  String? slotToTime;
+
+  Slot({this.slotFromTime, this.slotToTime});
+
+  Slot.fromJson(Map<String, dynamic> json) {
+    slotFromTime = json['slot_from_time'];
+    slotToTime = json['slot_to_time'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['slot_from_time'] = slotFromTime;
+    data['slot_to_time'] = slotToTime;
+    return data;
+  }
+}
+
+class HallImage {
+  String? url;
+
+  HallImage({this.url});
+
+  HallImage.fromJson(Map<String, dynamic> json) {
+    url = json['url'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['url'] = url;
+    return data;
   }
 }

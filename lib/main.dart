@@ -1,3 +1,4 @@
+import 'package:bb_vendor/screens/hallscalendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Colors/coustcolors.dart';
@@ -21,7 +22,7 @@ import "package:bb_vendor/Screens/managecalendar.dart";
 import "package:bb_vendor/Screens/calendarpropertieslist.dart";
 import "package:bb_vendor/screens/addhall.dart";
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize time zones
   tz.initializeTimeZones();
@@ -29,7 +30,7 @@ void main() async{
   runApp(ProviderScope(child: const MyApp()));
 }
 
-class MyApp extends ConsumerWidget{
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
@@ -37,11 +38,10 @@ class MyApp extends ConsumerWidget{
   Widget build(BuildContext context, WidgetRef ref) {
     print('build main.dart');
     print('Building the widget');
-    
-    return MaterialApp(
 
-      title:'Banquetbookz Vendor',
-      theme:ThemeData(
+    return MaterialApp(
+      title: 'Banquetbookz Vendor',
+      theme: ThemeData(
           useMaterial3: true,
           fontFamily: 'Roboto', // Set the default font family
           scaffoldBackgroundColor: CoustColors.colrScaffoldbg,
@@ -59,11 +59,9 @@ class MyApp extends ConsumerWidget{
             unselectedItemColor: CoustColors.colrSubText,
             type: BottomNavigationBarType.fixed,
           )),
-        
-      routes:{
-        '/':(context){
+      routes: {
+        '/': (context) {
           return Consumer(
-
             builder: (context, ref, child) {
               final authState = ref.watch(authprovider);
               print('Auth state updated: ${authState.toJson()}');
@@ -71,10 +69,11 @@ class MyApp extends ConsumerWidget{
               print("Auth state data: ${authState.data}");
               print("User Role: ${authState.data?.userRole}");
               print("User Status: ${authState.data?.userStatus}");
-              final token =authState.data?.accessToken!;
+              final token = authState.data?.accessToken!;
               print("accesstoken in mainpage:$token");
               // Check if the user is authenticated and has a valid role and status
-              if (authState.data?.accessToken!= null && authState.data!.accessToken!.isNotEmpty) {
+              if (authState.data?.accessToken != null &&
+                  authState.data!.accessToken!.isNotEmpty) {
                 // Navigate to the welcome page if conditions are met
                 return const CoustNavigation(); // Welcome page
               }
@@ -84,9 +83,10 @@ class MyApp extends ConsumerWidget{
                 future: ref.watch(authprovider.notifier).tryAutoLogin(),
                 builder: (context, snapshot) {
                   print("Auto-login result: ${snapshot.data}");
-                  print("Snapshot connection state: ${snapshot.connectionState}");
+                  print(
+                      "Snapshot connection state: ${snapshot.connectionState}");
 
-                  if (snapshot.connectionState == ConnectionState.waiting){
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                         child:
                             CircularProgressIndicator()); // Show SplashScreen while waiting
@@ -99,10 +99,8 @@ class MyApp extends ConsumerWidget{
                 },
               );
             },
-         );
-        
+          );
         },
-
         '/forgotpwd': (BuildContext context) {
           return const ForgotpasswordScreen();
         },
@@ -138,7 +136,7 @@ class MyApp extends ConsumerWidget{
         },
         '/addhall': (BuildContext context) {
           return const PropertyHallScreen();
-          },
+        },
         '/alltransactions': (BuildContext context) {
           return const TransactionsScreen();
         },
@@ -151,13 +149,15 @@ class MyApp extends ConsumerWidget{
         '/manageCalendar': (BuildContext context) {
           return const ManageCalendarScreen();
         },
+        '/hallscalendar': (BuildContext context) {
+          return const HallsCalendarScreen();
+        },
         '/calendarPropertiesList': (BuildContext context) {
           return const CalendarPropertiesList();
         },
         '/login': (BuildContext context) {
           return const LoginScreen();
         }
-
       },
     );
   }

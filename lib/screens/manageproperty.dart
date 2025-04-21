@@ -1,7 +1,5 @@
 import 'package:bb_vendor/Colors/coustcolors.dart';
-
 import 'package:bb_vendor/providers/addpropertynotifier.dart';
-import 'package:bb_vendor/providers/property_repository.dart';
 import 'package:bb_vendor/Widgets/tabbar.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:flutter/material.dart';
@@ -123,11 +121,14 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
     // Group halls by their name
     final Map<String, List<Hall>> groupedHalls = {};
     for (var hall in property.halls ?? []) {
-      if (hall.name != null) {
-        groupedHalls.putIfAbsent(hall.name!, () => []).add(hall);
+      if (hall.hallName != null) {
+        groupedHalls.putIfAbsent(hall.hallName!, () => []).add(hall);
       }
     }
-    print("groupesdHalls:::${groupedHalls.values}");
+
+    print("groupedHalls:::${groupedHalls.entries.length}");
+    print("Hall names: ${groupedHalls.keys.toList()}");
+    print("Grouped halls count: ${groupedHalls.length}");
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -178,6 +179,7 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                 children: [
                   OutlinedButton(
                     onPressed: () {
+                      Navigator.of(context).pushNamed('/addproperty');
                       // Handle edit
                     },
                     style: OutlinedButton.styleFrom(
@@ -199,14 +201,13 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                 ],
               ),
               // Display grouped halls
-              // Display grouped halls
               const SizedBox(height: 8),
               if (groupedHalls.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: groupedHalls.entries.map((entry) {
                     final hallName = entry.key;
-                    final hallSlots = entry.value;
+                    final hallsList = entry.value;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(
@@ -271,7 +272,7 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                                                     // Call delete function here
                                                     // ref
                                                     //     .read(propertyNotifierProvider.notifier)
-                                                    //     .deleteHall(hallSlots.first.hallId);
+                                                    //     .deleteHall(hallsList.first.hallId);
                                                     // Navigator.pop(context);
                                                   },
                                                   child: const Text('Delete'),
@@ -288,17 +289,20 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                             ),
                             const Divider(),
 
-                            // Slots for this hall
-                            ...hallSlots.map((slot) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
-                                child: Text(
-                                  'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.white),
-                                ),
-                              );
+                            // Slots for each hall - Using expand to flatten all slots from all halls with same name
+                            ...hallsList.expand((hall) {
+                              return (hall.slots?.map<Widget>((slot) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0, vertical: 4.0),
+                                      child: Text(
+                                        'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.white),
+                                      ),
+                                    );
+                                  }) ??
+                                  <Widget>[]);
                             }).toList(),
                           ],
                         ),
@@ -336,7 +340,10 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                         Navigator.pushNamed(context,'/subscriptionScreen',arguments:{'propertyid': property.propertyId,} );
+                      Navigator.pushNamed(context, '/subscriptionScreen',
+                          arguments: {
+                            'propertyid': property.propertyId,
+                          });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff6418c3),

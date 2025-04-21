@@ -1,17 +1,28 @@
 import "package:flutter/material.dart";
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bb_vendor/models/get_properties_model.dart';
+import 'package:bb_vendor/providers/property_repository.dart'; // Import your property provider
+import 'package:bb_vendor/providers/addpropertynotifier.dart';
 
 class ManageCalendarScreen extends ConsumerStatefulWidget {
   const ManageCalendarScreen({super.key});
 
   @override
-  ConsumerState<ManageCalendarScreen> createState() => _ManageCalendarScreenState();
+  ConsumerState<ManageCalendarScreen> createState() =>
+      _ManageCalendarScreenState();
 }
 
-class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen>{
+class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ref.read(propertyNotifierProvider.notifier).getproperty();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final propertyState = ref.watch(propertyNotifierProvider).data ?? [];
+
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -35,7 +46,7 @@ class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen>{
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -66,17 +77,21 @@ class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen>{
             ),
 
             const SizedBox(height: 10),
-            // Properties List Header
+
+            // Header
             Container(
               width: double.infinity,
-              color: const Color.fromARGB(255, 255, 255, 255),
               padding: const EdgeInsets.symmetric(horizontal: 15),
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                // background color
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12), // rounded corners
+              ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10),
-                  // Properties List Header
-
                   Text(
                     "Properties List",
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
@@ -85,27 +100,51 @@ class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen>{
                   Text(
                     "Select from below properties to manage their calendar",
                     style: TextStyle(
-                        fontSize: 10, color: Color.fromARGB(255, 32, 32, 32)),
+                      fontSize: 12,
+                      color: Color.fromARGB(255, 32, 32, 32),
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 6),
                 ],
               ),
             ),
 
-            const SizedBox(height: 0),
+            const SizedBox(height: 6),
 
             Expanded(
               child: Container(
-                color: const Color.fromARGB(255, 255, 255, 255),
-                child: ListView(
-                  children: List.generate(4, (index) {
-                    return PropertyCard(
-                      name: "Swagat Grand Banquet Hall",
-                      location: "Bachupally, Hyderabad",
-                      status: index == 1 ? "Deactivated" : "Subscribed to Pro",
-                    );
-                  }),
-                ),
+                child: propertyState.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: propertyState.length,
+                        itemBuilder: (context, index) {
+                          final property = propertyState[index];
+                          return Container(
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.deepPurple[50], // background color
+                              border: Border.all(
+                                color:
+                                    Colors.deepPurple.shade200, // border color
+                                width: 1, // border width
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(12), // rounded corners
+                            ),
+                            child: PropertyCard(
+                              property: property,
+                              name: property.propertyName ?? 'No Name',
+                              location: property.address ?? 'No Address',
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Text(
+                          'No properties available',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
               ),
             ),
           ],
@@ -116,44 +155,36 @@ class _ManageCalendarScreenState extends ConsumerState<ManageCalendarScreen>{
 }
 
 class PropertyCard extends StatelessWidget {
-  final String name;
-  final String location;
-  final String status;
+  final Data property;
 
-  PropertyCard({
-    required this.name,
-    required this.location,
-    required this.status,
-  });
+  const PropertyCard(
+      {super.key,
+      required this.property,
+      required String name,
+      required String location});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         ListTile(
-          title: Text(name,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(location, style: const TextStyle(color: Colors.grey)),
-              // const SizedBox(height: 20),
-              Text(
-                status,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
+          title: Text(
+            property.propertyName ?? 'No Name',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          subtitle: Text(
+            property.address ?? 'No Address',
+            style: const TextStyle(color: Colors.grey),
           ),
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            Navigator.of(context).pushNamed('/calendarPropertiesList');
+            Navigator.of(context).pushNamed(
+              '/hallscalendar',
+              arguments: {'property': property},
+            );
           },
         ),
-        Divider(),
       ],
     );
   }
 }
-
-
