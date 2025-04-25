@@ -152,9 +152,9 @@ class MyApp extends ConsumerWidget {
         '/hallscalendar': (BuildContext context) {
           return const HallsCalendarScreen();
         },
-        '/calendarPropertiesList': (BuildContext context) {
-          return const CalendarPropertiesList();
-        },
+        // '/calendarPropertiesList': (BuildContext context) {
+        //   return const CalendarPropertiesList();
+        // },
         '/login': (BuildContext context) {
           return const LoginScreen();
         }

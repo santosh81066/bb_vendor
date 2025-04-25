@@ -12,9 +12,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class SettingsScreenState extends ConsumerState<SettingsScreen> {
-      
   @override
-
   Widget build(BuildContext context) {
     final logout = ref.watch(authprovider.notifier);
     return Scaffold(
@@ -43,7 +41,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
                         sName: "Settings",
                         txtcolor: CoustColors.colrEdtxt4,
                         textsize: 24,
-                        fontweight:FontWeight.bold,
+                        fontweight: FontWeight.bold,
                       )),
                 ),
                 Padding(
@@ -59,46 +57,69 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
                           child: const Row(
                             children: [
                               Icon(Icons.person,
-                                  size: 40, color: CoustColors.colrHighlightedText),
+                                  size: 40,
+                                  color: CoustColors.colrHighlightedText),
                               SizedBox(width: 16.0),
-                              coustText(sName:'Suresh Ramesh',textsize: 18,txtcolor: CoustColors.colrEdtxt2,)
-                            
+                              coustText(
+                                sName: 'Suresh Ramesh',
+                                textsize: 18,
+                                txtcolor: CoustColors.colrEdtxt2,
+                              )
                             ],
                           ),
                         ),
                         const SizedBox(
-                  height: 10,
-                ),
-                ListTile(
-                  title: const coustText(sName: 'Edit Profile'),
-                  onTap: () {Navigator.of(context).pushNamed('/editprofile');
-                    // Handle edit profile action
-                  },
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-               Align(
+                          height: 10,
+                        ),
+                        ListTile(
+                          title: const coustText(sName: 'Edit Profile'),
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/editprofile');
+                            // Handle edit profile action
+                          },
+                        ),
+                        ListTile(
+                          title: const coustText(sName: 'Display userid'),
+                          onTap: () {
+                            // Get the user ID from the auth provider
+                            final userId = ref.read(authprovider).data?.userId;
 
-                 alignment: Alignment.centerLeft, // Aligns to the start (left)
-                 child: TextButton(
-                      onPressed: () async {
-                        final shouldLogout = await _showLogoutConfirmation(context);
-                        if (shouldLogout == true) {
-                          await logout.logoutUser();  // Call logout function
-                          Navigator.of(context).pushReplacementNamed('/login');  // Navigate to the login screen after logout
-                        }
-                      },
-                      child: const Text(
-                        "Logout",
-                        style: TextStyle(color: Color(0xff000000), fontSize: 15),
-                      ),
-                    ),
-                   ),
-
-                  ],
-                )),
-                
+                            // Show it in a snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Your user ID is: ${userId ?? 'Not available'}'),
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Align(
+                          alignment: Alignment
+                              .centerLeft, // Aligns to the start (left)
+                          child: TextButton(
+                            onPressed: () async {
+                              final shouldLogout =
+                                  await _showLogoutConfirmation(context);
+                              if (shouldLogout == true) {
+                                await logout
+                                    .logoutUser(); // Call logout function
+                                Navigator.of(context).pushReplacementNamed(
+                                    '/login'); // Navigate to the login screen after logout
+                              }
+                            },
+                            child: const Text(
+                              "Logout",
+                              style: TextStyle(
+                                  color: Color(0xff000000), fontSize: 15),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
               ],
             ),
           );
@@ -107,6 +128,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 }
+
 Future<bool?> _showLogoutConfirmation(BuildContext context) {
   return showDialog<bool>(
     context: context,
@@ -133,4 +155,3 @@ Future<bool?> _showLogoutConfirmation(BuildContext context) {
     },
   );
 }
-

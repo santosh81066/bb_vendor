@@ -5,10 +5,10 @@ class Bbapi {
   static const String profilePic = '$baseUrl/bbgetprofilepic';
   static const String registration = "$baseUrl/bbusereg";
   static const String addproperty = "$baseUrl/bbaddproperty";
-  static const String addhall ="$baseUrl/bbaddhall";
+  static const String addhall = "$baseUrl/bbaddhall";
   static const String subscriptions = '$baseUrl/bbaddplan';
-  static const String getcategory="$baseUrl/bbaddpropcat";
-  static const String addplantoproperty="$baseUrl/bbaddpropertyplan";
+  static const String getcategory = "$baseUrl/bbaddpropcat";
+  static const String addplantoproperty = "$baseUrl/bbaddpropertyplan";
   static const String updateeuser = '$baseUrl/bbupdateuser';
-  static const String updateeusdd = '$baseUrl/bbupdateuser';
+  //static const String updateeusdd = '$baseUrl/bbupdateuser';
 }

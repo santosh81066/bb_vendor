@@ -161,16 +161,27 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                 subtitle: Text(property.address ?? 'No Address'),
               ),
               if (property.coverPic != null)
-                Container(
-                  constraints: const BoxConstraints(
-                    maxWidth: double.infinity,
-                    maxHeight: 200, // Fixed height
-                  ),
-                  child: Image.network(
-                    'https://your-image-url.com/${property.coverPic}',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Center(child: Text("Image not found")),
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.deepPurple, // border color
+                        width: 2, // border width
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(8), // optional: rounded corners
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        'https://www.gocodedesigners.com/banquetbookingz/${property.coverPic}',
+                        width: 280,
+                        height: 200,
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(child: Text("Image not found")),
+                      ),
+                    ),
                   ),
                 ),
               const SizedBox(height: 8),
@@ -357,6 +368,9 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                   ),
                 ],
               ),
+              SizedBox(
+                height: 14,
+              )
             ],
           ),
         ),

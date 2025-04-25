@@ -14,35 +14,34 @@ class Subscription extends ConsumerStatefulWidget {
 class _SubscriptionState extends ConsumerState<Subscription> {
   Data? selectedPlan;
   SubPlans? selectedSubPlan;
-  int?properid;
-  
-
-
+  int? properid;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Fetch subscribers when the widget is loaded
     ref.watch(subscriptionProvider.notifier).getSubscribers();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
-
       properid = args['propertyid'];
-      }
+    }
   }
 
-  
-  DateTime calculateExpiryTime(DateTime startTime, int frequency, String subPlanName) {
-  switch (subPlanName.toLowerCase()) {
-    case 'daily':
-      return startTime.add(Duration(days: frequency));
-    case 'monthly':
-      return DateTime(startTime.year, startTime.month + frequency, startTime.day, startTime.hour, startTime.minute);
-    case 'yearly':
-      return DateTime(startTime.year + frequency, startTime.month, startTime.day, startTime.hour, startTime.minute);
-    default:
-      throw Exception("Unsupported subPlanName: $subPlanName");
-  }
+  DateTime calculateExpiryTime(
+      DateTime startTime, int frequency, String subPlanName) {
+    switch (subPlanName.toLowerCase()) {
+      case 'daily':
+        return startTime.add(Duration(days: frequency));
+      case 'monthly':
+        return DateTime(startTime.year, startTime.month + frequency,
+            startTime.day, startTime.hour, startTime.minute);
+      case 'yearly':
+        return DateTime(startTime.year + frequency, startTime.month,
+            startTime.day, startTime.hour, startTime.minute);
+      default:
+        throw Exception("Unsupported subPlanName: $subPlanName");
+    }
   }
 
   @override
@@ -116,7 +115,8 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.card_membership, color: Colors.white),
+                              const Icon(Icons.card_membership,
+                                  color: Colors.white),
                               const SizedBox(height: 8),
                               Text(
                                 plan.planName ?? "",
@@ -178,7 +178,7 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                    subPlan.subPlanName ?? "",
+                                      subPlan.subPlanName ?? "",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -195,10 +195,26 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "\$${subPlan.price}",
+                                      "\₹${subPlan.price}",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "freq : ${subPlan.frequency}",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      "no.of : ${subPlan.numBookings}",
+                                      style: const TextStyle(
+                                        fontSize: 16,
                                         color: Colors.black,
                                       ),
                                     ),
@@ -260,7 +276,7 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                           Row(
                             children: [
                               Text(
-                                "\$6000",
+                                "\₹6000",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.red,
@@ -269,7 +285,7 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                "\$${selectedSubPlan!.price}",
+                                "\₹${selectedSubPlan!.price}",
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -277,91 +293,111 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                "/${selectedSubPlan!.frequency}${selectedSubPlan!.subPlanName}",
+                                "/${selectedSubPlan!.frequency}-${selectedSubPlan!.subPlanName}",
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
                                 ),
                               ),
-                              
                             ],
                           ),
-                          SizedBox(height: 5,),
+                          SizedBox(
+                            height: 5,
+                          ),
                           Row(
-                              children: [
-                                    ElevatedButton(
-                                      onPressed:selectedPlan == null || selectedSubPlan == null
+                            children: [
+                              ElevatedButton(
+                                onPressed: selectedPlan == null ||
+                                        selectedSubPlan == null
                                     ? null // Disable button if no plan or sub-plan is selected
-                                     :  ()async {
+                                    : () async {
+                                        // Validate frequency and convert to int
+                                        final parsedFrequency = int.tryParse(
+                                            selectedSubPlan!.frequency ?? "");
 
-                                      // Validate frequency and convert to int
-                                final parsedFrequency = int.tryParse(selectedSubPlan!.frequency ?? "");
-
-                                if (parsedFrequency == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Invalid frequency value")),
-                                  );
-                                  return;
-                                }
+                                        if (parsedFrequency == null) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    "Invalid frequency value")),
+                                          );
+                                          return;
+                                        }
                                         // Get the current time as start_time
-                                        
-                                  DateTime startTime = DateTime.now();
 
-                                  // Calculate expiry_time based on frequency and sub-plan name
-                                  DateTime expiryTime = calculateExpiryTime(
-                                    startTime,
-                                     parsedFrequency, // Assuming frequency is numeric
-                                    selectedSubPlan!.subPlanName!, // Sub-plan type: daily, monthly, yearly
-                                  );
+                                        DateTime startTime = DateTime.now();
 
-                                  // Format the times for API request
-                                  String formattedStartTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(startTime);
-                                  String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
-
-                                   await ref
-                                        .read(subscriptionProvider.notifier)
-                                        .addSubscriptionPlan(
-                                            propertyid: properid, // Replace with actual property ID
-                                            subplanid: selectedSubPlan!.subPlanId, // ID of the selected sub-plan
-                                            starttime: formattedStartTime,
-                                            expirytime: formattedExpiryTime,
-                                            
+                                        // Calculate expiry_time based on frequency and sub-plan name
+                                        DateTime expiryTime =
+                                            calculateExpiryTime(
+                                          startTime,
+                                          parsedFrequency, // Assuming frequency is numeric
+                                          selectedSubPlan!
+                                              .subPlanName!, // Sub-plan type: daily, monthly, yearly
                                         );
 
-                                    // Show success message
-                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          "plan added to property successfully!",
-                                          style: const TextStyle(
-                                            color: Colors.white, // Set the text color
-                                            fontWeight: FontWeight.bold, // Optional: Make the text bold
+                                        // Format the times for API request
+                                        String formattedStartTime =
+                                            DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                .format(startTime);
+                                        String formattedExpiryTime =
+                                            DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                .format(expiryTime);
+
+                                        await ref
+                                            .read(subscriptionProvider.notifier)
+                                            .addSubscriptionPlan(
+                                              propertyid:
+                                                  properid, // Replace with actual property ID
+                                              subplanid: selectedSubPlan!
+                                                  .subPlanId, // ID of the selected sub-plan
+                                              starttime: formattedStartTime,
+                                              expirytime: formattedExpiryTime,
+                                            );
+
+                                        // Show success message
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "plan added to property successfully!",
+                                              style: const TextStyle(
+                                                color: Colors
+                                                    .white, // Set the text color
+                                                fontWeight: FontWeight
+                                                    .bold, // Optional: Make the text bold
+                                              ),
+                                            ),
+                                            backgroundColor: const Color
+                                                .fromARGB(255, 13, 70,
+                                                151), // Set the background color
+                                            behavior: SnackBarBehavior
+                                                .floating, // Optional: Makes the snackbar float
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                  12), // Optional: Adds rounded corners
+                                            ),
+                                            duration: const Duration(
+                                                seconds:
+                                                    3), // Optional: Set duration for snackbar
                                           ),
-                                        ),
-                                        backgroundColor: const Color.fromARGB(255, 13, 70, 151), // Set the background color
-                                        behavior: SnackBarBehavior.floating, // Optional: Makes the snackbar float
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12), // Optional: Adds rounded corners
-                                        ),
-                                        duration: const Duration(seconds: 3), // Optional: Set duration for snackbar
-                                      ),
-                                    );
-                                     Navigator.of(context).pop();
+                                        );
+                                        Navigator.of(context).pop();
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xff6418c3),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      child: Text("Buy ${selectedPlan!.planName} Plan"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xff6418c3),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                              ],
+                                ),
+                                child:
+                                    Text("Buy ${selectedPlan!.planName} Plan"),
+                              ),
+                            ],
                           ),
-                         
                         ],
                       ),
-                    
                     ],
                   ),
                 ),
@@ -378,9 +414,6 @@ class _SubscriptionState extends ConsumerState<Subscription> {
     return "20";
   }
 }
-
-
-
 
 //  subscriptionPlansAsyncValue.when(
 //               data: (subscriptionPlans) {
@@ -561,4 +594,3 @@ class _SubscriptionState extends ConsumerState<Subscription> {
 //     );
 //   }
 // }
-

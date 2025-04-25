@@ -14,19 +14,6 @@ import 'stateproviders.dart';
 
 class AuthNotifier extends StateNotifier<AdminAuth> {
   AuthNotifier() : super(AdminAuth.initial());
-  //   _loadUserFromPrefs();
-  // }
-
-  // // Load user data from SharedPreferences on startup
-  // Future<void> _loadUserFromPrefs() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final userData = prefs.getString('userData');
-  //   if (userData != null) {
-  //     final data = json.decode(userData) as Map<String, dynamic>;
-  //     state = AdminAuth.fromJson(data);
-  //     print('User loaded on app startup: ${state.data?.userRole}');
-  //   }
-  // }
 
   Future<bool> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,7 +22,6 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
     if (accessToken != null && accessToken.isNotEmpty) {
       print("tryauto condition");
       return true;
-      
     }
 
     if (prefs.containsKey('userData')) {
@@ -116,7 +102,6 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         final userData = json.encode(state.toJson());
         bool saveResult = await prefs.setString('userData', userData);
 
-        
         print("login time -localdata in shared preferences==$saveResult");
 
         if (!saveResult) {
@@ -144,8 +129,8 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
     return LoginResult(responseCode,
         errorMessage: errorMessage, responseBody: responseBody);
   }
-  
-   Future<String?> _getAccessToken() async {
+
+  Future<String?> _getAccessToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
@@ -158,82 +143,77 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
   }
 
   Future<void> updateUser(
-  String username,
-  String email,
-  String mobile,
-  File? profileImage,
-  WidgetRef ref,
-) async {
-  final url = Uri.parse(Bbapi.updateeuser);
-  final token = await _getAccessToken();
-  final userId =state.data!.userId;
-  print("userid: $userId");
+    String username,
+    String email,
+    String mobile,
+    File? profileImage,
+    WidgetRef ref,
+  ) async {
+    final url = Uri.parse(Bbapi.updateeuser);
+    final token = await _getAccessToken();
+    final userId = state.data!.userId;
+    print("userid: $userId");
 
-  if (userId == null) {
-    throw Exception('userid is not found');
-  }
+    if (userId == null) {
+      throw Exception('userid is not found');
+    }
 
-  try {
-    var request = http.MultipartRequest('POST', url)
-      ..headers.addAll({
-        'Authorization': 'Token $token',
-        'Content-Type': 'multipart/form-data',
-      })
-      ..fields['id'] = userId.toString()
-      ..fields['username'] = username
-      ..fields['email'] = email
-      ..fields['mobile_no'] = mobile;
-      
+    try {
+      var request = http.MultipartRequest('POST', url)
+        ..headers.addAll({
+          'Authorization': 'Token $token',
+          'Content-Type': 'multipart/form-data',
+        })
+        ..fields['id'] = userId.toString()
+        ..fields['username'] = username
+        ..fields['email'] = email
+        ..fields['mobile_no'] = mobile;
 
-    if (profileImage != null) {
-      if (await profileImage.exists()) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'profile_pic',
-          profileImage.path,
-        ));
-      } else {
-        print("Profile image file does not exist: ${profileImage.path}");
-        throw Exception("Profile image file not found");
+      if (profileImage != null) {
+        if (await profileImage.exists()) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'profile_pic',
+            profileImage.path,
+          ));
+        } else {
+          print("Profile image file does not exist: ${profileImage.path}");
+          throw Exception("Profile image file not found");
+        }
       }
+
+      print("Request URL: ${request.url}");
+      print("Request Fields: ${request.fields}");
+      print("Request Headers: ${request.headers}");
+
+      final response = await request.send();
+      final responseData = await http.Response.fromStream(response);
+      print("Update Response Body: ${responseData.body}");
+      print("Response Status Code: ${responseData.statusCode}");
+
+      if (responseData.statusCode == 200) {
+        final responseJson = json.decode(responseData.body);
+        print("updated profile page: $responseJson");
+
+        AdminAuth updateddata = AdminAuth.fromJson(responseJson);
+        state = updateddata;
+
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('userData', json.encode(updateddata.toJson()));
+
+        print("Updated Admin Data: $updateddata");
+
+        final localdata = prefs.containsKey("userdata");
+        print("localdata-afterupdated==$localdata");
+      } else {
+        final error =
+            json.decode(responseData.body)['message'] ?? 'Error updating user';
+        throw Exception(error);
+      }
+    } catch (e) {
+      print('Error updating user: $e');
+      rethrow;
     }
-
-    print("Request URL: ${request.url}");
-    print("Request Fields: ${request.fields}");
-    print("Request Headers: ${request.headers}");
-
-    final response = await request.send();
-    final responseData = await http.Response.fromStream(response);
-    print("Update Response Body: ${responseData.body}");
-    print("Response Status Code: ${responseData.statusCode}");
-
-    if (responseData.statusCode == 200) {
-      final responseJson = json.decode(responseData.body);
-      print("updated profile page: $responseJson");
-
-      AdminAuth updateddata =AdminAuth.fromJson(responseJson);
-      state =updateddata;
-
-      final prefs = await SharedPreferences.getInstance();
-            prefs.setString('userData', json.encode(updateddata.toJson()));
-
-            print("Updated Admin Data: $updateddata");
-
-      final localdata = prefs.containsKey("userdata");
-      print("localdata-afterupdated==$localdata");   
-
-
-    
-    } else {
-      final error =
-          json.decode(responseData.body)['message'] ?? 'Error updating user';
-      throw Exception(error);
-    }
-  } catch (e) {
-    print('Error updating user: $e');
-    rethrow;
   }
-}
-
 
   Future<void> logoutUser() async {
     print('Logging out...');
@@ -242,7 +222,6 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
     state = AdminAuth.initial(); // Clear the state after logout
     print('User logged out and state cleared.');
   }
-
 }
 
 String cleanErrorMessage(String errorMessage) {

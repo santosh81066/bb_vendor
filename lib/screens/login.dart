@@ -10,7 +10,6 @@ import '../widgets/customtextfield.dart';
 import '../widgets/heading.dart';
 import '../widgets/text.dart';
 
-
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -33,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoggedIn) {
-      return CoustNavigation(); // Replace with your actual Dashboard widget
+      return CoustNavigation();
     }
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -65,13 +64,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Consumer(
-                          //   builder: (context, ref, child) {
-                          //     final authState = ref.watch(authprovider);
-                          //     return Text(
-                          //         "State token${authState.data!.accessToken} ");
-                          //   },
-                          // ),
                           CustomTextFormField(
                             applyDecoration: true,
                             width: screenWidth * 0.8,
@@ -83,12 +75,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Field is required';
                               }
-                              // String pattern =
-                              //     r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@?((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))?\$';
-                              // RegExp regex = RegExp(pattern);
-                              // if (!regex.hasMatch(value)) {
-                              //   return 'Enter a valid email address';
-                              // }
                               return null;
                             },
                           ),
@@ -119,39 +105,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed: isLoading
                                   ? null
                                   : () async {
-                                     
                                       if (_formKey.currentState!.validate()) {
-                                        // Perform login
-                                        // final LoginResult result =
-                                        await login.adminLogin(
+                                        final result = await login.adminLogin(
                                           context,
                                           _emailController.text.trim(),
                                           _passwordController.text.trim(),
                                           ref,
                                         );
 
-                                        // if (result.statusCode == 401) {
-                                        //   // Show error dialog for unauthorized access
-                                        //   showDialog(
-                                        //     context: context,
-                                        //     builder: (context) => AlertDialog(
-                                        //       title: const Text('Login Error'),
-                                        //       content: Text(result
-                                        //               .errorMessage ??
-                                        //           'An unknown error occurred.'), // Default message
-                                        //       actions: [
-                                        //         TextButton(
-                                        //           onPressed: () =>
-                                        //               Navigator.of(context).pop(),
-                                        //           child: const Text('OK'),
-                                        //         ),
-                                        //       ],
-                                        //     ),
-                                        //   );
-                                        // }
-                                        // else{
-                                        //    Navigator.of(context).pushNamed('/welcome');
-                                        // }
+                                        // Add explicit navigation after successful login
+                                        if (result.statusCode == 200) {
+                                          setState(() {
+                                            _isLoggedIn = true;
+                                          });
+                                        }
                                       }
                                     },
                               isLoading: isLoading,

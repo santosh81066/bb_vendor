@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../colors/coustcolors.dart';
+import 'hall_booking_provider.dart';
 
 final loadingProvider = StateProvider<bool>((ref) => false);
 final loadingProvider2 = StateProvider<bool>((ref) => false);
