@@ -65,9 +65,6 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
       if (responseCode == 200 && responseBody?['success'] == true) {
         loadingState.state = false;
 
-        // Parse the response body to AdminAuth model
-        // AdminAuth adminAuth = AdminAuth.fromJson(responseBody!);
-
         // Update the state with the returned data
         state = state.copyWith(
           data: state.data?.copyWith(

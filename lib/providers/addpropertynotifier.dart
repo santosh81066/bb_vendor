@@ -13,10 +13,6 @@ import 'package:bb_vendor/providers/loader.dart';
 class AddPropertyNotifier extends StateNotifier<Property> {
   AddPropertyNotifier() : super(Property.initial());
 
-  // void setPropertyImage(File image) {
-  //   state = state.copyWith(propertyImage: image);
-  // }
-
   Future<void> addProperty(
     BuildContext context,
     WidgetRef ref,
@@ -25,7 +21,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     String? address1,
     File? _profileImage,
     String? sLoc,
-  
   ) async {
     final venderlogin = ref.watch(authprovider).data?.userId;
     print("user id.....$venderlogin");
@@ -40,34 +35,35 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     print('Raw SharedPrefs userData: $userData');
 
     String? token;
-      String? userId;
-   if (userData != null) {
-  final extractedData = json.decode(userData) as Map<String, dynamic>;
-  token = extractedData['access_token']; 
-  userId = extractedData['user_id']?.toString(); 
-  }
+    String? userId;
+    if (userData != null) {
+      final extractedData = json.decode(userData) as Map<String, dynamic>;
+      token = extractedData['data']
+          ['access_token']; // Fix: access the token from the 'data' object
+      userId = extractedData['data']['user_id']
+          ?.toString(); // Fix: access the user_id from the 'data' object
+    }
 
-    
     // Debugging token
     print('Access Token: $token');
+    print('User ID: $userId'); // Add this to debug
 
     if (token != null) {
       request.headers['Authorization'] = 'Token $token';
     }
-   
-  // Add attributes as JSON string with all required details
-  Map<String, dynamic> attributes = {
-    'address': address1 ?? '',
-    'propertyName': propertyname ?? '',
-    'location': sLoc ?? '',
-    'userid': userId ?? '',
-    'category': selectedCategoryid?.toString() ?? '',
-  };
 
-  // Add attributes as a JSON string
-  request.fields['attributes'] = json.encode(attributes);
-  print('Sending attributes: ${json.encode(attributes)}');
+    // Add attributes as JSON string with all required details
+    Map<String, dynamic> attributes = {
+      'address': address1 ?? '',
+      'propertyName': propertyname ?? '',
+      'location': sLoc ?? '',
+      'userid': userId ?? '', // This should now have the correct user ID
+      'category': selectedCategoryid?.toString() ?? '',
+    };
 
+    // Add attributes as a JSON string
+    request.fields['attributes'] = json.encode(attributes);
+    print('Sending attributes: ${json.encode(attributes)}');
 
     if (_profileImage != null) {
       request.files.add(await http.MultipartFile.fromPath(
@@ -97,18 +93,34 @@ class AddPropertyNotifier extends StateNotifier<Property> {
               title: const Text('Success'),
               content: const Text('Property added successfully'),
               actions: [
-                ElevatedButton(
-                  child: const Text('OK'),
-                  onPressed: () {
+                GestureDetector(
+                  onTap: () {
                     Navigator.of(context).pop();
                   },
+                  child: Container(
+                    height: 30,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Color(0xFF6418C3),
+                    ),
+                    child: Center(
+                      child: const Text(
+                        'OK',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             );
           },
         );
-        Navigator.of(context)
-            .pushNamed('/'); // Navigate to the home page or another page
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('This is a SnackBar!'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ));
       } else {
         // Handle the error response
         print('Property addition failed with status: ${response.statusCode}');
@@ -118,7 +130,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
             return AlertDialog(
               title: const Text('Error'),
               content: Text(
-                  'Property addition failed: ${responseData['message'] ?? 'Unknown error'}'),
+                  'Property addition failed: ${responseData['messages']?.join(", ") ?? 'Unknown error'}'),
               actions: [
                 ElevatedButton(
                   child: const Text('OK'),
