@@ -174,7 +174,7 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        'https://www.gocodedesigners.com/banquetbookingz/${property.coverPic}',
+                        'http://www.gocodedesigners.com/banquetbookingz/${property.coverPic}',
                         width: 280,
                         height: 200,
                         fit: BoxFit.fill,

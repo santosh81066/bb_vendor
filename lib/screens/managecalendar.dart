@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/models/get_properties_model.dart';
-import 'package:bb_vendor/providers/property_repository.dart'; // Import your property provider
 import 'package:bb_vendor/providers/addpropertynotifier.dart';
 
 class ManageCalendarScreen extends ConsumerStatefulWidget {

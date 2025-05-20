@@ -1,4 +1,4 @@
-import 'package:bb_vendor/models/addpropertymodel.dart';
+
 import 'package:bb_vendor/providers/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:bb_vendor/models/get_properties_model.dart";
@@ -8,7 +8,6 @@ import 'package:bb_vendor/utils/bbapi.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bb_vendor/providers/loader.dart';
 
 class AddPropertyNotifier extends StateNotifier<Property> {
   AddPropertyNotifier() : super(Property.initial());
@@ -166,11 +165,12 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   }
 
   Future<void> addhallproperty(
-    String? propertyname,
-    int? properid,
-    List<Map<String, TimeOfDay>>? slots,
-    List<File>? images,
-  ) async {
+      String? propertyname,
+      int? properid,
+      List<Map<String, TimeOfDay>>? slots,
+      List<File>? images,
+      Map<String, dynamic> hallDetails,
+      ) async {
     print("add hall is working------------------");
     print("propertyname-$propertyname");
     print("propertyid-$properid");
@@ -211,6 +211,21 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     try {
       var request = http.MultipartRequest('POST', url);
 
+      // Add authorization token
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userData = prefs.getString('userData');
+
+      String? token;
+      if (userData != null) {
+        final extractedData = json.decode(userData) as Map<String, dynamic>;
+        token = extractedData['data']['access_token'];
+      }
+
+      if (token != null) {
+        request.headers['Authorization'] = 'Token $token';
+      }
+
+      // Add images to the request
       if (images != null && images.isNotEmpty) {
         for (var image in images) {
           request.files
@@ -218,19 +233,8 @@ class AddPropertyNotifier extends StateNotifier<Property> {
         }
       }
 
-      // Add attributes to the request
-      request.fields['attributes'] = jsonEncode({
-        'property_id': properid,
-        'name': propertyname,
-        'slots': slots?.map((slot) {
-          return {
-            'check_in_time':
-                '${slot['check_in_time']?.hour}:${slot['check_in_time']?.minute}',
-            'check_out_time':
-                '${slot['check_out_time']?.hour}:${slot['check_out_time']?.minute}',
-          };
-        }).toList(),
-      });
+      // Add attributes to the request - use the hallDetails directly since it's already formatted
+      request.fields['attributes'] = jsonEncode(hallDetails);
 
       print("Final request payload:");
       print(request.fields);

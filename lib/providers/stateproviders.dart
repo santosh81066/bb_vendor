@@ -17,5 +17,4 @@ final VerifyOtp = StateProvider<bool>((ref) => false);
 final isPasswordSent = StateProvider<bool>((ref) => false);
 final latlangs = StateProvider<LatLng>((ref) => LatLng(17.3850, 78.4867));
 final refundissued = StateProvider<bool>((ref) => false);
-final canclebuttonprovider =
-    StateProvider<Color>((ref) => CoustColors.colrButton2);
+final canclebuttonprovider = StateProvider<Color>((ref) => CoustColors.colrButton2);
