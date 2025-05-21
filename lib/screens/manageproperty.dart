@@ -97,238 +97,181 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
           Expanded(
             child: filteredProperties.isNotEmpty
                 ? ListView.builder(
-                    itemCount: filteredProperties.length,
-                    itemBuilder: (context, index) {
-                      final property = filteredProperties[index];
-                      return _buildPlanCard(
-                          property, screenWidth, screenHeight);
-                    },
-                  )
+              itemCount: filteredProperties.length,
+              itemBuilder: (context, index) {
+                final property = filteredProperties[index];
+                return _buildPropertyCard(
+                    property, screenWidth, screenHeight);
+              },
+            )
                 : const Center(
-                    child: Text(
-                      'No properties found for the selected filter',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
+              child: Text(
+                'No properties found for the selected filter',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPlanCard(
+  Widget _buildPropertyCard(
       Data property, double screenWidth, double screenHeight) {
     // Group halls by their name
     final Map<String, List<Hall>> groupedHalls = {};
     for (var hall in property.halls ?? []) {
-      if (hall.hallName != null) {
-        groupedHalls.putIfAbsent(hall.hallName!, () => []).add(hall);
+      if (hall.name != null) {
+        groupedHalls.putIfAbsent(hall.name!, () => []).add(hall);
       }
     }
-
-    print("groupedHalls:::${groupedHalls.entries.length}");
-    print("Hall names: ${groupedHalls.keys.toList()}");
-    print("Grouped halls count: ${groupedHalls.length}");
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.05,
         vertical: screenHeight * 0.01,
       ),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).pushNamed(
-            '/plansScreen',
-            arguments: property,
-          );
-        },
-        child: Card(
-          color: Colors.white,
-          elevation: 4,
-          margin: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ListTile(
-                title: Text(
-                  property.propertyName ?? 'No Name',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+      child: Card(
+        color: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Property Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF5F3FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
                 ),
-                subtitle: Text(property.address ?? 'No Address'),
               ),
-              if (property.coverPic != null)
-                Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.deepPurple, // border color
-                        width: 2, // border width
-                      ),
-                      borderRadius:
-                          BorderRadius.circular(8), // optional: rounded corners
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          property.propertyName ?? 'No Name',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6418C3),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          property.address ?? 'No Address',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        'http://www.gocodedesigners.com/banquetbookingz/${property.coverPic}',
-                        width: 280,
-                        height: 200,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Center(child: Text("Image not found")),
+                  ),
+                  _buildCategoryBadge(property.category),
+                ],
+              ),
+            ),
+
+            // Property Image
+            if (property.coverPic != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    'http://www.gocodedesigners.com/banquetbookingz/${property.coverPic}',
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: double.infinity,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: 8),
-              Row(
+              ),
+
+            // Property Actions
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/addproperty');
-                      // Handle edit
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(
-                          color: Color.fromARGB(167, 88, 11, 181)),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/addproperty',
+                          arguments: {
+                            'property': property,
+                            'isEditing': true,
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text("Edit Property"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF6418C3),
+                        side: const BorderSide(color: Color(0xFF6418C3)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
-                    child: const Text("Edit"),
                   ),
-                  OutlinedButton(
-                    onPressed: () {
-                      // Handle delete
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(
-                          color: Color.fromARGB(167, 88, 11, 181)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        _showDeleteConfirmation(context, property);
+                      },
+                      icon: const Icon(Icons.delete, size: 16),
+                      label: const Text("Delete"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
-                    child: const Text("Delete"),
                   ),
                 ],
               ),
-              // Display grouped halls
-              const SizedBox(height: 8),
-              if (groupedHalls.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: groupedHalls.entries.map((entry) {
-                    final hallName = entry.key;
-                    final hallsList = entry.value;
+            ),
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      child: Card(
-                        elevation: 2,
-                        color: CoustColors.colrHighlightedText,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Hall name
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    hallName,
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit,
-                                            color: Colors.white),
-                                        onPressed: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            '/addhall',
-                                            arguments: {
-                                              'propertyid': property.propertyId,
-                                              'propertyname':
-                                                  property.propertyName,
-                                              'hallName': hallName,
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            color: Colors.white),
-                                        onPressed: () {
-                                          // Handle hall delete
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Delete Hall'),
-                                              content: const Text(
-                                                  'Are you sure you want to delete this hall?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(context),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    // Call delete function here
-                                                    // ref
-                                                    //     .read(propertyNotifierProvider.notifier)
-                                                    //     .deleteHall(hallsList.first.hallId);
-                                                    // Navigator.pop(context);
-                                                  },
-                                                  child: const Text('Delete'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(),
+            const SizedBox(height: 16),
 
-                            // Slots for each hall - Using expand to flatten all slots from all halls with same name
-                            ...hallsList.expand((hall) {
-                              return (hall.slots?.map<Widget>((slot) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0, vertical: 4.0),
-                                      child: Text(
-                                        'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
-                                        style: const TextStyle(
-                                            fontSize: 12, color: Colors.white),
-                                      ),
-                                    );
-                                  }) ??
-                                  <Widget>[]);
-                            }).toList(),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-              const SizedBox(height: 8),
-
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Halls Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ElevatedButton(
+                  const Text(
+                    'Halls',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6418C3),
+                    ),
+                  ),
+                  TextButton.icon(
                     onPressed: () {
                       Navigator.pushNamed(
                         context,
@@ -339,40 +282,300 @@ class ManagePropertyScreenState extends ConsumerState<ManagePropertyScreen> {
                         },
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff6418c3),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      textStyle: const TextStyle(fontSize: 16),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text("Add New Hall"),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF6418C3),
                     ),
-                    child: const Text("Add Hall"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/subscriptionScreen',
-                          arguments: {
-                            'propertyid': property.propertyId,
-                          });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff6418c3),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      textStyle: const TextStyle(fontSize: 16),
-                    ),
-                    child: const Text("Subscribe"),
                   ),
                 ],
               ),
-              SizedBox(
-                height: 14,
-              )
+            ),
+
+            // Halls List
+            groupedHalls.isNotEmpty
+                ? ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: groupedHalls.length,
+              itemBuilder: (context, index) {
+                final hallName = groupedHalls.keys.elementAt(index);
+                final hallsList = groupedHalls[hallName]!;
+                return _buildHallCard(hallName, hallsList, property);
+              },
+            )
+                : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.meeting_room_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No halls added yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Property Bottom Actions
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/subscriptionScreen',
+                      arguments: {
+                        'propertyid': property.propertyId,
+                      });
+                },
+                icon: const Icon(Icons.card_membership),
+                label: const Text("Manage Subscription"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6418C3),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 46),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHallCard(String hallName, List<Hall> hallsList, Data property) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        elevation: 2,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: ExpansionTile(
+          title: Text(
+            hallName,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6418C3),
+            ),
+          ),
+          subtitle: Text(
+            '${hallsList.length} time slot${hallsList.length == 1 ? '' : 's'}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+          leading: CircleAvatar(
+            backgroundColor: const Color(0xFFF0EAFF),
+            child: Icon(
+              Icons.meeting_room,
+              color: const Color(0xFF6418C3),
+            ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.edit,
+                  color: Color(0xFF6418C3),
+                  size: 20,
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/addhall',
+                    arguments: {
+                      'propertyid': property.propertyId,
+                      'propertyname': property.propertyName,
+                      'hallName': hallName,
+                      'isEditing': true,
+                    },
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                  size: 20,
+                ),
+                onPressed: () {
+                  _showDeleteHallConfirmation(context, hallsList.first, property);
+                },
+              ),
             ],
           ),
+          children: [
+            const Divider(height: 1),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: hallsList.expand((hall) => hall.slots ?? []).length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final allSlots = hallsList.expand((hall) => hall.slots ?? []).toList();
+                final slot = allSlots[index];
+                return ListTile(
+                  leading: const Icon(
+                    Icons.access_time,
+                    color: Color(0xFF6418C3),
+                    size: 20,
+                  ),
+                  title: Text(
+                    'Slot #${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'From: ${slot.slotFromTime ?? 'N/A'} To: ${slot.slotToTime ?? 'N/A'}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+            if (hallsList.isNotEmpty && hallsList.first.slots != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Base Price:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '₹${hallsList.first.slots}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6418C3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Data property) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Property'),
+        content: Text(
+          'Are you sure you want to delete "${property.propertyName}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement delete property logic here
+              // ref.read(propertyNotifierProvider.notifier).deleteProperty(property.propertyId);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteHallConfirmation(BuildContext context, Hall hall, Data property) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Hall'),
+        content: Text(
+          'Are you sure you want to delete "${hall.name}"? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement delete hall logic here
+              // ref.read(propertyNotifierProvider.notifier).deleteHall(hall.hallId);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge(int? category) {
+    String text;
+    Color color;
+
+    switch (category) {
+      case 1:
+        text = 'Subscribed';
+        color = Colors.green;
+        break;
+      case 2:
+        text = 'Deactivated';
+        color = Colors.red;
+        break;
+      case 3:
+        text = 'UnSubscribed';
+        color = Colors.orange;
+        break;
+      default:
+        text = 'Unknown';
+        color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
         ),
       ),
     );

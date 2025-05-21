@@ -183,7 +183,7 @@ class _HallsCalendarScreenState extends ConsumerState<HallsCalendarScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(hall.hallName ?? 'No Hall Name'),
+                        Text(hall.name ?? 'No Hall Name'),
                         Icon(isSelected
                             ? Icons.expand_less
                             : Icons.expand_more),
