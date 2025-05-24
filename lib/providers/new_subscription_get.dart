@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bb_vendor/utils/bbapi.dart';
 import 'package:bb_vendor/providers/loader.dart';
 
+// ignore: unused_import
 import "package:flutter/material.dart";
 
 class SubscriptionNotifier extends StateNotifier<Subscription> {

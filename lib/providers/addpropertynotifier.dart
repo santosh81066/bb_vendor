@@ -22,7 +22,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     String? sLoc,
   ) async {
     final venderlogin = ref.watch(authprovider).data?.userId;
-    print("user id.....$venderlogin");
 
     Uri url = Uri.parse(Bbapi.addproperty);
 
@@ -31,7 +30,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     // Retrieve the token from SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userData = prefs.getString('userData');
-    print('Raw SharedPrefs userData: $userData');
 
     String? token;
     String? userId;
@@ -44,8 +42,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     }
 
     // Debugging token
-    print('Access Token: $token');
-    print('User ID: $userId'); // Add this to debug
+    // Add this to debug
 
     if (token != null) {
       request.headers['Authorization'] = 'Token $token';
@@ -62,7 +59,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
 
     // Add attributes as a JSON string
     request.fields['attributes'] = json.encode(attributes);
-    print('Sending attributes: ${json.encode(attributes)}');
 
     if (_profileImage != null) {
       request.files.add(await http.MultipartFile.fromPath(
@@ -71,7 +67,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       ));
 
       // Debugging file path
-      print('Property Image Path: ${_profileImage.path}');
     }
 
     try {
@@ -80,11 +75,9 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       final responseData = json.decode(responseBody);
 
       // Print the response body
-      print('Response Body: $responseBody');
 
       if (response.statusCode == 201) {
         // Handle the success response
-        print(responseData);
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -122,7 +115,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
         ));
       } else {
         // Handle the error response
-        print('Property addition failed with status: ${response.statusCode}');
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -143,7 +135,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
         );
       }
     } catch (e) {
-      print('An error occurred: $e');
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -171,32 +162,22 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       List<File>? images,
       Map<String, dynamic> hallDetails,
       ) async {
-    print("add hall is working------------------");
-    print("propertyname-$propertyname");
-    print("propertyid-$properid");
 
     // Print slots
     if (slots != null && slots.isNotEmpty) {
-      print("Slots:");
       for (var i = 0; i < slots.length; i++) {
         var slot = slots[i];
         var checkInTime = slot['check_in_time'];
         var checkOutTime = slot['check_out_time'];
-        print(
-            "Slot ${i + 1}: Check-in: ${checkInTime?.hour}:${checkInTime?.minute}, Check-out: ${checkOutTime?.hour}:${checkOutTime?.minute}");
       }
     } else {
-      print("No slots available.");
     }
 
     // Print images
     if (images != null && images.isNotEmpty) {
-      print("Images:");
       for (var i = 0; i < images.length; i++) {
-        print("Image ${i + 1}: Path = ${images[i].path}");
       }
     } else {
-      print("No images available.");
     }
 
     if (propertyname == null || propertyname.trim().isEmpty) {
@@ -236,8 +217,6 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       // Add attributes to the request - use the hallDetails directly since it's already formatted
       request.fields['attributes'] = jsonEncode(hallDetails);
 
-      print("Final request payload:");
-      print(request.fields);
 
       final response = await request.send();
       final res = await http.Response.fromStream(response);
@@ -245,22 +224,17 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       var responseBody = json.decode(res.body);
       var statusCode = res.statusCode;
 
-      print("API Response Status Code: $statusCode");
-      print("API Response Body: ${res.body}");
 
       if (statusCode == 200 || statusCode == 201) {
-        print('Hall added successfully: $responseBody');
       } else {
         throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
       }
     } catch (e) {
-      print('Error adding hall: $e');
       rethrow;
     }
   }
 
   Future<void> getproperty() async {
-    print("fetching getproperties");
 
     try {
       // Ensure the correct endpoint for fetching property is used.
@@ -272,25 +246,20 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       );
       if (response.statusCode == 200) {
         final decodedResponse = json.decode(response.body);
-        print('Decoded Response: $decodedResponse');
 
         // Parse the response into the Property model
         Property property = Property.fromJson(decodedResponse);
-        print('Parsed Properties: ${property.data![0]}');
 
         // Update the state with the fetched data
         state = property;
         // Debugging the state
-        print("Updated state: ${state.data}");
       } else {
         final errorMessage = 'Error fetching properties: ${response.body}';
-        print(errorMessage);
 
         // Optionally, handle the error in the state
         state = Property.initial().copyWith(messages: [errorMessage]);
       }
     } catch (e) {
-      print("Error fetching properties: $e");
 
       // Optionally, handle the error in the state
       state = Property.initial().copyWith(messages: [e.toString()]);
