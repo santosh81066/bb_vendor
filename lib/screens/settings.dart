@@ -12,12 +12,98 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isLoading = true; // Initialize the loading state variable
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAuthState();
+  }
+
+  Future<void> _initializeAuthState() async {
+    try {
+      // Try to refresh auth state from SharedPreferences
+      final success = await ref.read(authprovider.notifier).tryAutoLogin();
+      print('Auth refresh in settings: $success');
+
+      // Wait a bit for state to update
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error initializing auth state: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     final logout = ref.watch(authprovider.notifier);
     final authState = ref.watch(authprovider);
     final userName = authState.data?.username ?? 'User';
     final userEmail = authState.data?.email ?? 'user@example.com';
+
+    // If still no user data, show refresh button
+    if (authState.data == null ||
+        (authState.data?.username == null && authState.data?.email == null)) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Settings'),
+          backgroundColor: CoustColors.colrHighlightedText,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.person_off,
+                size: 64,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'User data not found',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please try refreshing or log in again',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _initializeAuthState,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh'),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                },
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: CoustColors.colrFill,
@@ -201,7 +287,9 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
                     final shouldLogout = await _showLogoutConfirmation(context);
                     if (shouldLogout == true) {
                       await logout.logoutUser();
-                      Navigator.of(context).pushReplacementNamed('/login');
+                      if (mounted) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }
                     }
                   },
                   icon: const Icon(Icons.logout, color: Colors.white),
@@ -273,43 +361,43 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
-}
 
-Future<bool?> _showLogoutConfirmation(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text("Confirm Logout"),
-        content: const Text("Are you sure you want to logout?"),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+  Future<bool?> _showLogoutConfirmation(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Logout"),
+          content: const Text("Are you sure you want to logout?"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                "Logout",
+                style: TextStyle(color: Colors.white),
               ),
             ),
-            child: const Text(
-              "Logout",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      );
-    },
-  );
+          ],
+        );
+      },
+    );
+  }
 }
