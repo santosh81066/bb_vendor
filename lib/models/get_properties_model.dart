@@ -9,7 +9,7 @@ class Property {
   Property.fromJson(Map<String, dynamic> json) {
     statusCode = json['statusCode'];
     success = json['success'];
-    messages = json['messages']?.cast<String>() ?? [];
+    messages = json['messages'] != null ? List<String>.from(json['messages']) : [];
     if (json['data'] != null) {
       data = List<Data>.from(json['data'].map((v) => Data.fromJson(v)));
     } else {
@@ -59,7 +59,7 @@ class Data {
   String? location;
   String? coverPic;
   int? category;
-  int? vendorId; // Added vendor_id field
+  int? vendorId;
   List<Hall>? halls;
 
   Data({
@@ -69,7 +69,7 @@ class Data {
     this.location,
     this.coverPic,
     this.category,
-    this.vendorId, // Added to constructor
+    this.vendorId,
     this.halls,
   });
 
@@ -80,7 +80,7 @@ class Data {
     location = json['location'];
     coverPic = json['cover_pic'];
     category = json['category'];
-    vendorId = json['vendor_id']; // Parse vendor_id
+    vendorId = json['vendor_id'];
     if (json['halls'] != null) {
       halls = List<Hall>.from(json['halls'].map((v) => Hall.fromJson(v)));
     } else {
@@ -96,7 +96,7 @@ class Data {
     data['location'] = location;
     data['cover_pic'] = coverPic;
     data['category'] = category;
-    data['vendor_id'] = vendorId; // Add to JSON output
+    data['vendor_id'] = vendorId;
     if (halls != null) {
       data['halls'] = halls!.map((v) => v.toJson()).toList();
     }
@@ -110,7 +110,7 @@ class Data {
     String? location,
     String? coverPic,
     int? category,
-    int? vendorId, // Added to copyWith
+    int? vendorId,
     List<Hall>? halls,
   }) {
     return Data(
@@ -120,7 +120,7 @@ class Data {
       location: location ?? this.location,
       coverPic: coverPic ?? this.coverPic,
       category: category ?? this.category,
-      vendorId: vendorId ?? this.vendorId, // Use in copyWith
+      vendorId: vendorId ?? this.vendorId,
       halls: halls ?? this.halls,
     );
   }
@@ -133,7 +133,7 @@ class Data {
       location: "",
       coverPic: "",
       category: 0,
-      vendorId: 0, // Initial value for vendorId
+      vendorId: 0,
       halls: [],
     );
   }
@@ -141,35 +141,35 @@ class Data {
 
 class Hall {
   int? hallId;
-  int? propertyId; // Added property_id field
-  String? name; // Using 'name' as in the response instead of 'hallName'
-  int? allowOutsideDecorators; // Added field
-  int? allowOutsideDj; // Added field
-  int? outsideFood; // Added field
-  int? allowAlcohol; // Added field
-  int? valetParking; // Added field
-  String? foodtype; // Added field
-  int? capacity; // Added field
-  int? parkingCapacity; // Added field
-  int? floatingCapacity; // Added field
-  int? price; // Added field
-  int? emergencyExits; // Added field
-  int? staffCount; // Added field
-  int? cleaningStaff; // Added field
-  String? securityLevel; // Added field
-  int? securityCount; // Added field
-  int? cctv; // Added field
-  int? fireAlarm; // Added field
-  int? soundSystem; // Added field
-  String? soundSystemDetails; // Added field
-  String? lightingSystemDetails; // Added field
-  int? wifiAvailable; // Added field
-  int? projectorAvailable; // Added field
-  int? microphoneAvailable; // Added field
-  int? cleaningCost; // Added field
-  int? securityCost; // Added field
-  int? decorCost; // Added field
-  int? additionalServicesCost; // Added field
+  int? propertyId;
+  String? name;
+  bool? allowOutsideDecorators;
+  bool? allowOutsideDj;
+  bool? outsideFood;
+  bool? allowAlcohol;
+  bool? valetParking;
+  String? foodtype;
+  int? capacity;
+  int? parkingCapacity;
+  int? floatingCapacity;
+  int? price;
+  int? emergencyExits;
+  int? staffCount;
+  int? cleaningStaff;
+  String? securityLevel;
+  int? securityCount;
+  bool? cctv;
+  bool? fireAlarm;
+  bool? soundSystem;
+  String? soundSystemDetails;
+  String? lightingSystemDetails;
+  bool? wifiAvailable;
+  bool? projectorAvailable;
+  bool? microphoneAvailable;
+  int? cleaningCost;
+  int? securityCost;
+  int? decorCost;
+  int? additionalServicesCost;
   List<Slot>? slots;
   List<HallImage>? images;
 
@@ -212,11 +212,11 @@ class Hall {
     hallId = json['hall_id'];
     propertyId = json['property_id'];
     name = json['name'];
-    allowOutsideDecorators = json['allow_outside_decorators'];
-    allowOutsideDj = json['allow_outside_dj'];
-    outsideFood = json['outside_food'];
-    allowAlcohol = json['allow_alcohol'];
-    valetParking = json['valet_parking'];
+    allowOutsideDecorators = json['allow_outside_decorators'] == 1;
+    allowOutsideDj = json['allow_outside_dj'] == 1;
+    outsideFood = json['outside_food'] == 1;
+    allowAlcohol = json['allow_alcohol'] == 1;
+    valetParking = json['valet_parking'] == 1;
     foodtype = json['foodtype'];
     capacity = json['capacity'];
     parkingCapacity = json['parking_capacity'];
@@ -227,14 +227,14 @@ class Hall {
     cleaningStaff = json['cleaning_staff'];
     securityLevel = json['security_level'];
     securityCount = json['security_count'];
-    cctv = json['cctv'];
-    fireAlarm = json['fire_alarm'];
-    soundSystem = json['sound_system'];
+    cctv = json['cctv'] == 1;
+    fireAlarm = json['fire_alarm'] == 1;
+    soundSystem = json['sound_system'] == 1;
     soundSystemDetails = json['sound_system_details'];
     lightingSystemDetails = json['lighting_system_details'];
-    wifiAvailable = json['wifi_available'];
-    projectorAvailable = json['projector_available'];
-    microphoneAvailable = json['microphone_available'];
+    wifiAvailable = json['wifi_available'] == 1;
+    projectorAvailable = json['projector_available'] == 1;
+    microphoneAvailable = json['microphone_available'] == 1;
     cleaningCost = json['cleaning_cost'];
     securityCost = json['security_cost'];
     decorCost = json['decor_cost'];
@@ -249,8 +249,7 @@ class Hall {
 
     // Parse images array
     if (json['images'] != null) {
-      images = List<HallImage>.from(
-          json['images'].map((v) => HallImage.fromJson(v)));
+      images = List<HallImage>.from(json['images'].map((v) => HallImage.fromJson(v)));
     } else {
       images = [];
     }
@@ -261,11 +260,11 @@ class Hall {
     data['hall_id'] = hallId;
     data['property_id'] = propertyId;
     data['name'] = name;
-    data['allow_outside_decorators'] = allowOutsideDecorators;
-    data['allow_outside_dj'] = allowOutsideDj;
-    data['outside_food'] = outsideFood;
-    data['allow_alcohol'] = allowAlcohol;
-    data['valet_parking'] = valetParking;
+    data['allow_outside_decorators'] = allowOutsideDecorators == true ? 1 : 0;
+    data['allow_outside_dj'] = allowOutsideDj == true ? 1 : 0;
+    data['outside_food'] = outsideFood == true ? 1 : 0;
+    data['allow_alcohol'] = allowAlcohol == true ? 1 : 0;
+    data['valet_parking'] = valetParking == true ? 1 : 0;
     data['foodtype'] = foodtype;
     data['capacity'] = capacity;
     data['parking_capacity'] = parkingCapacity;
@@ -276,14 +275,14 @@ class Hall {
     data['cleaning_staff'] = cleaningStaff;
     data['security_level'] = securityLevel;
     data['security_count'] = securityCount;
-    data['cctv'] = cctv;
-    data['fire_alarm'] = fireAlarm;
-    data['sound_system'] = soundSystem;
+    data['cctv'] = cctv == true ? 1 : 0;
+    data['fire_alarm'] = fireAlarm == true ? 1 : 0;
+    data['sound_system'] = soundSystem == true ? 1 : 0;
     data['sound_system_details'] = soundSystemDetails;
     data['lighting_system_details'] = lightingSystemDetails;
-    data['wifi_available'] = wifiAvailable;
-    data['projector_available'] = projectorAvailable;
-    data['microphone_available'] = microphoneAvailable;
+    data['wifi_available'] = wifiAvailable == true ? 1 : 0;
+    data['projector_available'] = projectorAvailable == true ? 1 : 0;
+    data['microphone_available'] = microphoneAvailable == true ? 1 : 0;
     data['cleaning_cost'] = cleaningCost;
     data['security_cost'] = securityCost;
     data['decor_cost'] = decorCost;
@@ -302,11 +301,11 @@ class Hall {
     int? hallId,
     int? propertyId,
     String? name,
-    int? allowOutsideDecorators,
-    int? allowOutsideDj,
-    int? outsideFood,
-    int? allowAlcohol,
-    int? valetParking,
+    bool? allowOutsideDecorators,
+    bool? allowOutsideDj,
+    bool? outsideFood,
+    bool? allowAlcohol,
+    bool? valetParking,
     String? foodtype,
     int? capacity,
     int? parkingCapacity,
@@ -317,14 +316,14 @@ class Hall {
     int? cleaningStaff,
     String? securityLevel,
     int? securityCount,
-    int? cctv,
-    int? fireAlarm,
-    int? soundSystem,
+    bool? cctv,
+    bool? fireAlarm,
+    bool? soundSystem,
     String? soundSystemDetails,
     String? lightingSystemDetails,
-    int? wifiAvailable,
-    int? projectorAvailable,
-    int? microphoneAvailable,
+    bool? wifiAvailable,
+    bool? projectorAvailable,
+    bool? microphoneAvailable,
     int? cleaningCost,
     int? securityCost,
     int? decorCost,
@@ -373,11 +372,11 @@ class Hall {
       hallId: 0,
       propertyId: 0,
       name: "",
-      allowOutsideDecorators: 0,
-      allowOutsideDj: 0,
-      outsideFood: 0,
-      allowAlcohol: 0,
-      valetParking: 0,
+      allowOutsideDecorators: false,
+      allowOutsideDj: false,
+      outsideFood: false,
+      allowAlcohol: false,
+      valetParking: false,
       foodtype: "",
       capacity: 0,
       parkingCapacity: 0,
@@ -386,16 +385,16 @@ class Hall {
       emergencyExits: 0,
       staffCount: 0,
       cleaningStaff: 0,
-      securityLevel: "",
+      securityLevel: "basic",
       securityCount: 0,
-      cctv: 0,
-      fireAlarm: 0,
-      soundSystem: 0,
+      cctv: false,
+      fireAlarm: false,
+      soundSystem: false,
       soundSystemDetails: "",
       lightingSystemDetails: "",
-      wifiAvailable: 0,
-      projectorAvailable: 0,
-      microphoneAvailable: 0,
+      wifiAvailable: false,
+      projectorAvailable: false,
+      microphoneAvailable: false,
       cleaningCost: 0,
       securityCost: 0,
       decorCost: 0,
@@ -406,7 +405,6 @@ class Hall {
   }
 }
 
-// Slot and HallImage classes remain unchanged
 class Slot {
   String? slotFromTime;
   String? slotToTime;

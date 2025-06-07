@@ -80,6 +80,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
       return false;
     }
   }
+
 // Add this method to your AuthNotifier class
   Future<void> forceRefreshUserData() async {
     try {

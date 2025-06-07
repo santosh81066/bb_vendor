@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoggedIn) {
-      return CoustNavigation();
+      return CustomNavigation();
     }
 
     final size = MediaQuery.of(context).size;

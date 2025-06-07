@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1084778978204",
+    "firebase_url": "https://banquetbookz-4a22d-default-rtdb.firebaseio.com",
+    "project_id": "banquetbookz-4a22d",
+    "storage_bucket": "banquetbookz-4a22d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084778978204:android:643b013fb062d17c158659",
+        "android_client_info": {
+          "package_name": "com.bbuser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCElnrkpwjjPmPXqeewcBUUzRPXoT2o_GA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084778978204:android:8b04c292277da6d1158659",
+        "android_client_info": {
+          "package_name": "com.example.bb_vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCElnrkpwjjPmPXqeewcBUUzRPXoT2o_GA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

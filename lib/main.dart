@@ -1,5 +1,9 @@
+import 'package:bb_vendor/providers/firebase_notification.dart';
 import 'package:bb_vendor/screens/hallscalendar.dart';
+import 'package:bb_vendor/screens/payment.dart';
 import 'package:bb_vendor/screens/registration.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/Colors/coustcolors.dart';
@@ -19,15 +23,55 @@ import 'package:bb_vendor/Screens/settings.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:bb_vendor/Screens/subscription_screen.dart';
 import "package:bb_vendor/Screens/managecalendar.dart";
-// ignore: unused_import
-import "package:bb_vendor/Screens/calendarpropertieslist.dart";
 import "package:bb_vendor/screens/addhall.dart";
+import 'firebase_options.dart';
+
+
+Future<void> initializeFirebase() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase initialized successfully');
+
+    // Initialize notification service with proper error handling
+    bool notificationInitialized = await EnhancedFirebaseNotificationService.initialize();
+    if (notificationInitialized) {
+      print('Notification service initialized successfully');
+    } else {
+      print('Notification service initialization failed or disabled');
+    }
+
+    // Set up notification navigation handler
+    /*EnhancedFirebaseNotificationService.setNavigationHandler(_handleNotificationNavigation);*/
+
+    // Try to sign in anonymously on app start
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    if (auth.currentUser == null) {
+      await auth.signInAnonymously();
+      print('Anonymous auth successful on app start');
+    } else {
+      print('Already authenticated: ${auth.currentUser!.uid}');
+    }
+  } catch (e) {
+    print('Error during Firebase initialization: $e');
+    // Don't throw here - let the app continue even if Firebase fails
+  }
+}
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   // Initialize time zones
   tz.initializeTimeZones();
-  // await Firebase.initializeApp();
+
+  // Initialize Firebase - ADD THIS LINE
+  await initializeFirebase();
+
   runApp(ProviderScope(child: const MyApp()));
 }
 
@@ -61,7 +105,7 @@ class MyApp extends ConsumerWidget {
       routes: {
         '/forgotpwd': (BuildContext context) => const ForgotpasswordScreen(),
         '/registration': (BuildContext context) => const RegistrationScreen(),
-        '/welcome': (BuildContext context) => const CoustNavigation(),
+        '/welcome': (BuildContext context) => const CustomNavigation(),
         '/manage': (BuildContext context) => const ManageScreen(),
         '/sales': (BuildContext context) => const SalesScreen(),
         '/settings': (BuildContext context) => const SettingsScreen(),
@@ -73,9 +117,11 @@ class MyApp extends ConsumerWidget {
         '/alltransactions': (BuildContext context) => const TransactionsScreen(),
         '/editprofile': (BuildContext context) => const EditprofileSceren(),
         '/subscriptionScreen': (BuildContext context) => const Subscription(),
-        '/manageCalendar': (BuildContext context) => const ManageCalendarScreen(),
-        '/hallscalendar': (BuildContext context) => const HallsCalendarScreen(),
+        '/manageCalendar': (BuildContext context) => const Venuscreen(),
+        '/hallscalendar': (BuildContext context) => const StepByStepHallBookingScreen(),
         '/login': (BuildContext context) => const LoginScreen(),
+        '/payment': (BuildContext context) => const PaymentPage(),
+
       },
     );
   }
@@ -106,7 +152,7 @@ class AuthWrapper extends ConsumerWidget {
                 authState.data!.accessToken!.isNotEmpty;
 
             if (hasValidToken) {
-              return const CoustNavigation();
+              return const CustomNavigation();
             } else {
               return const LoginScreen();
             }
