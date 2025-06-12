@@ -44,7 +44,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ref.read(latlangs) == const LatLng(0, 0)) {
         ref.read(latlangs.notifier).state =
-            const LatLng(28.6139, 77.2090); // Delhi
+        const LatLng(28.6139, 77.2090); // Delhi
         _mapController.move(const LatLng(28.6139, 77.2090), 10.0);
       }
     });
@@ -92,11 +92,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       try {
         final response = await http
             .get(Uri.parse('https://nominatim.openstreetmap.org/search?'
-                'q=${location.text}'
-                '&countrycodes=in' // Restrict to India
-                '&format=json'
-                '&addressdetails=1'
-                '&limit=5'));
+            'q=${location.text}'
+            '&countrycodes=in' // Restrict to India
+            '&format=json'
+            '&addressdetails=1'
+            '&limit=5'));
 
         if (response.statusCode == 200) {
           var data = json.decode(response.body);
@@ -104,8 +104,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           if (data.isNotEmpty) {
             // Convert response to LocationSuggestion objects
             List<LocationSuggestion> suggestions =
-                List<LocationSuggestion>.from(
-                    data.map((item) => LocationSuggestion.fromJson(item)));
+            List<LocationSuggestion>.from(
+                data.map((item) => LocationSuggestion.fromJson(item)));
 
             setState(() {
               _locationSuggestions = suggestions;
@@ -153,11 +153,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         // First try to get a reverse geocoded address from Nominatim (more detailed for India)
         final response = await http
             .get(Uri.parse('https://nominatim.openstreetmap.org/reverse?'
-                'lat=${center.latitude}&lon=${center.longitude}'
-                '&format=json'
-                '&addressdetails=1'
-                '&countrycodes=in' // Restrict to India
-                ));
+            'lat=${center.latitude}&lon=${center.longitude}'
+            '&format=json'
+            '&addressdetails=1'
+            '&countrycodes=in' // Restrict to India
+        ));
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
@@ -260,22 +260,22 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           child: Center(
             child: _profileImage != null
                 ? Image.file(
-                    _profileImage!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  )
+              _profileImage!,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            )
                 : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.camera_alt, size: 40, color: Colors.white),
-                      SizedBox(height: 10),
-                      coustText(
-                        sName: "Upload Profile Image",
-                        txtcolor: Colors.white,
-                      ),
-                    ],
-                  ),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.camera_alt, size: 40, color: Colors.white),
+                SizedBox(height: 10),
+                coustText(
+                  sName: "Upload Profile Image",
+                  txtcolor: Colors.white,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -386,11 +386,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   builder: (context, ref, child) {
                                     // Watch the provider for AsyncValue<Category>
                                     final categoryState =
-                                        ref.watch(categoryProvider);
+                                    ref.watch(categoryProvider);
 
                                     return Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         const Padding(
                                           padding: EdgeInsets.all(8.0),
@@ -414,7 +414,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
 
                                             return Column(
                                               children:
-                                                  category.data!.map((data) {
+                                              category.data!.map((data) {
                                                 return RadioListTile<String>(
                                                   title: Text(data.name ?? ""),
                                                   value: data.name ?? "",
@@ -434,7 +434,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                             child: Padding(
                                               padding: EdgeInsets.all(16.0),
                                               child:
-                                                  CircularProgressIndicator(),
+                                              CircularProgressIndicator(),
                                             ),
                                           ),
                                           error: (error, stack) => Padding(
@@ -471,14 +471,14 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                       width: 10,
                                       isVisible: true,
                                       iconwidget:
-                                          const Icon(Icons.location_searching),
+                                      const Icon(Icons.location_searching),
                                       suficonColor: CoustColors.colrMainText,
                                       title: "Location",
                                       controller: location,
                                       onChanged: (location) {
                                         ref
                                             .read(
-                                                textFieldStateProvider.notifier)
+                                            textFieldStateProvider.notifier)
                                             .update(9, false);
                                         _searchLocation(ref);
                                       },
@@ -497,11 +497,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          BorderRadius.circular(8.0),
                                           boxShadow: [
                                             BoxShadow(
                                               color:
-                                                  Colors.grey.withOpacity(0.5),
+                                              Colors.grey.withOpacity(0.5),
                                               spreadRadius: 1,
                                               blurRadius: 3,
                                               offset: const Offset(0, 2),
@@ -515,10 +515,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                         child: ListView.builder(
                                           shrinkWrap: true,
                                           itemCount:
-                                              _locationSuggestions.length,
+                                          _locationSuggestions.length,
                                           itemBuilder: (context, index) {
                                             final suggestion =
-                                                _locationSuggestions[index];
+                                            _locationSuggestions[index];
                                             return ListTile(
                                               title: Text(
                                                 suggestion.displayName,
@@ -541,7 +541,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                         decoration: BoxDecoration(
                                           color: Colors.white,
                                           borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          BorderRadius.circular(8.0),
                                         ),
                                         width: double.infinity,
                                         child: const Text(
@@ -560,14 +560,15 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                   child: FlutterMap(
                                     mapController: _mapController,
                                     options: MapOptions(
-                                      // Initial center is in India (Delhi)
-                                      center: ref.watch(latlangs),
-                                      zoom: 15.0,
-                                      // Restrict to India bounds (approximate)
-                                      maxBounds: LatLngBounds(
-                                        LatLng(6.0, 68.0), // SW corner of India
-                                        LatLng(
-                                            37.0, 98.0), // NE corner of India
+                                      // FIXED: changed 'center' to 'initialCenter'
+                                      initialCenter: ref.watch(latlangs),
+                                      initialZoom: 15.0,
+                                      // FIXED: maxBounds is now cameraConstraint
+                                      cameraConstraint: CameraConstraint.contain(
+                                        bounds: LatLngBounds(
+                                          const LatLng(6.0, 68.0), // SW corner of India
+                                          const LatLng(37.0, 98.0), // NE corner of India
+                                        ),
                                       ),
                                       onMapEvent: (MapEvent event) {
                                         // Track when dragging starts and stops
@@ -583,7 +584,8 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                           });
 
                                           // Update the location when user stops dragging
-                                          final center = _mapController.center;
+                                          // FIXED: center is now accessed via camera
+                                          final center = _mapController.camera.center;
                                           ref.read(latlangs.notifier).state =
                                               center;
                                           _updateLocationWithDebounce(center);
@@ -601,16 +603,18 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                           _updateLocationWithDebounce(center);
                                         }
                                       },
-                                      // Add interactive flags for better user control
-                                      interactiveFlags: InteractiveFlag.all,
+                                      // FIXED: interactiveFlags is now in interactionOptions
+                                      interactionOptions: const InteractionOptions(
+                                        flags: InteractiveFlag.all,
+                                      ),
                                     ),
                                     children: [
                                       TileLayer(
                                         urlTemplate:
-                                            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                                        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                                         subdomains: const ['a', 'b', 'c'],
                                         userAgentPackageName:
-                                            'com.example.bb_vendor',
+                                        'com.example.bb_vendor',
                                       ),
                                       MarkerLayer(
                                         markers: [
@@ -618,13 +622,12 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                             point: ref.watch(latlangs),
                                             width: 80.0,
                                             height: 80.0,
-                                            builder: (BuildContext context) {
-                                              return const Icon(
-                                                Icons.location_on,
-                                                color: Colors.red,
-                                                size: 40.0,
-                                              );
-                                            },
+                                            // FIXED: changed 'builder' to 'child'
+                                            child: const Icon(
+                                              Icons.location_on,
+                                              color: Colors.red,
+                                              size: 40.0,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -653,17 +656,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                                               '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
                                           ref
                                               .read(propertyNotifierProvider
-                                                  .notifier)
+                                              .notifier)
                                               .addProperty(
-                                                context,
-                                                ref,
-                                                propertyname.text.trim(),
-                                                selectedCategoryid,
-                                                address1.text.trim(),
+                                            context,
+                                            ref,
+                                            propertyname.text.trim(),
+                                            selectedCategoryid,
+                                            address1.text.trim(),
 
-                                                _profileImage, // New field
-                                                sLoc,
-                                              );
+                                            _profileImage, // New field
+                                            sLoc,
+                                          );
                                         }
                                       },
                                     );
@@ -686,13 +689,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   }
 
   Widget _buildTextField(
-    String labelText,
-    TextEditingController controller,
-    String validationText,
-    WidgetRef ref,
-    int index,
-    List<bool> textFieldStates,
-  ) {
+      String labelText,
+      TextEditingController controller,
+      String validationText,
+      WidgetRef ref,
+      int index,
+      List<bool> textFieldStates,
+      ) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: CoustTextfield(

@@ -73,12 +73,15 @@ class _RapidoMapPageState extends State<RapidoMapPage> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              center: _currentLocation,
-              zoom: 15.0,
+              // FIXED: changed 'center' to 'initialCenter'
+              initialCenter: _currentLocation,
+              // FIXED: changed 'zoom' to 'initialZoom'
+              initialZoom: 15.0,
               onPositionChanged: (position, hasGesture) {
                 if (hasGesture) {
                   setState(() {
-                    _currentLocation = position.center!;
+                    // FIXED: removed null assertion operator
+                    _currentLocation = position.center;
                   });
                   _fetchAddress(
                       _currentLocation.latitude, _currentLocation.longitude);
@@ -88,7 +91,7 @@ class _RapidoMapPageState extends State<RapidoMapPage> {
             children: [
               TileLayer(
                 urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 subdomains: ['a', 'b', 'c'],
               ),
             ],
