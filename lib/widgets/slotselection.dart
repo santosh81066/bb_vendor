@@ -162,7 +162,7 @@ class _SlotselectionState extends State<Slotselection> with SingleTickerProvider
         final isSelected = widget.selectedSlot == slotDisplay;
 
         // Check if slot is blocked by current user
-        final isBlockedByCurrentUser = bookingStatus == BookingStatus.blocked &&
+        final isBlockedByCurrentUser = bookingStatus == BookingStatus.confirmed &&
             bookingUserId != null &&
             widget.currentUserId != null &&
             bookingUserId == widget.currentUserId;
@@ -243,7 +243,7 @@ class _SlotselectionState extends State<Slotselection> with SingleTickerProvider
     if (isSelected) return (Colors.deepPurple, Colors.white, Icons.check_circle);
 
     // Handle blocked status with different colors for current user vs other users
-    if (status == BookingStatus.blocked) {
+    if (status == BookingStatus.confirmed) {
       if (isBlockedByCurrentUser) {
         return (Colors.orange.shade100, Colors.orange.shade700, Icons.timer); // Orange for user's own blocked slot
       } else {
@@ -259,9 +259,6 @@ class _SlotselectionState extends State<Slotselection> with SingleTickerProvider
 
     return switch (status) {
       BookingStatus.confirmed => 'Already Booked',
-      BookingStatus.blocked => isBlockedByCurrentUser
-          ? 'You have already blocked - Make payment'
-          : 'Blocked by other user - Make payment to make it yours',
       BookingStatus.available => 'Available for booking',
       _ => 'Available for booking',
     };

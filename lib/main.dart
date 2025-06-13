@@ -1,5 +1,6 @@
 import 'package:bb_vendor/providers/firebase_notification.dart';
 import 'package:bb_vendor/screens/hallscalendar.dart';
+import 'package:bb_vendor/screens/managecalendar.dart' hide VendorVenueScreen;
 import 'package:bb_vendor/screens/payment.dart';
 import 'package:bb_vendor/screens/registration.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -117,10 +118,10 @@ class MyApp extends ConsumerWidget {
         '/alltransactions': (BuildContext context) => const TransactionsScreen(),
         '/editprofile': (BuildContext context) => const EditprofileSceren(),
         '/subscriptionScreen': (BuildContext context) => const Subscription(),
-        '/manageCalendar': (BuildContext context) => const Venuscreen(),
-        '/hallscalendar': (BuildContext context) => const StepByStepHallBookingScreen(),
+        '/manageCalendar': (BuildContext context) => const VendorVenueScreen(),
+        '/hallscalendar': (BuildContext context) => const VendorStepByStepHallBookingScreen(),
         '/login': (BuildContext context) => const LoginScreen(),
-        '/payment': (BuildContext context) => const PaymentPage(),
+       /* '/payment': (BuildContext context) => const PaymentPage(),*/
 
       },
     );

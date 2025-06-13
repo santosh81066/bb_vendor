@@ -4,16 +4,16 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/get_properties_model.dart';
 import '../providers/addpropertynotifier.dart';
-import '../providers/subscribed_provider.dart';
+import '../providers/auth.dart'; // Import auth provider
 
-class Venuscreen extends ConsumerStatefulWidget {
-  const Venuscreen({super.key});
+class VendorVenueScreen extends ConsumerStatefulWidget {
+  const VendorVenueScreen({super.key});
 
   @override
-  ConsumerState<Venuscreen> createState() => _ManageCalendarScreenState();
+  ConsumerState<VendorVenueScreen> createState() => _VendorVenueScreenState();
 }
 
-class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
+class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -23,7 +23,6 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
     // Load data with error handling
     try {
       ref.read(propertyNotifierProvider.notifier).getproperty();
-      ref.read(subscriptionProvider.notifier).fetchSubscriptions();
     } catch (e) {
       debugPrint('Error loading data: $e');
     }
@@ -38,38 +37,29 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
   @override
   Widget build(BuildContext context) {
     final propertyState = ref.watch(propertyNotifierProvider).data ?? [];
-    final subscriptions = ref.watch(subscriptionProvider);
+    final authState = ref.watch(authprovider);
+    final currentUserId = authState.data?.userId;
 
-    // Get unique property IDs from subscriptions, sorted by start_time
-    final Set<int> uniquePropertyIds = {};
-    final sortedPropertyIds = <int>[];
+    // Filter properties that belong to the current vendor only
+    final vendorProperties = propertyState.where((property) {
+      // First check if this property belongs to the current vendor
+      final belongsToVendor = property.vendorId != null &&
+          currentUserId != null &&
+          property.vendorId == currentUserId;
 
-    for (var subscription in subscriptions) {
-      if (!uniquePropertyIds.contains(subscription.Id)) {
-        uniquePropertyIds.add(subscription.Id);
-        sortedPropertyIds.add(subscription.Id);
-      }
-    }
+      if (!belongsToVendor) return false;
 
-    // Filter properties that match the IDs from subscriptions
-    final filteredProperties = propertyState.where((property) {
-      // Filter by search query if one exists
+      // Then apply search filter if one exists
       final matchesSearch = _searchQuery.isEmpty ||
           (property.propertyName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
           (property.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
 
-      // Check if propertyId is not null and is contained in uniquePropertyIds
-      return matchesSearch &&
-          property.propertyId != null &&
-          uniquePropertyIds.contains(property.propertyId);
+      return matchesSearch;
     }).toList();
 
-    // Sort properties
-    filteredProperties.sort((a, b) {
-      final aIndex = sortedPropertyIds.indexOf(a.propertyId!);
-      final bIndex = sortedPropertyIds.indexOf(b.propertyId!);
-      return aIndex.compareTo(bIndex);
-    });
+    // Sort properties by property name
+    vendorProperties.sort((a, b) =>
+        (a.propertyName ?? '').compareTo(b.propertyName ?? ''));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F8),
@@ -78,7 +68,6 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
         onRefresh: () async {
           try {
             await ref.read(propertyNotifierProvider.notifier).getproperty();
-            await ref.read(subscriptionProvider.notifier).fetchSubscriptions();
           } catch (e) {
             debugPrint('Error refreshing data: $e');
           }
@@ -89,11 +78,10 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
               // App Bar with Search
               SliverToBoxAdapter(
                 child: _buildAppBarWithSearch(),
-
               ),
 
               // Main Content
-              filteredProperties.isNotEmpty
+              vendorProperties.isNotEmpty
                   ? SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: AnimationLimiter(
@@ -106,16 +94,14 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
                           child: SlideAnimation(
                             verticalOffset: 50.0,
                             child: FadeInAnimation(
-                              child: PropertyCard(
-                                property: filteredProperties[index],
-                                name: filteredProperties[index].propertyName ?? 'No Name',
-                                location: filteredProperties[index].location ?? 'No Address',
+                              child: VendorPropertyCard(
+                                property: vendorProperties[index],
                               ),
                             ),
                           ),
                         );
                       },
-                      childCount: filteredProperties.length,
+                      childCount: vendorProperties.length,
                     ),
                   ),
                 ),
@@ -158,7 +144,7 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: Text(
-                "Venues",
+                "My Properties",
                 style: GoogleFonts.poppins(
                   fontSize: 26,
                   fontWeight: FontWeight.w600,
@@ -187,7 +173,7 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Search venues...',
+                  hintText: 'Search my properties...',
                   hintStyle: GoogleFonts.poppins(
                     color: Colors.grey.shade400,
                     fontSize: 14,
@@ -222,6 +208,9 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
   }
 
   Widget _buildEmptyState() {
+    final authState = ref.watch(authprovider);
+    final isLoggedIn = authState.data?.userId != null;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -232,16 +221,8 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
-          const Text(
-            "There are Properties added yet \n please be patient until the vendor add the new properties",
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
           Text(
-            'No venues found',
+            'No properties found',
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -250,29 +231,47 @@ class _ManageCalendarScreenState extends ConsumerState<Venuscreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            _searchQuery.isNotEmpty
+            isLoggedIn
+                ? (_searchQuery.isNotEmpty
                 ? 'Try adjusting your search'
-                : 'Subscribe to venues to see them here',
+                : 'You haven\'t added any properties yet')
+                : 'Please login to view your properties',
             style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey.shade500,
             ),
             textAlign: TextAlign.center,
           ),
+          if (isLoggedIn && _searchQuery.isEmpty) ...[
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/addproperty');
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Property'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6418C3),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class PropertyCard extends StatelessWidget {
+class VendorPropertyCard extends StatelessWidget {
   final Data property;
 
-  const PropertyCard({
+  const VendorPropertyCard({
     super.key,
     required this.property,
-    required String name,
-    required String location,
   });
 
   @override
@@ -298,7 +297,7 @@ class PropertyCard extends StatelessWidget {
             onTap: () {
               Navigator.of(context).pushNamed(
                 '/hallscalendar',
-                arguments: {'property': property},
+                arguments: {'property': property, 'isVendor': true},
               );
             },
             child: Column(
@@ -312,6 +311,36 @@ class PropertyCard extends StatelessWidget {
                     ),
                     Positioned(
                       top: 15,
+                      left: 15,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.business,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              "My Property",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 15,
                       right: 15,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -321,14 +350,14 @@ class PropertyCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.star,
+                            Icon(
+                              Icons.meeting_room,
                               color: Colors.white,
                               size: 16,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              "4.8",
+                              "${property.halls?.length ?? 0}",
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
@@ -383,7 +412,7 @@ class PropertyCard extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             '/hallscalendar',
-                            arguments: {'property': property},
+                            arguments: {'property': property, 'isVendor': true},
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -397,7 +426,7 @@ class PropertyCard extends StatelessWidget {
                           minimumSize: const Size(double.infinity, 48),
                         ),
                         child: Text(
-                          "View Details",
+                          "Book Halls",
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -420,9 +449,6 @@ class PropertyCard extends StatelessWidget {
         ? 'http://www.gocodedesigners.com/banquetbookingz/${property.coverPic}'
         : null;
 
-    // For debugging the image URL
-    // debugPrint('Image URL: $imageUrl');
-
     return Container(
       height: 200,
       width: double.infinity,
@@ -444,8 +470,6 @@ class PropertyCard extends StatelessWidget {
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          // Print error for debugging
-          debugPrint('Error loading image: $error');
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

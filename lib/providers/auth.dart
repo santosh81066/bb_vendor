@@ -9,7 +9,33 @@ import '../utils/bbapi.dart';
 import 'stateproviders.dart';
 
 class AuthNotifier extends StateNotifier<AdminAuth> {
-  AuthNotifier() : super(AdminAuth.initial());
+  AuthNotifier() : super(AdminAuth.initial()) {
+    // Automatically try to restore user session when notifier is created
+    _initializeAuth();
+  }
+
+  bool _isInitialized = false;
+
+  // Add the missing getters
+  bool get isInitialized => _isInitialized;
+
+  bool get isAuthenticated {
+    return state.data?.accessToken != null && state.data!.accessToken!.isNotEmpty;
+  }
+
+  int? get currentUserId {
+    return state.data?.userId;
+  }
+
+  Future<void> _initializeAuth() async {
+    try {
+      await tryAutoLogin();
+    } catch (e) {
+      print('Error during auth initialization: $e');
+    } finally {
+      _isInitialized = true;
+    }
+  }
 
   // Add this method to your AuthNotifier class for better debugging
   Future<bool> tryAutoLogin() async {
@@ -33,27 +59,35 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
             final extractData = json.decode(userDataString) as Map<String, dynamic>;
             print('✓ Successfully parsed JSON: $extractData');
 
-            // IMPORTANT: Update the state with the stored data
-            state = AdminAuth.fromJson(extractData);
+            // Check if token is still valid (optional)
+            if (_isTokenValid(extractData)) {
+              // IMPORTANT: Update the state with the stored data
+              state = AdminAuth.fromJson(extractData);
 
-            // Add this verification
-            print('✓ State restored from SharedPreferences');
-            print('Current state after restore: ${state.toJson()}');
-            print('Restored access token: ${state.data?.accessToken}');
-            print('Restored username: ${state.data?.username}');
-            print('Restored email: ${state.data?.email}');
+              // Add this verification
+              print('✓ State restored from SharedPreferences');
+              print('Current state after restore: ${state.toJson()}');
+              print('Restored access token: ${state.data?.accessToken}');
+              print('Restored username: ${state.data?.username}');
+              print('Restored email: ${state.data?.email}');
 
-            // Verify the state was actually updated
-            if (state.data?.accessToken != null && state.data!.accessToken!.isNotEmpty) {
-              print('✓ Auto-login successful - valid token found');
-              return true;
+              // Verify the state was actually updated
+              if (state.data?.accessToken != null && state.data!.accessToken!.isNotEmpty) {
+                print('✓ Auto-login successful - valid token found');
+                return true;
+              } else {
+                print('❌ State updated but no valid token found');
+                return false;
+              }
             } else {
-              print('❌ State updated but no valid token found');
+              print('❌ Token expired, clearing stored data');
+              await _clearStoredData();
               return false;
             }
 
           } catch (jsonError) {
             print('❌ Error parsing JSON: $jsonError');
+            await _clearStoredData(); // Clear corrupted data
             return false;
           }
         } else {
@@ -81,6 +115,32 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
     }
   }
 
+  bool _isTokenValid(Map<String, dynamic> userData) {
+    try {
+      final expiresAt = userData['data']?['access_token_expires_at'];
+      if (expiresAt == null) return true; // No expiry info, assume valid
+
+      final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt * 1000);
+      final now = DateTime.now();
+
+      return expiryTime.isAfter(now);
+    } catch (e) {
+      print('Error checking token validity: $e');
+      return true; // Assume valid if can't check
+    }
+  }
+
+  Future<void> _clearStoredData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userData');
+      await prefs.remove('accessToken');
+      state = AdminAuth.initial();
+    } catch (e) {
+      print('Error clearing stored data: $e');
+    }
+  }
+
 // Add this method to your AuthNotifier class
   Future<void> forceRefreshUserData() async {
     try {
@@ -99,6 +159,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
       print('❌ Error force refreshing user data: $e');
     }
   }
+
 // Also add this method to manually check stored data
   Future<void> debugStoredData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -173,26 +234,9 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         print('State updated with access token: ${state.data!.accessToken}');
         print('State updated in adminLogin: ${state.toJson()}');
 
-        // Storing data in SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        print("SharedPreferences fetched successfully");
+        // Store data using the new method
+        await _storeUserData();
 
-        // Store the entire AdminAuth object in SharedPreferences
-        final userData = json.encode(state.toJson());
-        bool saveResult = await prefs.setString('userData', userData);
-
-        print("login time -localdata in shared preferences==$saveResult");
-
-        if (!saveResult) {
-          print("Failed to save user data to SharedPreferences.");
-        }
-
-        // Also saving the access token separately if needed
-        bool tokenSaveResult =
-        await prefs.setString('accessToken', state.data?.accessToken ?? '');
-        if (!tokenSaveResult) {
-          print("Failed to save access token to SharedPreferences.");
-        }
       } else {
         loadingState.state = false;
         errorMessage =
@@ -209,11 +253,36 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         errorMessage: errorMessage, responseBody: responseBody);
   }
 
-  Future<String?> _getAccessToken() async {
+  Future<void> _storeUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final userData = json.encode(state.toJson());
+
+      bool saveResult = await prefs.setString('userData', userData);
+      bool tokenSaveResult = await prefs.setString('accessToken', state.data?.accessToken ?? '');
+
+      print("User data saved to SharedPreferences: $saveResult");
+      print("Access token saved to SharedPreferences: $tokenSaveResult");
+
+      if (!saveResult || !tokenSaveResult) {
+        print("Warning: Failed to save some user data to SharedPreferences");
+      }
+    } catch (e) {
+      print("Error storing user data: $e");
+    }
+  }
+
+  Future<String?> _getAccessToken() async {
+    try {
+      // First try to get from current state
+      if (state.data?.accessToken != null && state.data!.accessToken!.isNotEmpty) {
+        return state.data!.accessToken;
+      }
+
+      // Fallback to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
-      print("Retrieved token: $token"); // Debug print
+      print("Retrieved token from SharedPreferences: $token");
       return token;
     } catch (e) {
       print("Error retrieving access token: $e");
@@ -235,6 +304,10 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
 
     if (userId == null) {
       throw Exception('userid is not found');
+    }
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Access token is not available');
     }
 
     try {
@@ -276,15 +349,10 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
         AdminAuth updateddata = AdminAuth.fromJson(responseJson);
         state = updateddata;
 
-        final prefs = await SharedPreferences.getInstance();
-        // Fixed: Use consistent key 'userData'
-        prefs.setString('userData', json.encode(updateddata.toJson()));
+        // Store updated data
+        await _storeUserData();
 
         print("Updated Admin Data: $updateddata");
-
-        // Fixed: Check for consistent key 'userData'
-        final localdata = prefs.containsKey("userData");
-        print("localdata-afterupdated==$localdata");
       } else {
         final error =
             json.decode(responseData.body)['message'] ?? 'Error updating user';
@@ -298,9 +366,7 @@ class AuthNotifier extends StateNotifier<AdminAuth> {
 
   Future<void> logoutUser() async {
     print('Logging out...');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    state = AdminAuth.initial(); // Clear the state after logout
+    await _clearStoredData();
     print('User logged out and state cleared.');
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:bb_vendor/providers/auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,146 +13,146 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AddPropertyNotifier extends StateNotifier<Property> {
   AddPropertyNotifier() : super(Property.initial());
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    // You can notify listeners if needed
+  }
+
   Future<void> addProperty(
-    BuildContext context,
-    WidgetRef ref,
-    String? propertyname,
-    int? selectedCategoryid,
-    String? address1,
-    File? _profileImage,
-    String? sLoc,
-  ) async {
-    final venderlogin = ref.watch(authprovider).data?.userId;
+      BuildContext context,
+      WidgetRef ref,
+      String? propertyname,
+      int? selectedCategoryid,
+      String? address1,
+      File? _profileImage,
+      String? sLoc, {
+        // New property manager parameters
+        String? managerName,
+        String? managerPhone,
+        String? managerEmail,
+        String? managerDesignation,
+        String? managerExperience,
+        File? managerImage,
+      }) async {
+    if (_isLoading) return; // Prevent multiple submissions
 
-    Uri url = Uri.parse(Bbapi.addproperty);
+    _setLoading(true);
 
-    final request = http.MultipartRequest('POST', url);
-
-    // Retrieve the token from SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userData = prefs.getString('userData');
-
-    String? token;
-    String? userId;
-    if (userData != null) {
-      final extractedData = json.decode(userData) as Map<String, dynamic>;
-      token = extractedData['data']
-          ['access_token']; // Fix: access the token from the 'data' object
-      userId = extractedData['data']['user_id']
-          ?.toString(); // Fix: access the user_id from the 'data' object
-    }
-
-    // Debugging token
-    // Add this to debug
-
-    if (token != null) {
-      request.headers['Authorization'] = 'Token $token';
-    }
-
-    // Add attributes as JSON string with all required details
-    Map<String, dynamic> attributes = {
-      'address': address1 ?? '',
-      'propertyName': propertyname ?? '',
-      'location': sLoc ?? '',
-      'userid': userId ?? '', // This should now have the correct user ID
-      'category': selectedCategoryid?.toString() ?? '',
-    };
-
-    // Add attributes as a JSON string
-    request.fields['attributes'] = json.encode(attributes);
-
-    if (_profileImage != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'coverpic',
-        _profileImage.path,
-      ));
-
-      // Debugging file path
-    }
+    // Show loading dialog
+    _showLoadingDialog(context);
 
     try {
+      final venderlogin = ref.watch(authprovider).data?.userId;
+
+      Uri url = Uri.parse(Bbapi.addproperty);
+      final request = http.MultipartRequest('POST', url);
+
+      // Retrieve the token from SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userData = prefs.getString('userData');
+
+      String? token;
+      String? userId;
+      if (userData != null) {
+        final extractedData = json.decode(userData) as Map<String, dynamic>;
+        token = extractedData['data']['access_token'];
+        userId = extractedData['data']['user_id']?.toString();
+      }
+
+      if (token != null) {
+        request.headers['Authorization'] = 'Token $token';
+      }
+
+      // Enhanced attributes with property manager details
+      Map<String, dynamic> attributes = {
+        // Property details
+        'address': address1?.trim() ?? '',
+        'propertyName': propertyname?.trim() ?? '',
+        'location': sLoc ?? '',
+        'userid': userId ?? '',
+        'category': selectedCategoryid?.toString() ?? '',
+
+        // Property manager details
+        'manager': {
+          'name': managerName?.trim() ?? '',
+          'phone': managerPhone?.trim() ?? '',
+          'email': managerEmail?.trim() ?? '',
+          'designation': managerDesignation?.trim() ?? '',
+          'experience': managerExperience?.trim() ?? '',
+          'hasImage': managerImage != null,
+        },
+
+        // Additional metadata
+        'timestamp': DateTime.now().toIso8601String(),
+        'version': '2.0', // Indicate this is the enhanced version
+      };
+
+      // Add attributes as a JSON string
+      request.fields['attributes'] = json.encode(attributes);
+
+      // Add property cover picture
+      if (_profileImage != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'coverpic',
+          _profileImage.path,
+        ));
+      }
+
+      // Add manager image if provided
+      if (managerImage != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'manager_image',
+          managerImage.path,
+        ));
+      }
+
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      final responseData = json.decode(responseBody);
 
-      // Print the response body
+      // Close loading dialog
+      Navigator.of(context).pop();
 
-      if (response.statusCode == 201) {
-        // Handle the success response
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Property added successfully'),
-              actions: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    height: 30,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Color(0xFF6418C3),
-                    ),
-                    child: Center(
-                      child: const Text(
-                        'OK',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseData = json.decode(responseBody);
+
+        // Show success with enhanced dialog
+        await _showSuccessDialog(context, propertyname ?? 'Property');
+
+        // Show success snackbar
+        _showSnackBar(
+          context,
+          'Property "${propertyname ?? 'Unknown'}" added successfully!',
+          isError: false,
         );
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('This is a SnackBar!'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ));
+
+        // Navigate back to previous screen
+        Navigator.of(context).pop();
+
       } else {
-        // Handle the error response
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: Text(
-                  'Property addition failed: ${responseData['messages']?.join(", ") ?? 'Unknown error'}'),
-              actions: [
-                ElevatedButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
+        // Handle error response
+        final responseData = json.decode(responseBody);
+        await _showErrorDialog(
+          context,
+          'Property Addition Failed',
+          _parseErrorMessage(responseData),
         );
       }
     } catch (e) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('An error occurred: $e'),
-            actions: [
-              ElevatedButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
+      // Close loading dialog if it's still open
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      await _showErrorDialog(
+        context,
+        'Network Error',
+        _getErrorMessage(e),
       );
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -162,34 +163,20 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       List<File>? images,
       Map<String, dynamic> hallDetails,
       ) async {
+    if (_isLoading) return;
 
-    // Print slots
-    if (slots != null && slots.isNotEmpty) {
-      for (var i = 0; i < slots.length; i++) {
-        var slot = slots[i];
-        var checkInTime = slot['check_in_time'];
-        var checkOutTime = slot['check_out_time'];
-      }
-    } else {
-    }
-
-    // Print images
-    if (images != null && images.isNotEmpty) {
-      for (var i = 0; i < images.length; i++) {
-      }
-    } else {
-    }
-
-    if (propertyname == null || propertyname.trim().isEmpty) {
-      throw Exception("Property name cannot be null or empty.");
-    }
-    if (properid == null) {
-      throw Exception("Property ID cannot be null.");
-    }
-
-    final url = Uri.parse(Bbapi.addhall);
+    _setLoading(true);
 
     try {
+      // Validation
+      if (propertyname == null || propertyname.trim().isEmpty) {
+        throw Exception("Property name cannot be null or empty.");
+      }
+      if (properid == null) {
+        throw Exception("Property ID cannot be null.");
+      }
+
+      final url = Uri.parse(Bbapi.addhall);
       var request = http.MultipartRequest('POST', url);
 
       // Add authorization token
@@ -209,65 +196,403 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       // Add images to the request
       if (images != null && images.isNotEmpty) {
         for (var image in images) {
-          request.files
-              .add(await http.MultipartFile.fromPath('images[]', image.path));
+          request.files.add(
+              await http.MultipartFile.fromPath('images[]', image.path)
+          );
         }
       }
 
-      // Add attributes to the request - use the hallDetails directly since it's already formatted
-      request.fields['attributes'] = jsonEncode(hallDetails);
+      // Enhanced hall details with timestamp and validation
+      Map<String, dynamic> enhancedHallDetails = {
+        ...hallDetails,
+        'timestamp': DateTime.now().toIso8601String(),
+        'propertyId': properid,
+        'propertyName': propertyname.trim(),
+        'slotsCount': slots?.length ?? 0,
+        'imagesCount': images?.length ?? 0,
+      };
 
+      request.fields['attributes'] = jsonEncode(enhancedHallDetails);
 
       final response = await request.send();
       final res = await http.Response.fromStream(response);
-
       var responseBody = json.decode(res.body);
       var statusCode = res.statusCode;
 
-
       if (statusCode == 200 || statusCode == 201) {
+        // Success handling can be added here if needed
       } else {
         throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
       }
     } catch (e) {
       rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> getproperty() async {
+    if (_isLoading) return;
+
+    _setLoading(true);
 
     try {
-      // Ensure the correct endpoint for fetching property is used.
       final response = await http.get(
-        Uri.parse(Bbapi.addproperty), // Use the appropriate endpoint here.
+        Uri.parse(Bbapi.addproperty),
         headers: {
           'Content-Type': 'application/json',
         },
       );
+
       if (response.statusCode == 200) {
         final decodedResponse = json.decode(response.body);
-
-        // Parse the response into the Property model
         Property property = Property.fromJson(decodedResponse);
-
-        // Update the state with the fetched data
         state = property;
-        // Debugging the state
       } else {
         final errorMessage = 'Error fetching properties: ${response.body}';
-
-        // Optionally, handle the error in the state
         state = Property.initial().copyWith(messages: [errorMessage]);
       }
     } catch (e) {
-
-      // Optionally, handle the error in the state
       state = Property.initial().copyWith(messages: [e.toString()]);
+    } finally {
+      _setLoading(false);
     }
+  }
+
+  // Enhanced UI helper methods
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6418C3)),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Adding Property...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please wait while we process your request',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSuccessDialog(BuildContext context, String propertyName) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Success!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Property "$propertyName" has been added successfully',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6418C3),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Continue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showErrorDialog(
+      BuildContext context,
+      String title,
+      String message,
+      ) async {
+    return showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  color: Colors.red.shade600,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade700,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.grey[600],
+                        side: BorderSide(color: Colors.grey.shade300),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Try Again',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: Duration(seconds: isError ? 4 : 3),
+      ),
+    );
+  }
+
+  String _parseErrorMessage(Map<String, dynamic> responseData) {
+    if (responseData['messages'] != null) {
+      if (responseData['messages'] is List) {
+        return (responseData['messages'] as List).join(", ");
+      } else if (responseData['messages'] is String) {
+        return responseData['messages'];
+      }
+    }
+
+    if (responseData['message'] != null) {
+      return responseData['message'];
+    }
+
+    if (responseData['error'] != null) {
+      return responseData['error'];
+    }
+
+    return 'An unexpected error occurred. Please try again.';
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is SocketException) {
+      return 'No internet connection. Please check your network and try again.';
+    } else if (error is http.ClientException) {
+      return 'Network error. Please check your connection and try again.';
+    } else if (error is FormatException) {
+      return 'Invalid server response. Please try again later.';
+    } else if (error is TimeoutException) {
+      return 'Request timeout. Please try again.';
+    } else {
+      return 'An unexpected error occurred: ${error.toString()}';
+    }
+  }
+
+  // Utility method to validate property data before submission
+  Map<String, String> validatePropertyData({
+    String? propertyname,
+    int? selectedCategoryid,
+    String? address1,
+    File? profileImage,
+    String? sLoc,
+    String? managerName,
+    String? managerPhone,
+    String? managerEmail,
+  }) {
+    Map<String, String> errors = {};
+
+    if (propertyname == null || propertyname.trim().isEmpty) {
+      errors['propertyname'] = 'Property name is required';
+    }
+
+    if (selectedCategoryid == null) {
+      errors['category'] = 'Please select a category';
+    }
+
+    if (address1 == null || address1.trim().isEmpty) {
+      errors['address'] = 'Property address is required';
+    }
+
+    if (profileImage == null) {
+      errors['image'] = 'Property image is required';
+    }
+
+    if (sLoc == null || sLoc.trim().isEmpty) {
+      errors['location'] = 'Location is required';
+    }
+
+    if (managerName == null || managerName.trim().isEmpty) {
+      errors['managerName'] = 'Manager name is required';
+    }
+
+    if (managerPhone == null || managerPhone.trim().isEmpty) {
+      errors['managerPhone'] = 'Manager phone is required';
+    } else if (managerPhone.length != 10) {
+      errors['managerPhone'] = 'Phone number must be 10 digits';
+    }
+
+    if (managerEmail == null || managerEmail.trim().isEmpty) {
+      errors['managerEmail'] = 'Manager email is required';
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(managerEmail)) {
+      errors['managerEmail'] = 'Please enter a valid email address';
+    }
+
+    return errors;
   }
 }
 
 final propertyNotifierProvider =
-    StateNotifierProvider<AddPropertyNotifier, Property>((ref) {
+StateNotifierProvider<AddPropertyNotifier, Property>((ref) {
   return AddPropertyNotifier();
+});
+
+// Loading state provider for UI
+final propertyLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(propertyNotifierProvider.notifier).isLoading;
 });

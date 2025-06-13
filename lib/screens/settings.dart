@@ -113,7 +113,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: const coustText(
           sName: "Settings",
           txtcolor: Colors.white,
-          textsize: 22,
+          fontSize: 22,
           fontweight: FontWeight.bold,
         ),
         shape: const RoundedRectangleBorder(
@@ -166,14 +166,14 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
                         children: [
                           coustText(
                             sName: userName,
-                            textsize: 20,
+                            fontSize: 20,
                             txtcolor: CoustColors.colrEdtxt2,
                             fontweight: FontWeight.bold,
                           ),
                           const SizedBox(height: 4),
                           coustText(
                             sName: userEmail,
-                            textsize: 14,
+                            fontSize: 14,
                             txtcolor: Colors.grey,
                           ),
                         ],
@@ -197,7 +197,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Section Title
               const coustText(
                 sName: "Account",
-                textsize: 18,
+                fontSize: 18,
                 fontweight: FontWeight.bold,
                 txtcolor: CoustColors.colrEdtxt2,
               ),
@@ -231,7 +231,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Section Title
               const coustText(
                 sName: "Preferences",
-                textsize: 18,
+                fontSize: 18,
                 fontweight: FontWeight.bold,
                 txtcolor: CoustColors.colrEdtxt2,
               ),
@@ -257,7 +257,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
               // Section Title
               const coustText(
                 sName: "Support",
-                textsize: 18,
+                fontSize: 18,
                 fontweight: FontWeight.bold,
                 txtcolor: CoustColors.colrEdtxt2,
               ),
@@ -345,7 +345,7 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         title: coustText(
           sName: title,
-          textsize: 16,
+          fontSize: 16,
           txtcolor: CoustColors.colrEdtxt2,
         ),
         trailing: const Icon(

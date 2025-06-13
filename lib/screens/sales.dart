@@ -49,7 +49,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: coustText(
                   sName: "Sales",
                   txtcolor: CoustColors.colrEdtxt4,
-                  textsize: 24,
+                  fontSize: 24,
                   fontweight:FontWeight.bold,
 
                 ),
@@ -63,7 +63,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 children: [
                   coustText(
                     sName: "Wallet",
-                    textsize: 18,
+                    fontSize: 18,
                   ),
                   const SizedBox(height: 10),
                   Container(
@@ -89,7 +89,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           coustText(
                             sName: "89,000",
                             txtcolor: CoustColors.colrEdtxt4,
-                            textsize: 24,
+                            fontSize: 24,
                             fontweight: FontWeight.bold,
                           ),
                         ],
@@ -140,19 +140,19 @@ class _SalesScreenState extends State<SalesScreen> {
           title: coustText(
             sName: booking.name!,
             fontweight: FontWeight.bold,
-            textsize: 18,
+            fontSize: 18,
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               coustText(
                 sName: booking.date!,
-                textsize: 14,
+                fontSize: 14,
                 txtcolor: CoustColors.colrEdtxt4,
               ),
               coustText(
                 sName: booking.address!,
-                textsize: 14,
+                fontSize: 14,
                 txtcolor: CoustColors.colrEdtxt4,
               ),
             ],
@@ -160,7 +160,7 @@ class _SalesScreenState extends State<SalesScreen> {
           trailing: coustText(
             sName: "2300",
             fontweight: FontWeight.bold,
-            textsize: 18,
+            fontSize: 18,
             txtcolor:
                 isTotal ? CoustColors.paymenttext : CoustColors.refundtext,
           ),

@@ -1,14 +1,11 @@
 enum BookingStatus {
-  available,   // likely represented as '0'
-  blocked,     // 'b'
+  available,   // '0'
   confirmed,   // 'c'
   cancelled,   // 'cl'
 }
 
 String getBookingStatusName(String code) {
   switch (code) {
-    case 'b':
-      return 'Blocked';
     case 'c':
       return 'Confirmed';
     case 'cl':
@@ -23,8 +20,6 @@ String bookingStatusToString(BookingStatus status) {
   switch (status) {
     case BookingStatus.confirmed:
       return 'c';
-    case BookingStatus.blocked:
-      return 'b';
     case BookingStatus.cancelled:
       return 'cl';
     case BookingStatus.available:
