@@ -11,7 +11,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPropertyNotifier extends StateNotifier<Property> {
-  AddPropertyNotifier() : super(Property.initial());
+  AddPropertyNotifier(this.ref) : super(Property.initial());
+
+  final Ref ref; // Add ref to access other providers
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -19,6 +21,144 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   void _setLoading(bool loading) {
     _isLoading = loading;
     // You can notify listeners if needed
+  }
+
+  // Add this method to get user-specific properties
+  Future<void> getUserProperties() async {
+    if (_isLoading) return;
+
+    _setLoading(true);
+
+    try {
+      final currentUserId = ref.read(authprovider).data?.userId;
+
+      if (currentUserId == null) {
+        state = Property.initial().copyWith(
+            messages: ['User not authenticated. Please login again.']
+        );
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse('${Bbapi.addproperty}?vendor_id=$currentUserId'), // Add vendor_id filter to API
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedResponse = json.decode(response.body);
+        Property property = Property.fromJson(decodedResponse);
+
+        // Additional client-side filtering as backup
+        if (property.data != null) {
+          final filteredData = property.data!.where((prop) =>
+          prop.vendorId == currentUserId
+          ).toList();
+
+          state = property.copyWith(data: filteredData);
+        } else {
+          state = property;
+        }
+      } else {
+        final errorMessage = 'Error fetching properties: ${response.body}';
+        state = Property.initial().copyWith(messages: [errorMessage]);
+      }
+    } catch (e) {
+      state = Property.initial().copyWith(messages: [e.toString()]);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Update the existing getproperty method to include user filtering
+  Future<void> getproperty() async {
+    if (_isLoading) return;
+
+    _setLoading(true);
+
+    try {
+      final currentUserId = ref.read(authprovider).data?.userId;
+
+      if (currentUserId == null) {
+        state = Property.initial().copyWith(
+            messages: ['User not authenticated. Please login again.']
+        );
+        return;
+      }
+
+      final response = await http.get(
+        Uri.parse(Bbapi.addproperty),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedResponse = json.decode(response.body);
+        Property property = Property.fromJson(decodedResponse);
+
+        // Filter properties by current user ID
+        if (property.data != null) {
+          final userProperties = property.data!.where((prop) =>
+          prop.vendorId == currentUserId
+          ).toList();
+
+          state = property.copyWith(data: userProperties);
+
+          print('Filtered ${userProperties.length} properties for user $currentUserId');
+        } else {
+          state = property;
+        }
+      } else {
+        final errorMessage = 'Error fetching properties: ${response.body}';
+        state = Property.initial().copyWith(messages: [errorMessage]);
+      }
+    } catch (e) {
+      state = Property.initial().copyWith(messages: [e.toString()]);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Add method to get properties by category for current user
+  List<Data> getPropertiesByCategory(int? category) {
+    final currentUserId = ref.read(authprovider).data?.userId;
+    final allProperties = state.data ?? [];
+
+    if (currentUserId == null) return [];
+
+    // Filter by user first, then by category
+    var userProperties = allProperties.where((prop) =>
+    prop.vendorId == currentUserId
+    ).toList();
+
+    if (category == null) return userProperties;
+
+    return userProperties.where((prop) => prop.category == category).toList();
+  }
+
+  // Add method to get property count for current user
+  int getUserPropertyCount() {
+    final currentUserId = ref.read(authprovider).data?.userId;
+    if (currentUserId == null) return 0;
+
+    return (state.data ?? []).where((prop) =>
+    prop.vendorId == currentUserId
+    ).length;
+  }
+
+  // Add method to check if user owns a specific property
+  bool isUserProperty(int propertyId) {
+    final currentUserId = ref.read(authprovider).data?.userId;
+    if (currentUserId == null) return false;
+
+    final property = (state.data ?? []).firstWhere(
+          (prop) => prop.propertyId == propertyId,
+      orElse: () => Data.initial(),
+    );
+
+    return property.vendorId == currentUserId;
   }
 
   Future<void> addProperty(
@@ -45,7 +185,17 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     _showLoadingDialog(context);
 
     try {
-      final venderlogin = ref.watch(authprovider).data?.userId;
+      final currentUserId = ref.read(authprovider).data?.userId;
+
+      if (currentUserId == null) {
+        Navigator.of(context).pop(); // Close loading dialog
+        await _showErrorDialog(
+          context,
+          'Authentication Error',
+          'Please login again to add properties.',
+        );
+        return;
+      }
 
       Uri url = Uri.parse(Bbapi.addproperty);
       final request = http.MultipartRequest('POST', url);
@@ -55,11 +205,9 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       String? userData = prefs.getString('userData');
 
       String? token;
-      String? userId;
       if (userData != null) {
         final extractedData = json.decode(userData) as Map<String, dynamic>;
         token = extractedData['data']['access_token'];
-        userId = extractedData['data']['user_id']?.toString();
       }
 
       if (token != null) {
@@ -72,7 +220,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
         'address': address1?.trim() ?? '',
         'propertyName': propertyname?.trim() ?? '',
         'location': sLoc ?? '',
-        'userid': userId ?? '',
+        'userid': currentUserId.toString(), // Use current user ID
         'category': selectedCategoryid?.toString() ?? '',
 
         // Property manager details
@@ -128,6 +276,9 @@ class AddPropertyNotifier extends StateNotifier<Property> {
           isError: false,
         );
 
+        // Refresh the properties list to include the new property
+        await getproperty();
+
         // Navigate back to previous screen
         Navigator.of(context).pop();
 
@@ -156,6 +307,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     }
   }
 
+  // Rest of your existing methods remain the same...
   Future<void> addhallproperty(
       String? propertyname,
       int? properid,
@@ -168,6 +320,17 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     _setLoading(true);
 
     try {
+      final currentUserId = ref.read(authprovider).data?.userId;
+
+      if (currentUserId == null) {
+        throw Exception("User not authenticated. Please login again.");
+      }
+
+      // Check if user owns this property
+      if (!isUserProperty(properid!)) {
+        throw Exception("You don't have permission to modify this property.");
+      }
+
       // Validation
       if (propertyname == null || propertyname.trim().isEmpty) {
         throw Exception("Property name cannot be null or empty.");
@@ -210,6 +373,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
         'propertyName': propertyname.trim(),
         'slotsCount': slots?.length ?? 0,
         'imagesCount': images?.length ?? 0,
+        'vendorId': currentUserId, // Add vendor ID for additional validation
       };
 
       request.fields['attributes'] = jsonEncode(enhancedHallDetails);
@@ -220,7 +384,8 @@ class AddPropertyNotifier extends StateNotifier<Property> {
       var statusCode = res.statusCode;
 
       if (statusCode == 200 || statusCode == 201) {
-        // Success handling can be added here if needed
+        // Refresh properties to show updated hall
+        await getproperty();
       } else {
         throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
       }
@@ -231,35 +396,7 @@ class AddPropertyNotifier extends StateNotifier<Property> {
     }
   }
 
-  Future<void> getproperty() async {
-    if (_isLoading) return;
-
-    _setLoading(true);
-
-    try {
-      final response = await http.get(
-        Uri.parse(Bbapi.addproperty),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        Property property = Property.fromJson(decodedResponse);
-        state = property;
-      } else {
-        final errorMessage = 'Error fetching properties: ${response.body}';
-        state = Property.initial().copyWith(messages: [errorMessage]);
-      }
-    } catch (e) {
-      state = Property.initial().copyWith(messages: [e.toString()]);
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Enhanced UI helper methods
+  // Include all your existing UI helper methods...
   void _showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -587,12 +724,23 @@ class AddPropertyNotifier extends StateNotifier<Property> {
   }
 }
 
+// Updated provider to pass ref
 final propertyNotifierProvider =
 StateNotifierProvider<AddPropertyNotifier, Property>((ref) {
-  return AddPropertyNotifier();
+  return AddPropertyNotifier(ref);
 });
 
 // Loading state provider for UI
 final propertyLoadingProvider = Provider<bool>((ref) {
   return ref.watch(propertyNotifierProvider.notifier).isLoading;
+});
+
+// New provider to get user properties count
+final userPropertyCountProvider = Provider<int>((ref) {
+  return ref.watch(propertyNotifierProvider.notifier).getUserPropertyCount();
+});
+
+// New provider to get properties by category for current user
+final userPropertiesByCategoryProvider = Provider.family<List<Data>, int?>((ref, category) {
+  return ref.watch(propertyNotifierProvider.notifier).getPropertiesByCategory(category);
 });
