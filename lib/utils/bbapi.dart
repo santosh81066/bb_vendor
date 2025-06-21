@@ -11,4 +11,6 @@ class Bbapi {
   static const String addplantoproperty = "$baseUrl/bbaddpropertyplan";
   static const String updateeuser = '$baseUrl/bbupdateuser';
   static String get hallbooking => '$baseUrl/hallbooking';
+  static const String updatehall = '$baseUrl/bb updatehall';
+  static const String updateproperty = '$baseUrl/bbupdateproperty';
 }

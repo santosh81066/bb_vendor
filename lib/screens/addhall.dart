@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../providers/addpropertynotifier.dart';
-import '../providers/categoryprovider.dart';
+import '../models/get_properties_model.dart';
 
 class PropertyHallScreen extends ConsumerStatefulWidget {
   const PropertyHallScreen({Key? key}) : super(key: key);
@@ -14,9 +14,8 @@ class PropertyHallScreen extends ConsumerStatefulWidget {
 }
 
 class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
-  final _formKey = GlobalKey<FormState>();
 
-  // Controllers
+  final _formKey = GlobalKey<FormState>();
   final _propertyNameController = TextEditingController();
   final _capacityController = TextEditingController();
   final _parkingController = TextEditingController();
@@ -44,6 +43,11 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
 
   bool isLoading = false;
 
+  // Edit mode variables
+  bool isEditMode = false;
+  Hall? editingHall;
+  List<Hall>? allHallSlots;
+
   // Attributes
   String propertyname = 'propertyname';
 
@@ -64,7 +68,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
   bool _wifiAvailable = true;
   bool _projectorAvailable = false;
   bool _microphoneAvailable = true;
-  @override
+
   @override
   void initState() {
     super.initState();
@@ -72,8 +76,12 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     _securityCostController.addListener(_onCostChanged);
     _setupCostController.addListener(_onCostChanged);
     _additionalServicesCostController.addListener(_onCostChanged);
-  }
 
+    // Initialize edit mode after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeEditMode();
+    });
+  }
 
   @override
   void dispose() {
@@ -83,6 +91,19 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     _setupCostController.removeListener(_onCostChanged);
     _additionalServicesCostController.removeListener(_onCostChanged);
 
+    // Dispose all controllers
+    _propertyNameController.dispose();
+    _capacityController.dispose();
+    _parkingController.dispose();
+    _floatingCapacityController.dispose();
+    _priceController.dispose();
+    _setupTimeController.dispose();
+    _cleanupTimeController.dispose();
+    _staffCountController.dispose();
+    _securityCountController.dispose();
+    _cleaningStaffController.dispose();
+    _audioSystemController.dispose();
+    _lightingSystemController.dispose();
     _cleaningCostController.dispose();
     _securityCostController.dispose();
     _setupCostController.dispose();
@@ -91,9 +112,149 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     super.dispose();
   }
 
+  void _initializeEditMode() {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null) {
+      propertyname = args['propertyname'] ?? "Property";
+      isEditMode = args['isEditing'] ?? false;
+
+      if (isEditMode) {
+        editingHall = args['hallData'] as Hall?;
+        allHallSlots = args['allHallSlots'] as List<Hall>?;
+
+        if (editingHall != null) {
+          _populateFormWithHallData();
+        }
+      }
+    }
+  }
+
+  void _populateFormWithHallData() {
+    if (editingHall == null) return;
+
+    setState(() {
+      // Basic hall info
+      _propertyNameController.text = editingHall!.name ?? '';
+      _capacityController.text = editingHall!.capacity?.toString() ?? '';
+      _parkingController.text = editingHall!.parkingCapacity?.toString() ?? '';
+      _floatingCapacityController.text = editingHall!.floatingCapacity?.toString() ?? '';
+      _priceController.text = editingHall!.price?.toString() ?? '';
+
+      // Staff info
+      _staffCountController.text = editingHall!.staffCount?.toString() ?? '';
+      _cleaningStaffController.text = editingHall!.cleaningStaff?.toString() ?? '';
+      _securityCountController.text = editingHall!.securityCount?.toString() ?? '';
+
+      // Technical details
+      _audioSystemController.text = editingHall!.soundSystemDetails ?? '';
+      _lightingSystemController.text = editingHall!.lightingSystemDetails ?? '';
+
+      // Costs
+      _cleaningCostController.text = editingHall!.cleaningCost?.toString() ?? '';
+      _securityCostController.text = editingHall!.securityCost?.toString() ?? '';
+      _setupCostController.text = editingHall!.decorCost?.toString() ?? '';
+      _additionalServicesCostController.text = editingHall!.additionalServicesCost?.toString() ?? '';
+
+      // Boolean attributes - Fix: Handle both bool and int types
+      _outsideDecoratorsAllowed = _getBoolValue(editingHall!.allowOutsideDecorators);
+      _outsideDJAllowed = _getBoolValue(editingHall!.allowOutsideDj);
+      _outsideFoodAllowed = _getBoolValue(editingHall!.outsideFood);
+      _outsideAlcoholAllowed = _getBoolValue(editingHall!.allowAlcohol);
+      _valetParking = _getBoolValue(editingHall!.valetParking);
+      _cctvAvailable = _getBoolValue(editingHall!.cctv);
+      _fireAlarmAvailable = _getBoolValue(editingHall!.fireAlarm);
+      _soundSystemAvailable = _getBoolValue(editingHall!.soundSystem);
+      _emergencyExitsAvailable = (editingHall!.emergencyExits == 1);
+      _wifiAvailable = _getBoolValue(editingHall!.wifiAvailable);
+      _projectorAvailable = _getBoolValue(editingHall!.projectorAvailable);
+      _microphoneAvailable = _getBoolValue(editingHall!.microphoneAvailable);
+
+      // String attributes
+      _allowedCuisine = _mapFoodType(editingHall!.foodtype);
+      _securityLevel = _mapSecurityLevel(editingHall!.securityLevel);
+
+      // Load existing slots
+      _loadExistingSlots();
+    });
+  }
+
+  // Helper method to handle both bool and int types
+  bool _getBoolValue(dynamic value) {
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    return false;
+  }
+
+  String _mapFoodType(String? foodtype) {
+    switch (foodtype?.toLowerCase()) {
+      case 'veg':
+        return 'Veg';
+      case 'non-veg':
+        return 'Non-Veg';
+      default:
+        return 'Both';
+    }
+  }
+
+  String _mapSecurityLevel(String? securityLevel) {
+    switch (securityLevel?.toLowerCase()) {
+      case 'basic':
+        return 'Basic';
+      case 'standard':
+        return 'Standard';
+      case 'premium':
+        return 'Premium';
+      case 'high alert':
+        return 'High Alert';
+      default:
+        return 'Standard';
+    }
+  }
+
+  void _loadExistingSlots() {
+    if (allHallSlots == null) return;
+
+    _slots.clear();
+
+    for (var hall in allHallSlots!) {
+      if (hall.slots != null) {
+        for (var slot in hall.slots!) {
+          if (slot.slotFromTime != null && slot.slotToTime != null) {
+            final checkInTime = _parseTimeString(slot.slotFromTime!);
+            final checkOutTime = _parseTimeString(slot.slotToTime!);
+
+            if (checkInTime != null && checkOutTime != null) {
+              _slots.add({
+                'check_in_time': checkInTime,
+                'check_out_time': checkOutTime,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  TimeOfDay? _parseTimeString(String timeString) {
+    try {
+      // Handle format "HH:mm:ss" or "HH:mm"
+      final parts = timeString.split(':');
+      if (parts.length >= 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+    } catch (e) {
+      print('Error parsing time: $timeString - $e');
+    }
+    return null;
+  }
+
   void _onCostChanged() {
     setState(() {});  // Triggers rebuild to update total
   }
+
   void _addImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -127,24 +288,24 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       initialTime: const TimeOfDay(hour: 9, minute: 0),
     );
     if (checkInTime == null) return;
+
     TimeOfDay? checkOutTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: checkInTime.hour + 4, minute: checkInTime.minute),
     );
     if (checkOutTime == null) return;
+
     if (checkOutTime.hour < checkInTime.hour ||
         (checkOutTime.hour == checkInTime.hour && checkOutTime.minute <= checkInTime.minute)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Check-out time must be later than check-in time.')),
-      );
+      _showErrorSnackBar('Check-out time must be later than check-in time.');
       return;
     }
+
     if (!_isSlotAvailable(checkInTime, checkOutTime)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The selected slot overlaps with an existing slot.')),
-      );
+      _showErrorSnackBar('The selected slot overlaps with an existing slot.');
       return;
     }
+
     setState(() {
       _slots.add({'check_in_time': checkInTime, 'check_out_time': checkOutTime});
     });
@@ -162,34 +323,176 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     return (cleaning + security + setup + additional).toStringAsFixed(2);
   }
 
-  Widget _buildInfoItem(String title, String value, {Color checkColor = Colors.pink}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(Icons.check, color: checkColor, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$title - ',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
-                  ),
-                  TextSpan(text: value, style: const TextStyle(fontSize: 16, color: Colors.black)),
-                ],
-              ),
-            ),
-          ),
-        ],
+  bool _validateForm() {
+    if (!_formKey.currentState!.validate()) {
+      _showErrorSnackBar('Please fill in all required fields correctly.');
+      return false;
+    }
+
+    if (_slots.isEmpty) {
+      _showErrorSnackBar('Please add at least one time slot.');
+      return false;
+    }
+
+    // Only require images for new halls, not when editing
+    if (!isEditMode && _images.isEmpty) {
+      _showErrorSnackBar('Please add at least one image.');
+      return false;
+    }
+
+    if (_capacityController.text.isEmpty) {
+      _showErrorSnackBar('Please enter hall capacity.');
+      return false;
+    }
+
+    if (_priceController.text.isEmpty) {
+      _showErrorSnackBar('Please enter price.');
+      return false;
+    }
+
+    final capacity = int.tryParse(_capacityController.text);
+    if (capacity == null || capacity <= 0) {
+      _showErrorSnackBar('Please enter a valid capacity.');
+      return false;
+    }
+
+    final price = double.tryParse(_priceController.text);
+    if (price == null || price <= 0) {
+      _showErrorSnackBar('Please enter a valid price.');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Fixed: Add the missing _handleSubmit method
+  Future<void> _handleSubmit() async {
+    if (!_validateForm()) return;
+
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    int propertyid = args?['propertyid'] ?? 0;
+
+    if (propertyid == 0) {
+      _showErrorSnackBar('Invalid property ID.');
+      return;
+    }
+
+    try {
+      setState(() => isLoading = true);
+
+      // Convert boolean values to integers for API
+      final Map<String, dynamic> hallDetails = {
+        'property_id': propertyid,
+        'name': _propertyNameController.text.trim(),
+        'allow_outside_decorators': _outsideDecoratorsAllowed ? 1 : 0,
+        'allow_outside_dj': _outsideDJAllowed ? 1 : 0,
+        'outside_food': _outsideFoodAllowed ? 1 : 0,
+        'allow_alcohol': _outsideAlcoholAllowed ? 1 : 0,
+        'valet_parking': _valetParking ? 1 : 0,
+        'foodtype': _allowedCuisine.toLowerCase() == 'both' ? 'veg' : _allowedCuisine.toLowerCase(),
+        'capacity': int.tryParse(_capacityController.text) ?? 0,
+        'parking_capacity': int.tryParse(_parkingController.text) ?? 0,
+        'floating_capacity': int.tryParse(_floatingCapacityController.text) ?? 0,
+        'price': double.tryParse(_priceController.text) ?? 0,
+        'emergency_exits': _emergencyExitsAvailable ? 1 : 0,
+        'staff_count': int.tryParse(_staffCountController.text) ?? 0,
+        'cleaning_staff': int.tryParse(_cleaningStaffController.text) ?? 0,
+        'security_level': _securityLevel.toLowerCase(),
+        'security_count': int.tryParse(_securityCountController.text) ?? 0,
+        'cctv': _cctvAvailable ? 1 : 0,
+        'fire_alarm': _fireAlarmAvailable ? 1 : 0,
+        'sound_system': _soundSystemAvailable ? 1 : 0,
+        'sound_system_details': _audioSystemController.text.trim(),
+        'lighting_system_details': _lightingSystemController.text.trim(),
+        'wifi_available': _wifiAvailable ? 1 : 0,
+        'projector_available': _projectorAvailable ? 1 : 0,
+        'microphone_available': _microphoneAvailable ? 1 : 0,
+        'cleaning_cost': double.tryParse(_cleaningCostController.text) ?? 0,
+        'security_cost': double.tryParse(_securityCostController.text) ?? 0,
+        'decor_cost': double.tryParse(_setupCostController.text) ?? 0,
+        'additional_services_cost': double.tryParse(_additionalServicesCostController.text) ?? 0,
+      };
+
+      if (isEditMode && editingHall?.hallId != null) {
+        // Call update method
+        await ref.read(propertyNotifierProvider.notifier).updateHall(
+          context,
+          editingHall!.hallId!,
+          _propertyNameController.text.trim(),
+          propertyid,
+          _slots.isNotEmpty ? _slots : null,
+          _images.isNotEmpty ? _images : null,
+          hallDetails,
+        );
+
+        _showSuccessSnackBar('Hall updated successfully!');
+      } else {
+        // Call create method
+        await ref.read(propertyNotifierProvider.notifier).addhallproperty(
+          _propertyNameController.text.trim(),
+          propertyid,
+          _slots,
+          _images,
+          hallDetails,
+        );
+
+        _showSuccessSnackBar('Hall added successfully!');
+      }
+
+      // Navigate back to previous screen
+      Navigator.pop(context);
+
+    } catch (e) {
+      print('Hall submission error: $e');
+      _showErrorSnackBar('Error: ${e.toString()}');
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  // Fixed: Add the missing _showErrorSnackBar method
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  // Fixed: Add the missing _showSuccessSnackBar method
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
   Widget _buildPropertyInfoCard() {
-    final categoryState = ref.watch(categoryProvider);
-
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
       shape: RoundedRectangleBorder(
@@ -201,68 +504,79 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: const Text(
-                'Hall Images',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              child: Text(
+                isEditMode ? 'Update Hall Images' : 'Hall Images',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-
-      Container(
-        height: 170, // Explicit height for the container
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        child: _images.isEmpty
-            ? Center(
-          child: Text(
-            'No images added yet',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        )
-            :ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _images.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(_images[index], width: 150, height: 150, fit: BoxFit.cover),
-                      ),
-                      Positioned(
-                        top: 5,
-                        right: 5,
-                        child: CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.white,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(Icons.close, color: Colors.red, size: 16),
-                            onPressed: () => setState(() => _images.removeAt(index)),
+            Container(
+              height: 170,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              child: _images.isEmpty
+                  ? Center(
+                child: Text(
+                  isEditMode ? 'No new images added' : 'No images added yet',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              )
+                  : ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _images.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(_images[index], width: 150, height: 150, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          top: 5,
+                          right: 5,
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.white,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.close, color: Colors.red, size: 16),
+                              onPressed: () => setState(() => _images.removeAt(index)),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-      ),
             Center(
               child: ElevatedButton.icon(
                 onPressed: _addImage,
                 icon: const Icon(Icons.add_photo_alternate),
-                label: const Text('Add Image'),
+                label: Text(isEditMode ? 'Add More Images' : 'Add Image'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff6418c3),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // optional rounding
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
             ),
-
+            if (isEditMode) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Note: Adding new images will be in addition to existing ones',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 16),
             const Text(
               'Property Name',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -284,13 +598,13 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _propertyNameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter property name',
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: isEditMode ? 'Update hall name' : 'Enter hall name',
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Property name cannot be empty.';
+                  return 'Hall name cannot be empty.';
                 }
                 return null;
               },
@@ -375,11 +689,11 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ],
             ),
           ],
-
         ),
       ),
     );
   }
+
   Widget _buildEventAreaCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -479,6 +793,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       ),
     );
   }
+
   Widget _buildLogisticsCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -496,12 +811,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-
-              ],
             ),
             const SizedBox(height: 16),
             const Text(
@@ -551,6 +860,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       ),
     );
   }
+
   Widget _buildStaffingCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -606,6 +916,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       ),
     );
   }
+
   Widget _buildSecurityCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -645,6 +956,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -686,6 +998,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       ),
     );
   }
+
   Widget _buildTechnicalArrangementsCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -715,24 +1028,27 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               },
               activeColor: Colors.green,
             ),
-            _soundSystemAvailable ? Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _audioSystemController,
-                    decoration: const InputDecoration(
-                      labelText: 'Sound System Details',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.speaker),
-                      hintText: 'e.g., JBL 5.1 surround sound, etc.',
+            if (_soundSystemAvailable) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _audioSystemController,
+                      decoration: const InputDecoration(
+                        labelText: 'Sound System Details',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.speaker),
+                        hintText: 'e.g., JBL 5.1 surround sound, etc.',
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ) : Container(),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             SwitchListTile(
-              title: const Text('Sound System Available'),
+              title: const Text('Lighting System Available'),
               value: _lightingSystemAvailable,
               onChanged: (val) {
                 setState(() {
@@ -741,22 +1057,24 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               },
               activeColor: Colors.green,
             ),
-            _lightingSystemAvailable ?
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _lightingSystemController,
-                    decoration: const InputDecoration(
-                      labelText: 'Lighting System Details',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lightbulb),
-                      hintText: 'e.g., RGB lights, mood lighting, etc.',
+            if (_lightingSystemAvailable) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _lightingSystemController,
+                      decoration: const InputDecoration(
+                        labelText: 'Lighting System Details',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lightbulb),
+                        hintText: 'e.g., RGB lights, mood lighting, etc.',
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ):
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             SwitchListTile(
               title: const Text('WiFi Available'),
@@ -793,6 +1111,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       ),
     );
   }
+
   Widget _buildAdditionalCostsCard() {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -807,8 +1126,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-
-            // Cleaning Cost
             Row(
               children: [
                 Expanded(
@@ -825,8 +1142,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Security Cost
             Row(
               children: [
                 Expanded(
@@ -843,8 +1158,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Setup/Decoration Cost
             Row(
               children: [
                 Expanded(
@@ -861,8 +1174,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Additional Services Cost
             Row(
               children: [
                 Expanded(
@@ -879,8 +1190,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Total Cost Display
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -906,7 +1215,6 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                       );
                     },
                   ),
-
                 ],
               ),
             ),
@@ -916,6 +1224,77 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     );
   }
 
+  Widget _buildTimeSlotsSection() {
+    return Column(
+      children: [
+        Center(
+            child: Text(
+                isEditMode ? 'Update Time Slots' : 'Select your Time Slots',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+            )
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+          ),
+          child: _slots.isEmpty
+              ? Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: Text(
+                'No time slots added yet',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          )
+              : ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _slots.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final slot = _slots[index];
+              return ListTile(
+                leading: const Icon(Icons.access_time, color: Color(0xff6418c3)),
+                title: Text(
+                  'Slot ${index + 1}',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text(
+                  'Check-in: ${_formatTime(slot['check_in_time']!)}, Check-out: ${_formatTime(slot['check_out_time']!)}',
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => setState(() => _slots.removeAt(index)),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: _addSlot,
+            icon: const Icon(Icons.add_alarm),
+            label: const Text('Add Time Slot'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff6418c3),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -926,7 +1305,7 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Add Hall'),
+        title: Text(isEditMode ? 'Edit Hall' : 'Add Hall'),
         backgroundColor: const Color(0xff6418c3),
         foregroundColor: Colors.white,
       ),
@@ -945,168 +1324,11 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                 _buildSecurityCard(),
                 _buildTechnicalArrangementsCard(),
                 _buildAdditionalCostsCard(),
-
-
-
-
-
-
-
                 const SizedBox(height: 16),
-                Center(child: const Text('Select your Time Slots', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
-                  ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _slots.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final slot = _slots[index];
-                      return ListTile(
-                        leading: const Icon(Icons.access_time, color: Color(0xff6418c3)),
-                        title: Text(
-                          'Check-in: ${_formatTime(slot['check_in_time']!)}, Check-out: ${_formatTime(slot['check_out_time']!)}',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => setState(() => _slots.removeAt(index)),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _addSlot,
-                    icon: const Icon(Icons.add_alarm),
-                    label: const Text('Add Time Slot'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff6418c3),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // optional rounding
-                      ),
-                    ),
-                  ),
-                ),
+                _buildTimeSlotsSection(),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                      if (!_formKey.currentState!.validate()) return;
-                      if (_slots.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one time slot.')));
-                        return;
-                      }
-                      if (_images.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add at least one image.')));
-                        return;
-                      }
-                      if (_capacityController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter hall capacity.')));
-                        return;
-                      }
-                      if (_priceController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter price.')));
-                        return;
-                      }
-
-                      try {
-                        setState(() => isLoading = true);
-
-                        // Format time slots in the required API format
-                        List<Map<String, String>> formattedSlots = _slots.map((slot) {
-                          return {
-                            'check_in_time': '${slot['check_in_time']!.hour.toString().padLeft(2, '0')}:${slot['check_in_time']!.minute.toString().padLeft(2, '0')}:00',
-                            'check_out_time': '${slot['check_out_time']!.hour.toString().padLeft(2, '0')}:${slot['check_out_time']!.minute.toString().padLeft(2, '0')}:00',
-                          };
-                        }).toList();
-
-                        // Convert boolean values to integers for API
-                        final int allowOutsideDecorators = _outsideDecoratorsAllowed ? 1 : 0;
-                        final int allowOutsideDj = _outsideDJAllowed ? 1 : 0;
-                        final int outsideFood = _outsideFoodAllowed ? 1 : 0;
-                        final int allowAlcohol = _outsideAlcoholAllowed ? 1 : 0;
-                        final int valetParking = _valetParking ? 1 : 0;
-                        final int cctv = _cctvAvailable ? 1 : 0;
-                        final int fireAlarm = _fireAlarmAvailable ? 1 : 0;
-                        final int soundSystem = _soundSystemAvailable ? 1 : 0;
-                        final int wifiAvailable = _wifiAvailable ? 1 : 0;
-                        final int projectorAvailable = _projectorAvailable ? 1 : 0;
-                        final int microphoneAvailable = _microphoneAvailable ? 1 : 0;
-
-                        // Convert food type to lowercase to match API format
-                        String foodType = _allowedCuisine.toLowerCase();
-                        if (foodType == "both") {
-                          foodType = "veg"; // Default to veg if both are selected, change as needed
-                        }
-
-                        // Match security level with API format
-                        String securityLevel = _securityLevel.toLowerCase();
-
-                        // Map all attributes according to the API schema
-                        final Map<String, dynamic> hallDetails = {
-                          'property_id': propertyid,
-                          'name': _propertyNameController.text.trim(),
-                          'allow_outside_decorators': allowOutsideDecorators,
-                          'allow_outside_dj': allowOutsideDj,
-                          'outside_food': outsideFood,
-                          'allow_alcohol': allowAlcohol,
-                          'valet_parking': valetParking,
-                          'foodtype': foodType,
-                          'capacity': int.tryParse(_capacityController.text) ?? 0,
-                          'parking_capacity': int.tryParse(_parkingController.text) ?? 0,
-                          'floating_capacity': int.tryParse(_floatingCapacityController.text) ?? 0,
-                          'price': double.tryParse(_priceController.text) ?? 0,
-                          'emergency_exits': _emergencyExitsAvailable ? 1 : 0,
-                          'staff_count': int.tryParse(_staffCountController.text) ?? 0,
-                          'cleaning_staff': int.tryParse(_cleaningStaffController.text) ?? 0,
-                          'security_level': securityLevel,
-                          'security_count': int.tryParse(_securityCountController.text) ?? 0,
-                          'cctv': cctv,
-                          'fire_alarm': fireAlarm,
-                          'sound_system': soundSystem,
-                          'sound_system_details': _audioSystemController.text,
-                          'lighting_system_details': _lightingSystemController.text,
-                          'wifi_available': wifiAvailable,
-                          'projector_available': projectorAvailable,
-                          'microphone_available': microphoneAvailable,
-                          'cleaning_cost': double.tryParse(_cleaningCostController.text) ?? 0,
-                          'security_cost': double.tryParse(_securityCostController.text) ?? 0,
-                          'decor_cost': double.tryParse(_setupCostController.text) ?? 0, // Map setup cost to decor_cost
-                          'additional_services_cost': double.tryParse(_additionalServicesCostController.text) ?? 0,
-                          'slots': formattedSlots,
-                        };
-
-                        await ref.read(propertyNotifierProvider.notifier).addhallproperty(
-                          _propertyNameController.text.trim(),
-                          propertyid,
-                          _slots,
-                          _images,
-                          hallDetails,
-                        );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Hall added successfully!'), backgroundColor: Colors.green),
-                        );
-                        Navigator.pop(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                        );
-                      } finally {
-                        setState(() => isLoading = false);
-                      }
-                    },
+                  onPressed: isLoading ? null : _handleSubmit,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
                     backgroundColor: const Color(0xff6418c3),
@@ -1114,8 +1336,15 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: isLoading
-                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Submit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  )
+                      : Text(
+                      isEditMode ? 'Update Hall' : 'Submit',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
                 ),
               ],
             ),

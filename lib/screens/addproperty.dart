@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import "package:bb_vendor/providers/categoryprovider.dart";
 import 'package:geocoding/geocoding.dart';
+import 'package:bb_vendor/models/get_properties_model.dart';
 
 class AddPropertyScreen extends ConsumerStatefulWidget {
   const AddPropertyScreen({super.key});
@@ -34,17 +35,85 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
   Timer? _debounceTimer;
   bool _isMapDragging = false;
 
+  // Edit mode variables
+  bool isEditMode = false;
+  Data? editingProperty;
+  int? editingPropertyId;
+
   @override
   void initState() {
     super.initState();
     _fetchCategories();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForEditMode();
       if (ref.read(latlangs) == const LatLng(0, 0)) {
         ref.read(latlangs.notifier).state = const LatLng(28.6139, 77.2090);
         _mapController.move(const LatLng(28.6139, 77.2090), 10.0);
       }
     });
+  }
+
+  void _checkForEditMode() {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null) {
+      isEditMode = args['isEditing'] ?? false;
+      editingProperty = args['property'] as Data?;
+
+      if (isEditMode && editingProperty != null) {
+        _populateFieldsForEdit();
+      }
+    }
+  }
+
+  void _populateFieldsForEdit() {
+    if (editingProperty == null) return;
+
+    setState(() {
+      editingPropertyId = editingProperty!.propertyId;
+      propertyname.text = editingProperty!.propertyName ?? '';
+      address1.text = editingProperty!.address ?? '';
+      location.text = editingProperty!.address ?? ''; // Using address as location display
+      selectedCategory = _getCategoryNameById(editingProperty!.category);
+      selectedCategoryid = editingProperty!.category;
+    });
+
+    // Set map location if available
+    if (editingProperty!.location != null && editingProperty!.location!.isNotEmpty) {
+      try {
+        final coords = editingProperty!.location!.split(',');
+        if (coords.length >= 2) {
+          final lat = double.parse(coords[0]);
+          final lng = double.parse(coords[1]);
+          final newLocation = LatLng(lat, lng);
+
+          ref.read(latlangs.notifier).state = newLocation;
+          _mapController.move(newLocation, 15.0);
+        }
+      } catch (e) {
+        print('Error parsing location coordinates: $e');
+      }
+    }
+  }
+
+  String _getCategoryNameById(int? categoryId) {
+    // This will be populated when categories are loaded
+    final categoryState = ref.read(categoryProvider);
+    return categoryState.when(
+      data: (categoryData) {
+        if (categoryData.data != null) {
+          final category = categoryData.data!.firstWhere(
+                (cat) => cat.id == categoryId,
+            orElse: () => throw StateError('Category not found'),
+          );
+          return category.name ?? '';
+        }
+        return '';
+      },
+      loading: () => '',
+      error: (_, __) => '',
+    );
   }
 
   @override
@@ -232,9 +301,9 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Property Image",
-            style: TextStyle(
+          Text(
+            isEditMode ? "Update Property Image" : "Property Image",
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color(0xFF2D3748),
@@ -248,7 +317,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               width: double.infinity,
               height: 200,
               decoration: BoxDecoration(
-                gradient: _profileImage != null
+                gradient: _profileImage != null || _hasExistingImage()
                     ? null
                     : const LinearGradient(
                   colors: [Color(0xFF667eea), Color(0xFF764ba2)],
@@ -266,70 +335,126 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: _profileImage != null
-                    ? Stack(
-                  children: [
-                    Image.file(
-                      _profileImage!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-                          onPressed: () => _showImageSourceDialog(),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-                    : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: const Icon(
-                        Icons.add_a_photo,
-                        size: 40,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Add Property Image",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Tap to upload from gallery or camera",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
+                child: _buildImageContent(),
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  bool _hasExistingImage() {
+    return isEditMode &&
+        editingProperty?.coverPic != null &&
+        editingProperty!.coverPic!.isNotEmpty;
+  }
+
+  Widget _buildImageContent() {
+    if (_profileImage != null) {
+      // Show newly selected image
+      return Stack(
+        children: [
+          Image.file(
+            _profileImage!,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                onPressed: () => _showImageSourceDialog(),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (_hasExistingImage()) {
+      // Show existing image from server
+      return Stack(
+        children: [
+          Image.network(
+            'http://www.gocodedesigners.com/banquetbookingz/${editingProperty!.coverPic}',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey[100],
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                onPressed: () => _showImageSourceDialog(),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Show placeholder
+      return _buildImagePlaceholder();
+    }
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: const Icon(
+            Icons.add_a_photo,
+            size: 40,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          isEditMode ? "Update Property Image" : "Add Property Image",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          "Tap to upload from gallery or camera",
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+        ),
+      ],
     );
   }
 
@@ -388,6 +513,27 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 ),
               ],
             ),
+            if (isEditMode && _hasExistingImage()) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _profileImage = null; // Keep existing image
+                    });
+                  },
+                  icon: const Icon(Icons.image),
+                  label: const Text("Keep Current Image"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF667eea),
+                    side: const BorderSide(color: Color(0xFF667eea)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
           ],
         ),
@@ -434,9 +580,9 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text(
-          'Add New Property',
-          style: TextStyle(
+        title: Text(
+          isEditMode ? 'Edit Property' : 'Add New Property',
+          style: const TextStyle(
             color: Color(0xFF2D3748),
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -508,26 +654,28 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                         ),
                         borderRadius: BorderRadius.circular(50),
                       ),
-                      child: const Icon(
-                        Icons.home_work,
+                      child: Icon(
+                        isEditMode ? Icons.edit_note : Icons.home_work,
                         size: 32,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      "List Your Property",
-                      style: TextStyle(
+                    Text(
+                      isEditMode ? "Edit Your Property" : "List Your Property",
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2D3748),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Fill in the details below to add your property to our platform",
+                    Text(
+                      isEditMode
+                          ? "Update the details below to modify your property"
+                          : "Fill in the details below to add your property to our platform",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF718096),
                       ),
@@ -638,15 +786,31 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     if (_validationKey.currentState!.validate()) {
                       var loc = ref.read(latlangs.notifier).state;
                       String sLoc = '${loc.latitude.toStringAsFixed(7)},${loc.longitude.toStringAsFixed(7)}';
-                      ref.read(propertyNotifierProvider.notifier).addProperty(
-                        context,
-                        ref,
-                        propertyname.text.trim(),
-                        selectedCategoryid,
-                        address1.text.trim(),
-                        _profileImage,
-                        sLoc,
-                      );
+
+                      if (isEditMode) {
+                        // Call update method
+                        ref.read(propertyNotifierProvider.notifier).updateProperty(
+                          context,
+                          ref,
+                          editingPropertyId!,
+                          propertyname.text.trim(),
+                          selectedCategoryid,
+                          address1.text.trim(),
+                          _profileImage,
+                          sLoc,
+                        );
+                      } else {
+                        // Call add method
+                        ref.read(propertyNotifierProvider.notifier).addProperty(
+                          context,
+                          ref,
+                          propertyname.text.trim(),
+                          selectedCategoryid,
+                          address1.text.trim(),
+                          _profileImage,
+                          sLoc,
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -658,14 +822,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add_business, size: 20),
-                      SizedBox(width: 8),
+                      Icon(
+                        isEditMode ? Icons.update : Icons.add_business,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        "List Property",
-                        style: TextStyle(
+                        isEditMode ? "Update Property" : "List Property",
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

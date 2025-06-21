@@ -121,7 +121,7 @@ class MyApp extends ConsumerWidget {
         '/manageCalendar': (BuildContext context) => const VendorVenueScreen(),
         '/hallscalendar': (BuildContext context) => const VendorStepByStepHallBookingScreen(),
         '/login': (BuildContext context) => const LoginScreen(),
-       /* '/payment': (BuildContext context) => const PaymentPage(),*/
+       '/payment': (BuildContext context) => const PaymentPage(),
 
       },
     );

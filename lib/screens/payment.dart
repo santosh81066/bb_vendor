@@ -1,4 +1,3 @@
-/*
 import 'package:bb_vendor/screens/walletscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -25,10 +24,19 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
   final _emailController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  // Booking details
-  late int? hallId, price, bookingId, userId;
-  late String date, slotFromTime, slotToTime, hallName;
+  // Common payment details
+  late int? price, userId;
+  late String paymentType;
   late Function(bool)? onPaymentSuccess;
+
+  // Hall booking details
+  int? hallId, bookingId;
+  String? date, slotFromTime, slotToTime, hallName;
+
+  // Subscription details
+  String? planName, subPlanName, frequency, numBookings;
+  int? propertyid, subplanid;
+  String? starttime, expirytime;
 
   final _firebaseService = FirebaseRealtimeService();
   double _walletBalance = 0.0;
@@ -40,7 +48,6 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     _initializeRazorpay();
     _loadUserId();
     _loadWalletBalance();
-    _descriptionController.text = "Banquet Booking Payment";
   }
 
   Future<void> _loadUserId() async {
@@ -71,18 +78,46 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments as Map?;
     if (args != null) {
-      hallId = args['hallId'];
-      date = args['date'] ?? '';
-      slotFromTime = args['slotFromTime'] ?? '';
-      slotToTime = args['slotToTime'] ?? '';
-      hallName = args['hallName'] ?? '';
-      price = args['price'] ?? 0;
-      bookingId = args['bookingId'];
+      paymentType = args['paymentType']?.toString() ?? 'hall_booking';
+
+      // Handle price with proper parsing
+      if (args['price'] is String) {
+        price = int.tryParse(args['price']) ?? 0;
+      } else if (args['price'] is int) {
+        price = args['price'];
+      } else {
+        price = 0;
+      }
+
       onPaymentSuccess = args['onPaymentSuccess'];
 
-      if (hallName.isNotEmpty) {
-        _descriptionController.text =
-        "Booking payment for $hallName on $date from $slotFromTime to $slotToTime";
+      if (paymentType == 'subscription') {
+        // Subscription payment details
+        planName = args['planName']?.toString() ?? '';
+        subPlanName = args['subPlanName']?.toString() ?? '';
+        frequency = args['frequency']?.toString() ?? '';
+        numBookings = args['numBookings']?.toString() ?? '';
+        propertyid = args['propertyid'] is String ? int.tryParse(args['propertyid']) : args['propertyid'];
+        subplanid = args['subplanid'] is String ? int.tryParse(args['subplanid']) : args['subplanid'];
+        starttime = args['starttime']?.toString();
+        expirytime = args['expirytime']?.toString();
+
+        _descriptionController.text = "Subscription payment for $planName - $subPlanName plan (₹$price)";
+      } else {
+        // Hall booking payment details
+        hallId = args['hallId'];
+        date = args['date']?.toString() ?? '';
+        slotFromTime = args['slotFromTime']?.toString() ?? '';
+        slotToTime = args['slotToTime']?.toString() ?? '';
+        hallName = args['hallName']?.toString() ?? '';
+        bookingId = args['bookingId'];
+
+        if (hallName?.isNotEmpty == true) {
+          _descriptionController.text =
+          "Booking payment for $hallName on $date from $slotFromTime to $slotToTime";
+        } else {
+          _descriptionController.text = "Banquet Booking Payment";
+        }
       }
     }
   }
@@ -111,19 +146,11 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     }
 
     try {
-      final hallBookingNotifier = ref.read(hallBookingProvider.notifier);
-      final success = await hallBookingNotifier.updateBookingWithPayment(
-          hallId: hallId ?? 0,
-          bookingId: bookingId,
-          date: date,
-          slotFromTime: slotFromTime,
-          slotToTime: slotToTime,
-          paymentMethod: 'razorpay',
-          paymentId: response.paymentId ?? '',
-          amount: (price ?? 0).toDouble(),
-          isSuccess: true);
+      bool success = false;
 
-      if (success) {
+      if (paymentType == 'subscription') {
+        // Handle subscription payment success
+        success = true; // Since we'll handle subscription creation in callback
         await _recordTransaction({
           'user_id': userId,
           'razorpay_payment_id': response.paymentId,
@@ -131,23 +158,50 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
           'razorpay_signature': response.signature,
           'amt': price ?? 0,
           'payment_method': 'razorpay',
-          'status': 'success'
+          'status': 'success',
+          'payment_type': 'subscription',
+          'plan_name': planName,
+          'sub_plan_name': subPlanName,
         });
+      } else {
+        // Handle hall booking payment success
+        final hallBookingNotifier = ref.read(hallBookingProvider.notifier);
+        success = await hallBookingNotifier.updateBookingWithPayment(
+          hallId: hallId ?? 0,
+          bookingId: bookingId,
+          date: date!,
+          slotFromTime: slotFromTime!,
+          slotToTime: slotToTime!,
+          paymentMethod: 'razorpay',
+          paymentId: response.paymentId ?? '',
+          amount: (price ?? 0).toDouble(),
+          isSuccess: true,
+        );
 
+        if (success) {
+          await _recordTransaction({
+            'user_id': userId,
+            'razorpay_payment_id': response.paymentId,
+            'razorpay_order_id': response.orderId,
+            'razorpay_signature': response.signature,
+            'amt': price ?? 0,
+            'payment_method': 'razorpay',
+            'status': 'success',
+            'payment_type': 'hall_booking',
+          });
+        }
+      }
+
+      if (success) {
         Fluttertoast.showToast(msg: "Payment successful!");
         onPaymentSuccess?.call(true);
         Navigator.pop(context);
       } else {
-        Fluttertoast.showToast(msg: "Error updating booking status");
+        Fluttertoast.showToast(msg: "Error processing payment");
       }
     } catch (e) {
       Fluttertoast.showToast(msg: "Error processing payment: $e");
-      try {
-        await ref.read(hallBookingProvider.notifier).updateBookingPaymentStatus(
-          bookingId: bookingId ?? 0,
-          status: 'b',
-        );
-      } catch (_) {}
+      onPaymentSuccess?.call(false);
     }
   }
 
@@ -162,7 +216,8 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         'razorpay_signature': '',
         'amt': price ?? 1,
         'status': 'failed',
-        'payment_method': 'razorpay'
+        'payment_method': 'razorpay',
+        'payment_type': paymentType,
       });
     }
 
@@ -218,33 +273,24 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
 
     try {
       final priceAmount = (price ?? 0).toDouble();
-      final bookingDescription = hallName.isNotEmpty
+      final description = paymentType == 'subscription'
+          ? "Subscription payment for $planName - $subPlanName"
+          : (hallName?.isNotEmpty == true
           ? "Booking payment for $hallName"
-          : "Banquet Booking Payment";
+          : "Banquet Booking Payment");
 
-      final deductionResult = await _firebaseService.deductFromWallet(
-          priceAmount, bookingDescription);
+      final deductionResult = await _firebaseService.deductFromWallet(priceAmount, description);
       Navigator.pop(context); // Close loading
 
       if (deductionResult) {
         final newBalance = await _firebaseService.getWalletBalance();
-        final walletPaymentId =
-            'wallet_${DateTime.now().millisecondsSinceEpoch}_${userId ?? 0}';
+        final walletPaymentId = 'wallet_${DateTime.now().millisecondsSinceEpoch}_${userId ?? 0}';
 
-        final success = await ref
-            .read(hallBookingProvider.notifier)
-            .updateBookingWithPayment(
-            hallId: hallId ?? 0,
-            bookingId: bookingId,
-            date: date,
-            slotFromTime: slotFromTime,
-            slotToTime: slotToTime,
-            paymentMethod: 'wallet',
-            paymentId: walletPaymentId,
-            amount: priceAmount,
-            isSuccess: true);
+        bool success = false;
 
-        if (success) {
+        if (paymentType == 'subscription') {
+          // Handle subscription wallet payment
+          success = true; // Since we'll handle subscription creation in callback
           await _recordTransaction({
             'user_id': userId,
             'razorpay_payment_id': walletPaymentId,
@@ -252,8 +298,37 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
             'razorpay_signature': '',
             'amt': price ?? 0,
             'payment_method': 'wallet',
-            'status': 'success'
+            'status': 'success',
+            'payment_type': 'subscription',
+            'plan_name': planName,
+            'sub_plan_name': subPlanName,
           });
+        } else {
+          // Handle hall booking wallet payment
+          success = await ref.read(hallBookingProvider.notifier).updateBookingWithPayment(
+            hallId: hallId ?? 0,
+            bookingId: bookingId,
+            date: date!,
+            slotFromTime: slotFromTime!,
+            slotToTime: slotToTime!,
+            paymentMethod: 'wallet',
+            paymentId: walletPaymentId,
+            amount: priceAmount,
+            isSuccess: true,
+          );
+
+          if (success) {
+            await _recordTransaction({
+              'user_id': userId,
+              'razorpay_payment_id': walletPaymentId,
+              'razorpay_order_id': '',
+              'razorpay_signature': '',
+              'amt': price ?? 0,
+              'payment_method': 'wallet',
+              'status': 'success',
+              'payment_type': 'hall_booking',
+            });
+          }
         }
 
         setState(() => _walletBalance = newBalance);
@@ -261,8 +336,8 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         onPaymentSuccess?.call(true);
       } else {
         Fluttertoast.showToast(
-            msg:
-            "Wallet payment failed. Please try again or use another payment method.");
+            msg: "Wallet payment failed. Please try again or use another payment method."
+        );
         _loadWalletBalance();
       }
     } catch (e) {
@@ -278,12 +353,28 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     final description = _descriptionController.text.trim();
 
     if (mobile.isEmpty || email.isEmpty || description.isEmpty) {
-      Fluttertoast.showToast(
-          msg: "Please enter mobile, email, and description");
+      Fluttertoast.showToast(msg: "Please enter mobile, email, and description");
       return;
     }
 
     _showLoadingDialog();
+
+    final notes = paymentType == 'subscription'
+        ? {
+      'paymentType': 'subscription',
+      'planName': planName,
+      'subPlanName': subPlanName,
+      'propertyid': propertyid,
+      'subplanid': subplanid,
+    }
+        : {
+      'paymentType': 'hall_booking',
+      'hallId': hallId,
+      'date': date,
+      'slotFromTime': slotFromTime,
+      'slotToTime': slotToTime,
+    };
+
     final options = {
       'key': 'rzp_live_4mzpwZrJggHKRm',
       'amount': (price ?? 1) * 100,
@@ -291,12 +382,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
       'name': 'BANQUETBOOKZ',
       'description': description,
       'prefill': {'contact': mobile, 'email': email},
-      'notes': {
-        'hallId': hallId,
-        'date': date,
-        'slotFromTime': slotFromTime,
-        'slotToTime': slotToTime,
-      },
+      'notes': notes,
     };
 
     try {
@@ -323,7 +409,8 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-                'Your wallet balance (₹$_walletBalance) is less than the required amount (₹${price ?? 0}).'),
+                'Your wallet balance (₹$_walletBalance) is less than the required amount (₹${price ?? 0}).'
+            ),
             const SizedBox(height: 16),
             const Text('Would you like to add money to your wallet?'),
           ],
@@ -338,9 +425,8 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
               Navigator.pop(context);
               Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const WalletScreen()))
-                  .then((_) => _loadWalletBalance());
+                  MaterialPageRoute(builder: (context) => const WalletScreen())
+              ).then((_) => _loadWalletBalance());
             },
             child: const Text('Add Money'),
           ),
@@ -361,8 +447,10 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
             const SizedBox(height: 16),
             Text('₹${price ?? 0} has been deducted from your wallet.'),
             const SizedBox(height: 8),
-            Text('Remaining balance: ₹$remainingBalance',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+                'Remaining balance: ₹$remainingBalance',
+                style: const TextStyle(fontWeight: FontWeight.bold)
+            ),
           ],
         ),
         actions: [
@@ -405,7 +493,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildBookingDetailsCard(),
+            _buildDetailsCard(),
             const SizedBox(height: 20),
             _buildPaymentDetailsCard(),
             const SizedBox(height: 20),
@@ -423,7 +511,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     );
   }
 
-  Widget _buildBookingDetailsCard() {
+  Widget _buildDetailsCard() {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -432,18 +520,30 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Booking Details',
-                style: TextStyle(
+            Text(
+                paymentType == 'subscription' ? 'Subscription Details' : 'Booking Details',
+                style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF6418C3))),
+                    color: Color(0xFF6418C3)
+                )
+            ),
             const SizedBox(height: 10),
-            if (hallName.isNotEmpty) _buildDetailRow('Hall', hallName),
-            _buildDetailRow('Date', date),
-            _buildDetailRow('Time', '$slotFromTime to $slotToTime'),
+            if (paymentType == 'subscription') ...[
+              _buildDetailRow('Plan', planName ?? ''),
+              _buildDetailRow('Sub Plan', subPlanName ?? ''),
+              _buildDetailRow('Frequency', frequency ?? ''),
+              _buildDetailRow('Bookings', numBookings ?? ''),
+            ] else ...[
+              if (hallName?.isNotEmpty == true) _buildDetailRow('Hall', hallName!),
+              _buildDetailRow('Date', date ?? ''),
+              _buildDetailRow('Time', '${slotFromTime ?? ''} to ${slotToTime ?? ''}'),
+            ],
             const Divider(height: 20),
-            const Text('Payment Status',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+                'Payment Status',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+            ),
             const SizedBox(height: 5),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -454,13 +554,15 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.pending_actions,
-                      size: 16, color: Colors.amber[800]),
+                  Icon(Icons.pending_actions, size: 16, color: Colors.amber[800]),
                   const SizedBox(width: 6),
-                  Text('Pending Payment',
+                  Text(
+                      'Pending Payment',
                       style: TextStyle(
                           color: Colors.amber[800],
-                          fontWeight: FontWeight.bold)),
+                          fontWeight: FontWeight.bold
+                      )
+                  ),
                 ],
               ),
             ),
@@ -479,13 +581,15 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Payment Details',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+                'Payment Details',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+            ),
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Hall Booking Fee'),
+                Text(paymentType == 'subscription' ? 'Subscription Fee' : 'Hall Booking Fee'),
                 Text('₹ ${price ?? 0}')
               ],
             ),
@@ -493,12 +597,14 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total Amount',
-                    style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('₹ ${price ?? 0}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                    'Total Amount',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                ),
+                Text(
+                    '₹ ${price ?? 0}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                ),
               ],
             ),
           ],
@@ -523,10 +629,12 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
               ? const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2))
-              : Text('₹ $_walletBalance',
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold)),
+              child: CircularProgressIndicator(strokeWidth: 2)
+          )
+              : Text(
+              '₹ $_walletBalance',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+          ),
         ],
       ),
     );
@@ -535,20 +643,16 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
   Widget _buildFormFields() {
     return Column(
       children: [
-        _buildTextField(_emailController, 'Email Address', Icons.email,
-            TextInputType.emailAddress),
+        _buildTextField(_emailController, 'Email Address', Icons.email, TextInputType.emailAddress),
         const SizedBox(height: 12),
-        _buildTextField(_mobileController, 'Mobile Number', Icons.phone,
-            TextInputType.phone),
+        _buildTextField(_mobileController, 'Mobile Number', Icons.phone, TextInputType.phone),
         const SizedBox(height: 12),
-        _buildTextField(_descriptionController, 'Payment Description',
-            Icons.description, TextInputType.text),
+        _buildTextField(_descriptionController, 'Payment Description', Icons.description, TextInputType.text),
       ],
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      IconData icon, TextInputType type) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, TextInputType type) {
     return TextFormField(
       controller: controller,
       keyboardType: type,
@@ -564,8 +668,10 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Payment Method',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+            'Payment Method',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+        ),
         const SizedBox(height: 10),
         _buildPaymentMethodOption(
           isSelected: _selectedPaymentMethod == 0,
@@ -596,8 +702,7 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6418C3),
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         child: const Text('Pay Now', style: TextStyle(color: Colors.white)),
@@ -646,21 +751,25 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
                     : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon,
-                  color: isSelected ? const Color(0xFF6418C3) : Colors.grey),
+              child: Icon(
+                  icon,
+                  color: isSelected ? const Color(0xFF6418C3) : Colors.grey
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style:
-                      TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                  Text(
+                      subtitle,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14)
+                  ),
                 ],
               ),
             ),
@@ -672,4 +781,3 @@ class _PaymentPageState extends ConsumerState<PaymentPage> {
     );
   }
 }
-*/

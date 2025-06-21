@@ -306,93 +306,96 @@ class _SubscriptionState extends ConsumerState<Subscription> {
                           ),
                           Row(
                             children: [
+                              // Updated Subscription Screen - Replace the ElevatedButton section
+
+                              // Updated Subscription Screen - Replace the ElevatedButton section
+
                               ElevatedButton(
-                                onPressed: selectedPlan == null ||
-                                        selectedSubPlan == null
+                                onPressed: selectedPlan == null || selectedSubPlan == null
                                     ? null // Disable button if no plan or sub-plan is selected
                                     : () async {
-                                        // Validate frequency and convert to int
-                                        final parsedFrequency = int.tryParse(
-                                            selectedSubPlan!.frequency ?? "");
+                                  // Validate frequency and convert to int
+                                  final parsedFrequency = int.tryParse(selectedSubPlan!.frequency ?? "");
 
-                                        if (parsedFrequency == null) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                                content: Text(
-                                                    "Invalid frequency value")),
+                                  if (parsedFrequency == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Invalid frequency value")),
+                                    );
+                                    return;
+                                  }
+
+                                  // Calculate times
+                                  DateTime startTime = DateTime.now();
+                                  DateTime expiryTime = calculateExpiryTime(
+                                    startTime,
+                                    parsedFrequency,
+                                    selectedSubPlan!.subPlanName!,
+                                  );
+
+                                  // Format the times for API request
+                                  String formattedStartTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(startTime);
+                                  String formattedExpiryTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(expiryTime);
+
+                                  // Navigate to payment page with subscription details
+                                  final result = await Navigator.pushNamed(
+                                    context,
+                                    '/payment', // Make sure this route is registered
+                                    arguments: {
+                                      'paymentType': 'subscription',
+                                      'planName': selectedPlan!.planName,
+                                      'subPlanName': selectedSubPlan!.subPlanName,
+                                      'price': int.tryParse(selectedSubPlan!.price ?? "0") ?? 0,
+                                      'propertyid': properid,
+                                      'subplanid': selectedSubPlan!.subPlanId,
+                                      'starttime': formattedStartTime,
+                                      'expirytime': formattedExpiryTime,
+                                      'frequency': selectedSubPlan!.frequency?.toString() ?? '',
+                                      'numBookings': selectedSubPlan!.numBookings?.toString() ?? '',
+                                      'onPaymentSuccess': (bool success) async {
+                                        if (success) {
+                                          // Payment successful, add subscription plan
+                                          await ref.read(subscriptionProvider.notifier).addSubscriptionPlan(
+                                            propertyid: properid,
+                                            subplanid: selectedSubPlan!.subPlanId,
+                                            starttime: formattedStartTime,
+                                            expirytime: formattedExpiryTime,
                                           );
-                                          return;
-                                        }
-                                        // Get the current time as start_time
 
-                                        DateTime startTime = DateTime.now();
-
-                                        // Calculate expiry_time based on frequency and sub-plan name
-                                        DateTime expiryTime =
-                                            calculateExpiryTime(
-                                          startTime,
-                                          parsedFrequency, // Assuming frequency is numeric
-                                          selectedSubPlan!
-                                              .subPlanName!, // Sub-plan type: daily, monthly, yearly
-                                        );
-
-                                        // Format the times for API request
-                                        String formattedStartTime =
-                                            DateFormat('yyyy-MM-dd HH:mm:ss')
-                                                .format(startTime);
-                                        String formattedExpiryTime =
-                                            DateFormat('yyyy-MM-dd HH:mm:ss')
-                                                .format(expiryTime);
-
-                                        await ref
-                                            .read(subscriptionProvider.notifier)
-                                            .addSubscriptionPlan(
-                                              propertyid:
-                                                  properid, // Replace with actual property ID
-                                              subplanid: selectedSubPlan!
-                                                  .subPlanId, // ID of the selected sub-plan
-                                              starttime: formattedStartTime,
-                                              expirytime: formattedExpiryTime,
-                                            );
-
-                                        // Show success message
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              "plan added to property successfully!",
-                                              style: const TextStyle(
-                                                color: Colors
-                                                    .white, // Set the text color
-                                                fontWeight: FontWeight
-                                                    .bold, // Optional: Make the text bold
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: const Text(
+                                                  "Subscription plan activated successfully!",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                backgroundColor: const Color.fromARGB(255, 13, 70, 151),
+                                                behavior: SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                duration: const Duration(seconds: 3),
                                               ),
-                                            ),
-                                            backgroundColor: const Color
-                                                .fromARGB(255, 13, 70,
-                                                151), // Set the background color
-                                            behavior: SnackBarBehavior
-                                                .floating, // Optional: Makes the snackbar float
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(
-                                                  12), // Optional: Adds rounded corners
-                                            ),
-                                            duration: const Duration(
-                                                seconds:
-                                                    3), // Optional: Set duration for snackbar
-                                          ),
-                                        );
-                                        Navigator.of(context).pop();
+                                            );
+                                            Navigator.of(context).pop(); // Go back to previous screen
+                                          }
+                                        }
                                       },
+                                    },
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xff6418c3),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                child:
-                                    Text("Buy ${selectedPlan!.planName} Plan"),
+                                child: Text(
+                                  "Buy ${selectedPlan!.planName} Plan",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
