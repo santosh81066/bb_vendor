@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:bb_vendor/Colors/coustcolors.dart';
 
 import '../models/get_properties_model.dart';
 
@@ -81,19 +82,19 @@ class _HallSelectionState extends State<HallSelection> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: widget.isSelected
-              ? [Colors.green.shade400, Colors.green.shade600]
-              : [Colors.deepPurple, Colors.grey.shade50],
+              ? [CoustColors.emerald, CoustColors.teal]
+              : [CoustColors.primaryPurple, CoustColors.veryLightPurple],
         ),
         boxShadow: [
           BoxShadow(
-            color: widget.isSelected ? Colors.green.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+            color: widget.isSelected ? CoustColors.emerald.withOpacity(0.3) : CoustColors.primaryPurple.withOpacity(0.2),
             blurRadius: widget.isSelected ? 20 : 10,
             offset: const Offset(0, 8),
           ),
         ],
         border: widget.isSelected
-            ? Border.all(color: Colors.green.shade300, width: 3)
-            : Border.all(color: Colors.deepPurple.shade300, width: 2),
+            ? Border.all(color: CoustColors.emerald, width: 3)
+            : Border.all(color: CoustColors.lightPurple, width: 2),
       ),
       child: Column(
         children: [
@@ -116,7 +117,7 @@ class _HallSelectionState extends State<HallSelection> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        color: Colors.grey.shade100,
+        color: CoustColors.veryLightPurple,
       ),
       child: Stack(
         children: [
@@ -137,15 +138,15 @@ class _HallSelectionState extends State<HallSelection> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: CoustColors.emerald.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.check,
-                  color: Colors.green,
+                  color: CoustColors.emerald,
                   size: 20,
                 ),
               ),
@@ -184,16 +185,16 @@ class _HallSelectionState extends State<HallSelection> {
       return Container(
         width: double.infinity,
         height: double.infinity,
-        color: Colors.grey.shade200,
-        child: const Center(
+        color: CoustColors.veryLightPurple,
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
-              SizedBox(height: 8),
+              Icon(Icons.image_not_supported, size: 40, color: CoustColors.darkPurple.withOpacity(0.5)),
+              const SizedBox(height: 8),
               Text(
                 'No images available',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: TextStyle(color: CoustColors.darkPurple.withOpacity(0.6), fontSize: 12),
               ),
             ],
           ),
@@ -215,16 +216,16 @@ class _HallSelectionState extends State<HallSelection> {
         height: double.infinity,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
-          color: Colors.grey.shade200,
-          child: const Center(
+          color: CoustColors.veryLightPurple,
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.broken_image, size: 40, color: Colors.grey),
-                SizedBox(height: 8),
+                Icon(Icons.broken_image, size: 40, color: CoustColors.rose.withOpacity(0.7)),
+                const SizedBox(height: 8),
                 Text(
                   "Image not available",
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(color: CoustColors.darkPurple.withOpacity(0.6), fontSize: 12),
                 ),
               ],
             ),
@@ -252,7 +253,7 @@ class _HallSelectionState extends State<HallSelection> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.black87,
+                color: isSelected ? Colors.white : CoustColors.darkPurple,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -267,7 +268,7 @@ class _HallSelectionState extends State<HallSelection> {
             children: [
               Icon(
                 Icons.currency_rupee,
-                color: isSelected ? Colors.amber.shade200 : Colors.amber.shade700,
+                color: isSelected ? CoustColors.gold.withOpacity(0.9) : CoustColors.gold,
                 size: 18,
               ),
               Text(
@@ -275,7 +276,7 @@ class _HallSelectionState extends State<HallSelection> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.amber.shade200 : Colors.amber.shade700,
+                  color: isSelected ? CoustColors.gold.withOpacity(0.9) : CoustColors.gold,
                 ),
               ),
             ],

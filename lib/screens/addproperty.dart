@@ -243,9 +243,9 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text('Location outside India. Please select a location in India.'),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: CoustColors.gold,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               );
             }
@@ -303,10 +303,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         children: [
           Text(
             isEditMode ? "Update Property Image" : "Property Image",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF2D3748),
+              color: CoustColors.darkPurple,
             ),
           ),
           const SizedBox(height: 12),
@@ -320,15 +320,19 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 gradient: _profileImage != null || _hasExistingImage()
                     ? null
                     : const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                  colors: [
+                    CoustColors.gradientStart,
+                    CoustColors.gradientMiddle,
+                    CoustColors.gradientEnd,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
+                    color: CoustColors.primaryPurple.withOpacity(0.2),
+                    blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -366,11 +370,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             right: 8,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: CoustColors.darkPurple.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
                 onPressed: () => _showImageSourceDialog(),
               ),
             ),
@@ -389,10 +393,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
               return Container(
-                color: Colors.grey[100],
-                child: const Center(
+                color: CoustColors.veryLightPurple,
+                child: Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                    valueColor: AlwaysStoppedAnimation<Color>(CoustColors.primaryPurple),
                   ),
                 ),
               );
@@ -404,11 +408,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             right: 8,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: CoustColors.darkPurple.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+                icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 20),
                 onPressed: () => _showImageSourceDialog(),
               ),
             ),
@@ -432,7 +436,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             borderRadius: BorderRadius.circular(50),
           ),
           child: const Icon(
-            Icons.add_a_photo,
+            Icons.add_a_photo_rounded,
             size: 40,
             color: Colors.white,
           ),
@@ -475,16 +479,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: CoustColors.lightPurple.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               "Select Image Source",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
+                color: CoustColors.darkPurple,
               ),
             ),
             const SizedBox(height: 20),
@@ -492,7 +497,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               children: [
                 Expanded(
                   child: _buildSourceOption(
-                    icon: Icons.photo_library,
+                    icon: Icons.photo_library_rounded,
                     label: "Gallery",
                     onTap: () {
                       Navigator.pop(context);
@@ -503,7 +508,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildSourceOption(
-                    icon: Icons.camera_alt,
+                    icon: Icons.camera_alt_rounded,
                     label: "Camera",
                     onTap: () {
                       Navigator.pop(context);
@@ -524,11 +529,14 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                       _profileImage = null; // Keep existing image
                     });
                   },
-                  icon: const Icon(Icons.image),
-                  label: const Text("Keep Current Image"),
+                  icon: Icon(Icons.image_rounded, color: CoustColors.primaryPurple),
+                  label: Text(
+                    "Keep Current Image",
+                    style: TextStyle(color: CoustColors.primaryPurple),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF667eea),
-                    side: const BorderSide(color: Color(0xFF667eea)),
+                    foregroundColor: CoustColors.primaryPurple,
+                    side: BorderSide(color: CoustColors.primaryPurple),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -552,17 +560,18 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: const Color(0xFF667eea)),
+            Icon(icon, size: 32, color: CoustColors.primaryPurple),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w500,
+                color: CoustColors.darkPurple,
               ),
             ),
           ],
@@ -576,14 +585,27 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     final category = ref.watch(categoryProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAFC),
+      backgroundColor: CoustColors.veryLightPurple,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                CoustColors.gradientStart,
+                CoustColors.gradientMiddle,
+                CoustColors.gradientEnd,
+              ],
+            ),
+          ),
+        ),
         title: Text(
           isEditMode ? 'Edit Property' : 'Add New Property',
           style: const TextStyle(
-            color: Color(0xFF2D3748),
+            color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 20,
           ),
@@ -591,13 +613,13 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         leading: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFFF7FAFC),
+            color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
             icon: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Color(0xFF4A5568),
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
               size: 20,
             ),
             onPressed: () => Navigator.pop(context),
@@ -608,18 +630,18 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF667eea).withOpacity(0.1),
+              color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.help_outline, size: 16, color: Color(0xFF667eea)),
+                Icon(Icons.help_outline_rounded, size: 16, color: Colors.white),
                 SizedBox(width: 4),
                 Text(
                   "Help",
                   style: TextStyle(
-                    color: Color(0xFF667eea),
+                    color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -648,14 +670,18 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                          colors: [
+                            CoustColors.gradientStart,
+                            CoustColors.gradientMiddle,
+                            CoustColors.gradientEnd,
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: Icon(
-                        isEditMode ? Icons.edit_note : Icons.home_work,
+                        isEditMode ? Icons.edit_note_rounded : Icons.home_work_rounded,
                         size: 32,
                         color: Colors.white,
                       ),
@@ -663,10 +689,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     const SizedBox(height: 16),
                     Text(
                       isEditMode ? "Edit Your Property" : "List Your Property",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        color: CoustColors.darkPurple,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -675,9 +701,9 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                           ? "Update the details below to modify your property"
                           : "Fill in the details below to add your property to our platform",
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF718096),
+                        color: CoustColors.darkPurple.withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -692,10 +718,14 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: CoustColors.lightPurple.withOpacity(0.2),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
+                      color: CoustColors.primaryPurple.withOpacity(0.1),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -711,10 +741,14 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: CoustColors.lightPurple.withOpacity(0.2),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
+                      color: CoustColors.primaryPurple.withOpacity(0.1),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -727,12 +761,12 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Property Details",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D3748),
+                              color: CoustColors.darkPurple,
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -744,7 +778,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                             ref,
                             0,
                             textFieldStates,
-                            Icons.home,
+                            Icons.home_rounded,
                           ),
 
                           const SizedBox(height: 20),
@@ -761,7 +795,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                             ref,
                             2,
                             textFieldStates,
-                            Icons.location_on,
+                            Icons.location_on_rounded,
                           ),
 
                           const SizedBox(height: 20),
@@ -781,6 +815,17 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CoustColors.primaryPurple.withOpacity(0.3),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: () {
                     if (_validationKey.currentState!.validate()) {
@@ -814,7 +859,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF667eea),
+                    backgroundColor: CoustColors.primaryPurple,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -826,7 +871,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        isEditMode ? Icons.update : Icons.add_business,
+                        isEditMode ? Icons.update_rounded : Icons.add_business_rounded,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -864,10 +909,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
       children: [
         Text(
           labelText,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2D3748),
+            color: CoustColors.darkPurple,
           ),
         ),
         const SizedBox(height: 8),
@@ -884,24 +929,24 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           },
           decoration: InputDecoration(
             hintText: "Enter $labelText",
-            prefixIcon: Icon(icon, color: const Color(0xFF667eea)),
+            prefixIcon: Icon(icon, color: CoustColors.primaryPurple),
             filled: true,
-            fillColor: const Color(0xFFF7FAFC),
+            fillColor: CoustColors.veryLightPurple.withOpacity(0.3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
+              borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              borderSide: BorderSide(color: CoustColors.primaryPurple, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
+              borderSide: BorderSide(color: CoustColors.rose, width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
@@ -914,27 +959,30 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Property Category",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2D3748),
+            color: CoustColors.darkPurple,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF7FAFC),
+            color: CoustColors.veryLightPurple.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
           ),
           child: category.when(
             data: (categoryData) {
               if (categoryData.data == null || categoryData.data!.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text("No categories available"),
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    "No categories available",
+                    style: TextStyle(color: CoustColors.darkPurple.withOpacity(0.6)),
+                  ),
                 );
               }
 
@@ -944,7 +992,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                   return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF667eea).withOpacity(0.1) : Colors.transparent,
+                      color: isSelected ? CoustColors.primaryPurple.withOpacity(0.1) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: RadioListTile<String>(
@@ -952,12 +1000,12 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                         data.name ?? "",
                         style: TextStyle(
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected ? const Color(0xFF667eea) : const Color(0xFF2D3748),
+                          color: isSelected ? CoustColors.primaryPurple : CoustColors.darkPurple,
                         ),
                       ),
                       value: data.name ?? "",
                       groupValue: selectedCategory,
-                      activeColor: const Color(0xFF667eea),
+                      activeColor: CoustColors.primaryPurple,
                       onChanged: (value) {
                         setState(() {
                           selectedCategoryid = data.id;
@@ -969,18 +1017,21 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                 }).toList(),
               );
             },
-            loading: () => const Center(
+            loading: () => Center(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                  valueColor: AlwaysStoppedAnimation<Color>(CoustColors.primaryPurple),
                 ),
               ),
             ),
             error: (error, stack) => Padding(
               padding: const EdgeInsets.all(16.0),
               child: Center(
-                child: Text('Failed to load categories: $error'),
+                child: Text(
+                  'Failed to load categories: $error',
+                  style: TextStyle(color: CoustColors.rose),
+                ),
               ),
             ),
           ),
@@ -993,12 +1044,12 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Location",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2D3748),
+            color: CoustColors.darkPurple,
           ),
         ),
         const SizedBox(height: 8),
@@ -1018,21 +1069,21 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           },
           decoration: InputDecoration(
             hintText: "Search for location",
-            prefixIcon: const Icon(Icons.search, color: Color(0xFF667eea)),
-            suffixIcon: const Icon(Icons.my_location, color: Color(0xFF667eea)),
+            prefixIcon: Icon(Icons.search_rounded, color: CoustColors.primaryPurple),
+            suffixIcon: Icon(Icons.my_location_rounded, color: CoustColors.primaryPurple),
             filled: true,
-            fillColor: const Color(0xFFF7FAFC),
+            fillColor: CoustColors.veryLightPurple.withOpacity(0.3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
+              borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF667eea), width: 2),
+              borderSide: BorderSide(color: CoustColors.primaryPurple, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
@@ -1045,9 +1096,10 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CoustColors.lightPurple.withOpacity(0.2)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: CoustColors.primaryPurple.withOpacity(0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1060,12 +1112,19 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               itemBuilder: (context, index) {
                 final suggestion = _locationSuggestions[index];
                 return ListTile(
-                  leading: const Icon(Icons.location_on, color: Color(0xFF667eea), size: 20),
+                  leading: Icon(
+                    Icons.location_on_rounded,
+                    color: CoustColors.primaryPurple,
+                    size: 20,
+                  ),
                   title: Text(
                     suggestion.displayName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CoustColors.darkPurple,
+                    ),
                   ),
                   onTap: () => _selectLocation(suggestion),
                 );
@@ -1076,12 +1135,12 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         const SizedBox(height: 16),
 
         // Enhanced Map Section
-        const Text(
+        Text(
           "Pin Location on Map",
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF718096),
+            color: CoustColors.darkPurple.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 8),
@@ -1089,10 +1148,11 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
           height: 200,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
+                color: CoustColors.primaryPurple.withOpacity(0.1),
+                blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -1151,18 +1211,23 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
                       height: 60.0,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF667eea),
+                          gradient: const LinearGradient(
+                            colors: [
+                              CoustColors.primaryPurple,
+                              CoustColors.accentPurple,
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF667eea).withOpacity(0.3),
+                              color: CoustColors.primaryPurple.withOpacity(0.4),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: const Icon(
-                          Icons.location_on,
+                          Icons.location_on_rounded,
                           color: Colors.white,
                           size: 30,
                         ),
@@ -1178,19 +1243,23 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF667eea).withOpacity(0.1),
+            color: CoustColors.primaryPurple.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.info_outline, size: 16, color: Color(0xFF667eea)),
-              SizedBox(width: 8),
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: CoustColors.primaryPurple,
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   "Drag the map to adjust the pin location",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF667eea),
+                    color: CoustColors.primaryPurple,
                   ),
                 ),
               ),
@@ -1208,9 +1277,15 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: CoustColors.darkPurple,
+          ),
         ),
-        content: Text(message),
+        content: Text(
+          message,
+          style: TextStyle(color: CoustColors.darkPurple.withOpacity(0.7)),
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -1219,7 +1294,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
               }
             },
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF667eea),
+              foregroundColor: CoustColors.primaryPurple,
             ),
             child: const Text('OK'),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:bb_vendor/Colors/coustcolors.dart';
 
 class Dateselection extends StatefulWidget {
   final DateTime? selectedDay;
@@ -101,15 +102,28 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.deepPurple.shade400, Colors.deepPurple.shade600]),
+        gradient: const LinearGradient(
+          colors: [
+            CoustColors.gradientStart,
+            CoustColors.gradientMiddle,
+            CoustColors.gradientEnd,
+          ],
+        ),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
         children: [
           _iconContainer(icon, Colors.white.withOpacity(0.2)),
           const SizedBox(width: 15),
-          Expanded(
-            child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          const Expanded(
+            child: Text(
+              'Select Your Date',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -120,10 +134,14 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.deepPurple.shade100,
+        color: backgroundColor ?? CoustColors.primaryPurple.withOpacity(0.1),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(icon, color: backgroundColor != null ? Colors.white : Colors.deepPurple, size: 24),
+      child: Icon(
+        icon,
+        color: backgroundColor != null ? Colors.white : CoustColors.primaryPurple,
+        size: 24,
+      ),
     );
   }
 
@@ -132,11 +150,20 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
       gradient: useGradient ? LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Colors.blue.shade50, Colors.purple.shade50],
+        colors: [
+          CoustColors.veryLightPurple,
+          CoustColors.lightPurple.withOpacity(0.3),
+        ],
       ) : null,
       color: useGradient ? null : Colors.white,
       borderRadius: BorderRadius.circular(20),
-      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5))],
+      boxShadow: [
+        BoxShadow(
+          color: CoustColors.primaryPurple.withOpacity(0.1),
+          blurRadius: 10,
+          offset: const Offset(0, 5),
+        ),
+      ],
     );
   }
 
@@ -144,13 +171,13 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: CoustColors.veryLightPurple,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.deepPurple, size: 20),
+          Icon(icon, color: CoustColors.primaryPurple, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: DropdownButton<String>(
@@ -159,7 +186,13 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
               underline: const SizedBox(),
               items: items.map((item) => DropdownMenuItem(
                 value: item,
-                child: Text(item, style: const TextStyle(fontWeight: FontWeight.w500)),
+                child: Text(
+                  item,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: CoustColors.darkPurple,
+                  ),
+                ),
               )).toList(),
               onChanged: onChanged,
             ),
@@ -177,11 +210,16 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: isSelected ? [
-          BoxShadow(color: Colors.deepPurple.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ] : null,
       ),
       child: Center(
-        child: Text('${day.day}',
+        child: Text(
+          '${day.day}',
           style: TextStyle(
             color: textColor,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -234,21 +272,24 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
         },
         calendarStyle: CalendarStyle(
           outsideDaysVisible: false,
-          weekendTextStyle: TextStyle(color: Colors.red.shade400),
-          defaultTextStyle: const TextStyle(fontWeight: FontWeight.w500),
+          weekendTextStyle: TextStyle(color: CoustColors.rose),
+          defaultTextStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: CoustColors.darkPurple,
+          ),
         ),
         calendarBuilders: CalendarBuilders(
           disabledBuilder: (context, day, focusedDay) => _buildCalendarDay(
-              day, Colors.red.shade100, Colors.red.shade400, false
+              day, CoustColors.rose.withOpacity(0.2), CoustColors.rose, false
           ),
           defaultBuilder: (context, day, focusedDay) => _buildCalendarDay(
-              day, Colors.green.shade100, Colors.green.shade700, true
+              day, CoustColors.emerald.withOpacity(0.2), CoustColors.emerald, true
           ),
           todayBuilder: (context, day, focusedDay) => _buildCalendarDay(
-              day, Colors.blue.shade200, Colors.white, true
+              day, CoustColors.teal.withOpacity(0.3), Colors.white, true
           ),
           selectedBuilder: (context, day, focusedDay) => _buildCalendarDay(
-              day, Colors.deepPurple, Colors.white, true, isSelected: true
+              day, CoustColors.primaryPurple, Colors.white, true, isSelected: true
           ),
         ),
       ),
@@ -261,9 +302,17 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.green.shade400, Colors.green.shade600]),
+        gradient: const LinearGradient(
+          colors: [CoustColors.emerald, CoustColors.teal],
+        ),
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.emerald.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -280,9 +329,18 @@ class _DateselectionState extends State<Dateselection> with SingleTickerProvider
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Selected Date', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                Text(DateFormat('EEEE, MMMM d, yyyy').format(widget.selectedDay!),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text(
+                  'Selected Date',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                Text(
+                  DateFormat('EEEE, MMMM d, yyyy').format(widget.selectedDay!),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
           ),

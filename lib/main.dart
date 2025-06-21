@@ -1,5 +1,7 @@
 import 'package:bb_vendor/providers/firebase_notification.dart';
+import 'package:bb_vendor/screens/aboutpage.dart';
 import 'package:bb_vendor/screens/hallscalendar.dart';
+import 'package:bb_vendor/screens/help_center.dart';
 import 'package:bb_vendor/screens/managecalendar.dart' hide VendorVenueScreen;
 import 'package:bb_vendor/screens/payment.dart';
 import 'package:bb_vendor/screens/registration.dart';
@@ -26,7 +28,6 @@ import 'package:bb_vendor/Screens/subscription_screen.dart';
 import "package:bb_vendor/Screens/managecalendar.dart";
 import "package:bb_vendor/screens/addhall.dart";
 import 'firebase_options.dart';
-
 
 Future<void> initializeFirebase() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,8 +63,6 @@ Future<void> initializeFirebase() async {
   }
 }
 
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -81,7 +80,6 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     return MaterialApp(
       title: 'Banquetbookz Vendor',
       theme: ThemeData(
@@ -121,8 +119,9 @@ class MyApp extends ConsumerWidget {
         '/manageCalendar': (BuildContext context) => const VendorVenueScreen(),
         '/hallscalendar': (BuildContext context) => const VendorStepByStepHallBookingScreen(),
         '/login': (BuildContext context) => const LoginScreen(),
-       '/payment': (BuildContext context) => const PaymentPage(),
-
+        '/payment': (BuildContext context) => const PaymentPage(),
+        '/helpcenter': (BuildContext context) => const HelpCenterPage(),
+        '/about': (BuildContext context) => const AboutScreen(), // Add this route
       },
     );
   }

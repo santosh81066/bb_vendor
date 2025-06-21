@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:bb_vendor/Colors/coustcolors.dart';
 
 import '../providers/addpropertynotifier.dart';
 import '../models/get_properties_model.dart';
@@ -286,12 +287,38 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     TimeOfDay? checkInTime = await showTimePicker(
       context: context,
       initialTime: const TimeOfDay(hour: 9, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: CoustColors.primaryPurple,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: CoustColors.darkPurple,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (checkInTime == null) return;
 
     TimeOfDay? checkOutTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: checkInTime.hour + 4, minute: checkInTime.minute),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: CoustColors.primaryPurple,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: CoustColors.darkPurple,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (checkOutTime == null) return;
 
@@ -458,14 +485,14 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error, color: Colors.white),
+            const Icon(Icons.error_rounded, color: Colors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: CoustColors.rose,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 4),
       ),
     );
@@ -479,44 +506,64 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: CoustColors.emerald,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
       ),
     );
   }
 
   Widget _buildPropertyInfoCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Text(
                 isEditMode ? 'Update Hall Images' : 'Hall Images',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: CoustColors.darkPurple,
+                ),
               ),
             ),
             Container(
               height: 170,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              margin: const EdgeInsets.symmetric(vertical: 12.0),
               child: _images.isEmpty
                   ? Center(
                 child: Text(
                   isEditMode ? 'No new images added' : 'No images added yet',
-                  style: TextStyle(color: Colors.grey[600]),
+                  style: TextStyle(
+                    color: CoustColors.darkPurple.withOpacity(0.6),
+                    fontSize: 16,
+                  ),
                 ),
               )
                   : ListView.builder(
@@ -528,18 +575,36 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                     child: Stack(
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(_images[index], width: 150, height: 150, fit: BoxFit.cover),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _images[index],
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         Positioned(
-                          top: 5,
-                          right: 5,
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.white,
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
                             child: IconButton(
                               padding: EdgeInsets.zero,
-                              icon: const Icon(Icons.close, color: Colors.red, size: 16),
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              icon: Icon(
+                                Icons.close_rounded,
+                                color: CoustColors.rose,
+                                size: 18,
+                              ),
                               onPressed: () => setState(() => _images.removeAt(index)),
                             ),
                           ),
@@ -551,56 +616,112 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
               ),
             ),
             Center(
-              child: ElevatedButton.icon(
-                onPressed: _addImage,
-                icon: const Icon(Icons.add_photo_alternate),
-                label: Text(isEditMode ? 'Add More Images' : 'Add Image'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff6418c3),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CoustColors.primaryPurple.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: _addImage,
+                  icon: const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
+                  label: Text(
+                    isEditMode ? 'Add More Images' : 'Add Image',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CoustColors.primaryPurple,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
             ),
             if (isEditMode) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Note: Adding new images will be in addition to existing ones',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: CoustColors.darkPurple.withOpacity(0.6),
                   fontStyle: FontStyle.italic,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
-            const SizedBox(height: 16),
-            const Text(
+            const SizedBox(height: 20),
+            Text(
               'Property Name',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             TextField(
               decoration: InputDecoration(
-                border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.primaryPurple, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 hintText: propertyname ?? 'no name',
+                hintStyle: TextStyle(color: Colors.black),
+                filled: true,
+                fillColor: CoustColors.veryLightPurple.withOpacity(0.3),
               ),
               readOnly: true,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: 16),
+            Text(
               'Hall Name',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             TextFormField(
               controller: _propertyNameController,
               decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.primaryPurple, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: CoustColors.rose),
+                ),
                 hintText: isEditMode ? 'Update hall name' : 'Enter hall name',
+                hintStyle: TextStyle(color: CoustColors.darkPurple.withOpacity(0.5)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -609,184 +730,198 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
-            const Text(
+            const SizedBox(height: 20),
+            Text(
               'Other Information',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
               ),
             ),
             const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Allow Outside Decorators'),
-              value: _outsideDecoratorsAllowed,
-              onChanged: (val) {
-                setState(() {
-                  _outsideDecoratorsAllowed = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Allow Outside DJ'),
-              value: _outsideDJAllowed,
-              onChanged: (val) {
-                setState(() {
-                  _outsideDJAllowed = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Allow Outside Food'),
-              value: _outsideFoodAllowed,
-              onChanged: (val) {
-                setState(() {
-                  _outsideFoodAllowed = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Allow Alcohol'),
-              value: _outsideAlcoholAllowed,
-              onChanged: (val) {
-                setState(() {
-                  _outsideAlcoholAllowed = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Valet Parking Available'),
-              value: _valetParking,
-              onChanged: (val) {
-                setState(() {
-                  _valetParking = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            _buildSwitchTile('Allow Outside Decorators', _outsideDecoratorsAllowed, (val) {
+              setState(() {
+                _outsideDecoratorsAllowed = val;
+              });
+            }),
+            _buildSwitchTile('Allow Outside DJ', _outsideDJAllowed, (val) {
+              setState(() {
+                _outsideDJAllowed = val;
+              });
+            }),
+            _buildSwitchTile('Allow Outside Food', _outsideFoodAllowed, (val) {
+              setState(() {
+                _outsideFoodAllowed = val;
+              });
+            }),
+            _buildSwitchTile('Allow Alcohol', _outsideAlcoholAllowed, (val) {
+              setState(() {
+                _outsideAlcoholAllowed = val;
+              });
+            }),
+            _buildSwitchTile('Valet Parking Available', _valetParking, (val) {
+              setState(() {
+                _valetParking = val;
+              });
+            }),
+            const SizedBox(height: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Allowed Food Type'),
-                DropdownButton<String>(
-                  value: _allowedCuisine,
-                  onChanged: (newValue) {
-                    setState(() {
-                      _allowedCuisine = newValue!;
-                    });
-                  },
-                  items: ['Veg', 'Non-Veg', 'Both']
-                      .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ))
-                      .toList(),
+                Text(
+                  'Allowed Food Type',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CoustColors.darkPurple,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CoustColors.veryLightPurple,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _allowedCuisine,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _allowedCuisine = newValue!;
+                      });
+                    },
+                    underline: const SizedBox(),
+                    dropdownColor: Colors.white,
+                    isExpanded: true,
+                    items: ['Veg', 'Non-Veg', 'Both']
+                        .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(color: CoustColors.darkPurple),
+                      ),
+                    ))
+                        .toList(),
+                  ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile(String title, bool value, Function(bool) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: CoustColors.veryLightPurple.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CoustColors.lightPurple.withOpacity(0.2)),
+      ),
+      child: SwitchListTile(
+        title: Text(
+          title,
+          style: TextStyle(
+            color: CoustColors.darkPurple,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: CoustColors.primaryPurple,
+        activeTrackColor: CoustColors.lightPurple.withOpacity(0.3),
+        inactiveThumbColor: Colors.grey.shade400,
+        inactiveTrackColor: Colors.grey.shade200,
       ),
     );
   }
 
   Widget _buildEventAreaCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Event Area Details',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: CoustColors.darkPurple,
                   ),
                 ),
-                Text(
-                  '₹${_priceController.text.isEmpty ? '0' : _priceController.text}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [CoustColors.primaryPurple, CoustColors.accentPurple],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _capacityController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Capacity',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.people),
+                  child: Text(
+                    '₹${_priceController.text.isEmpty ? '0' : _priceController.text}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _parkingController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Parking Capacity',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.local_parking),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _capacityController,
+              label: 'Capacity',
+              icon: Icons.people_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _floatingCapacityController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Floating Capacity',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.people_outline),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _parkingController,
+              label: 'Parking Capacity',
+              icon: Icons.local_parking_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _priceController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Price (₹)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.currency_rupee),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _floatingCapacityController,
+              label: 'Floating Capacity',
+              icon: Icons.people_outline_rounded,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _priceController,
+              label: 'Price (₹)',
+              icon: Icons.currency_rupee_rounded,
+              keyboardType: TextInputType.number,
             ),
           ],
         ),
@@ -794,64 +929,131 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     );
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? hintText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hintText,
+        prefixIcon: Icon(icon, color: CoustColors.primaryPurple),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CoustColors.lightPurple.withOpacity(0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CoustColors.primaryPurple, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: CoustColors.rose),
+        ),
+        labelStyle: TextStyle(color: CoustColors.darkPurple.withOpacity(0.7)),
+        hintStyle: TextStyle(color: CoustColors.darkPurple.withOpacity(0.5)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
   Widget _buildLogisticsCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Logistics',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            const SizedBox(height: 20),
+            Text(
               'Access Information',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                color: CoustColors.darkPurple,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            _buildSwitchTile('Emergency Exits Available', _emergencyExitsAvailable, (val) {
+              setState(() {
+                _emergencyExitsAvailable = val;
+              });
+            }),
+            const SizedBox(height: 16),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SwitchListTile(
-                  title: const Text('Emergency Exits Available'),
-                  value: _emergencyExitsAvailable,
-                  onChanged: (val) {
-                    setState(() {
-                      _emergencyExitsAvailable = val;
-                    });
-                  },
-                  activeColor: Colors.green,
+                Text(
+                  'Power Backup Type',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CoustColors.darkPurple,
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Power Backup Type'),
-                    DropdownButton<String>(
-                      value: _powerBackupType,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _powerBackupType = newValue!;
-                        });
-                      },
-                      items: ['None', 'UPS', 'Generator', 'Both UPS & Generator']
-                          .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(e),
-                      ))
-                          .toList(),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CoustColors.veryLightPurple,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _powerBackupType,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _powerBackupType = newValue!;
+                      });
+                    },
+                    underline: const SizedBox(),
+                    dropdownColor: Colors.white,
+                    isExpanded: true,
+                    items: ['None', 'UPS', 'Generator', 'Both UPS & Generator']
+                        .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(color: CoustColors.darkPurple),
+                      ),
+                    ))
+                        .toList(),
+                  ),
                 ),
               ],
             ),
@@ -862,54 +1064,50 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
   }
 
   Widget _buildStaffingCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Staffing',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _staffCountController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Staff Count',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.people),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _staffCountController,
+              label: 'Staff Count',
+              icon: Icons.people_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _cleaningStaffController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Cleaning Staff',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.cleaning_services),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _cleaningStaffController,
+              label: 'Cleaning Staff',
+              icon: Icons.cleaning_services_rounded,
+              keyboardType: TextInputType.number,
             ),
           ],
         ),
@@ -918,81 +1116,99 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
   }
 
   Widget _buildSecurityCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Security',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Security Level'),
-                DropdownButton<String>(
-                  value: _securityLevel,
-                  onChanged: (newValue) {
-                    setState(() {
-                      _securityLevel = newValue!;
-                    });
-                  },
-                  items: ['Basic', 'Standard', 'Premium', 'High Alert']
-                      .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ))
-                      .toList(),
+                Text(
+                  'Security Level',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CoustColors.darkPurple,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _securityCountController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Security Personnel Count',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.security),
-                    ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CoustColors.veryLightPurple,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _securityLevel,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _securityLevel = newValue!;
+                      });
+                    },
+                    underline: const SizedBox(),
+                    dropdownColor: Colors.white,
+                    isExpanded: true,
+                    items: ['Basic', 'Standard', 'Premium', 'High Alert']
+                        .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(color: CoustColors.darkPurple),
+                      ),
+                    ))
+                        .toList(),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _securityCountController,
+              label: 'Security Personnel Count',
+              icon: Icons.security_rounded,
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('CCTV Available'),
-              value: _cctvAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _cctvAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Fire Alarm System'),
-              value: _fireAlarmAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _fireAlarmAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
+            _buildSwitchTile('CCTV Available', _cctvAvailable, (val) {
+              setState(() {
+                _cctvAvailable = val;
+              });
+            }),
+            _buildSwitchTile('Fire Alarm System', _fireAlarmAvailable, (val) {
+              setState(() {
+                _fireAlarmAvailable = val;
+              });
+            }),
           ],
         ),
       ),
@@ -1000,112 +1216,83 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
   }
 
   Widget _buildTechnicalArrangementsCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Technical Arrangements',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
               ),
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Sound System Available'),
-              value: _soundSystemAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _soundSystemAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
+            const SizedBox(height: 20),
+            _buildSwitchTile('Sound System Available', _soundSystemAvailable, (val) {
+              setState(() {
+                _soundSystemAvailable = val;
+              });
+            }),
             if (_soundSystemAvailable) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _audioSystemController,
-                      decoration: const InputDecoration(
-                        labelText: 'Sound System Details',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.speaker),
-                        hintText: 'e.g., JBL 5.1 surround sound, etc.',
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _audioSystemController,
+                label: 'Sound System Details',
+                icon: Icons.speaker_rounded,
+                hintText: 'e.g., JBL 5.1 surround sound, etc.',
               ),
             ],
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Lighting System Available'),
-              value: _lightingSystemAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _lightingSystemAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
+            const SizedBox(height: 12),
+            _buildSwitchTile('Lighting System Available', _lightingSystemAvailable, (val) {
+              setState(() {
+                _lightingSystemAvailable = val;
+              });
+            }),
             if (_lightingSystemAvailable) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _lightingSystemController,
-                      decoration: const InputDecoration(
-                        labelText: 'Lighting System Details',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lightbulb),
-                        hintText: 'e.g., RGB lights, mood lighting, etc.',
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _lightingSystemController,
+                label: 'Lighting System Details',
+                icon: Icons.lightbulb_rounded,
+                hintText: 'e.g., RGB lights, mood lighting, etc.',
               ),
             ],
             const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('WiFi Available'),
-              value: _wifiAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _wifiAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Projector Available'),
-              value: _projectorAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _projectorAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
-            SwitchListTile(
-              title: const Text('Microphone Available'),
-              value: _microphoneAvailable,
-              onChanged: (val) {
-                setState(() {
-                  _microphoneAvailable = val;
-                });
-              },
-              activeColor: Colors.green,
-            ),
+            _buildSwitchTile('WiFi Available', _wifiAvailable, (val) {
+              setState(() {
+                _wifiAvailable = val;
+              });
+            }),
+            _buildSwitchTile('Projector Available', _projectorAvailable, (val) {
+              setState(() {
+                _projectorAvailable = val;
+              });
+            }),
+            _buildSwitchTile('Microphone Available', _microphoneAvailable, (val) {
+              setState(() {
+                _microphoneAvailable = val;
+              });
+            }),
           ],
         ),
       ),
@@ -1113,97 +1300,89 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
   }
 
   Widget _buildAdditionalCostsCard() {
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.1),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Additional Costs',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(
+              controller: _cleaningCostController,
+              label: 'Cleaning Cost (₹)',
+              icon: Icons.cleaning_services_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _cleaningCostController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Cleaning Cost (₹)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.cleaning_services),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _securityCostController,
+              label: 'Security Cost (₹)',
+              icon: Icons.security_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _securityCostController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Security Cost (₹)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.security),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _setupCostController,
+              label: 'Setup/Decoration Cost (₹)',
+              icon: Icons.format_paint_rounded,
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _setupCostController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Setup/Decoration Cost (₹)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.format_paint),
-                    ),
-                  ),
-                ),
-              ],
+            _buildTextField(
+              controller: _additionalServicesCostController,
+              label: 'Additional Services Cost (₹)',
+              icon: Icons.miscellaneous_services_rounded,
+              keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _additionalServicesCostController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Additional Services Cost (₹)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.miscellaneous_services),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                gradient: LinearGradient(
+                  colors: [
+                    CoustColors.veryLightPurple,
+                    CoustColors.lightPurple.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Total Additional Cost:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: CoustColors.darkPurple,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Builder(
@@ -1211,7 +1390,11 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                       final total = _calculateTotalAdditionalCost();
                       return Text(
                         '₹ $total',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: CoustColors.primaryPurple,
+                        ),
                       );
                     },
                   ),
@@ -1229,27 +1412,42 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
       children: [
         Center(
             child: Text(
-                isEditMode ? 'Update Time Slots' : 'Select your Time Slots',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+              isEditMode ? 'Update Time Slots' : 'Select your Time Slots',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
+              ),
             )
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(16),
             color: Colors.white,
           ),
           child: _slots.isEmpty
               ? Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(32),
             child: Center(
-              child: Text(
-                'No time slots added yet',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 16,
-                ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.access_time_rounded,
+                    size: 48,
+                    color: CoustColors.darkPurple.withOpacity(0.4),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No time slots added yet',
+                    style: TextStyle(
+                      color: CoustColors.darkPurple.withOpacity(0.6),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           )
@@ -1257,37 +1455,80 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _slots.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              color: CoustColors.lightPurple.withOpacity(0.2),
+            ),
             itemBuilder: (context, index) {
               final slot = _slots[index];
               return ListTile(
-                leading: const Icon(Icons.access_time, color: Color(0xff6418c3)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: CoustColors.primaryPurple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.access_time_rounded,
+                    color: CoustColors.primaryPurple,
+                  ),
+                ),
                 title: Text(
                   'Slot ${index + 1}',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: CoustColors.darkPurple,
+                  ),
                 ),
                 subtitle: Text(
                   'Check-in: ${_formatTime(slot['check_in_time']!)}, Check-out: ${_formatTime(slot['check_out_time']!)}',
+                  style: TextStyle(
+                    color: CoustColors.darkPurple.withOpacity(0.7),
+                  ),
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => setState(() => _slots.removeAt(index)),
+                trailing: Container(
+                  decoration: BoxDecoration(
+                    color: CoustColors.rose.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.delete_rounded, color: CoustColors.rose),
+                    onPressed: () => setState(() => _slots.removeAt(index)),
+                  ),
                 ),
               );
             },
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         Center(
-          child: ElevatedButton.icon(
-            onPressed: _addSlot,
-            icon: const Icon(Icons.add_alarm),
-            label: const Text('Add Time Slot'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff6418c3),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: CoustColors.primaryPurple.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: _addSlot,
+              icon: const Icon(Icons.add_alarm_rounded, color: Colors.white),
+              label: const Text(
+                'Add Time Slot',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CoustColors.primaryPurple,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -1303,11 +1544,31 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
     int propertyid = args?['propertyid'] ?? 0;
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: CoustColors.veryLightPurple,
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Hall' : 'Add Hall'),
-        backgroundColor: const Color(0xff6418c3),
+        title: Text(
+          isEditMode ? 'Edit Hall' : 'Add Hall',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: CoustColors.primaryPurple,
         foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                CoustColors.gradientStart,
+                CoustColors.gradientMiddle,
+                CoustColors.gradientEnd,
+              ],
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -1326,26 +1587,49 @@ class PropertyHallScreenState extends ConsumerState<PropertyHallScreen> {
                 _buildAdditionalCostsCard(),
                 const SizedBox(height: 16),
                 _buildTimeSlotsSection(),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: isLoading ? null : _handleSubmit,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: const Color(0xff6418c3),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                const SizedBox(height: 32),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CoustColors.primaryPurple.withOpacity(0.3),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: isLoading
-                      ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                  )
-                      : Text(
-                      isEditMode ? 'Update Hall' : 'Submit',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _handleSubmit,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 56),
+                      backgroundColor: CoustColors.primaryPurple,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: isLoading
+                        ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        )
+                    )
+                        : Text(
+                        isEditMode ? 'Update Hall' : 'Submit',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        )
+                    ),
                   ),
                 ),
+                const SizedBox(height: 24),
               ],
             ),
           ),

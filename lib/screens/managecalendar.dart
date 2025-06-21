@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:bb_vendor/Colors/coustcolors.dart';
 import '../models/get_properties_model.dart';
 import '../providers/addpropertynotifier.dart';
 import '../providers/auth.dart'; // Import auth provider
@@ -62,9 +63,11 @@ class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
         (a.propertyName ?? '').compareTo(b.propertyName ?? ''));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F8),
+      backgroundColor: CoustColors.veryLightPurple,
       body: RefreshIndicator(
-        color: const Color(0xFF6418C3),
+        color: CoustColors.primaryPurple,
+        backgroundColor: Colors.white,
+        strokeWidth: 3,
         onRefresh: () async {
           try {
             await ref.read(propertyNotifierProvider.notifier).getproperty();
@@ -118,50 +121,61 @@ class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
 
   Widget _buildAppBarWithSearch() {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF6418C3), Color(0xFF8547D6)],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            CoustColors.gradientStart,
+            CoustColors.gradientMiddle,
+            CoustColors.gradientEnd,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x29000000),
-            offset: Offset(0, 3),
-            blurRadius: 12,
+            color: CoustColors.primaryPurple.withOpacity(0.3),
+            offset: const Offset(0, 5),
+            blurRadius: 15,
+            spreadRadius: 2,
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 35),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
+              padding: const EdgeInsets.only(bottom: 20.0),
               child: Text(
                 "My Properties",
                 style: GoogleFonts.poppins(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
             Container(
-              height: 55,
+              height: 58,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: const [
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: CoustColors.lightPurple.withOpacity(0.2),
+                  width: 1.5,
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x15000000),
-                    offset: Offset(0, 2),
-                    blurRadius: 6,
+                    color: CoustColors.darkPurple.withOpacity(0.1),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                    spreadRadius: 1,
                   ),
                 ],
               ),
@@ -175,16 +189,21 @@ class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
                 decoration: InputDecoration(
                   hintText: 'Search my properties...',
                   hintStyle: GoogleFonts.poppins(
-                    color: Colors.grey.shade400,
-                    fontSize: 14,
+                    color: CoustColors.darkPurple.withOpacity(0.4),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
                   ),
                   prefixIcon: Icon(
-                    Icons.search,
-                    color: const Color(0xFF6418C3).withOpacity(0.7),
+                    Icons.search_rounded,
+                    color: CoustColors.primaryPurple.withOpacity(0.7),
+                    size: 24,
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    icon: Icon(
+                      Icons.clear_rounded,
+                      color: CoustColors.darkPurple.withOpacity(0.5),
+                    ),
                     onPressed: () {
                       setState(() {
                         _searchController.clear();
@@ -195,7 +214,7 @@ class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
                       : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                    vertical: 15,
+                    vertical: 16,
                     horizontal: 20,
                   ),
                 ),
@@ -212,55 +231,89 @@ class _VendorVenueScreenState extends ConsumerState<VendorVenueScreen> {
     final isLoggedIn = authState.data?.userId != null;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.house_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No properties found',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isLoggedIn
-                ? (_searchQuery.isNotEmpty
-                ? 'Try adjusting your search'
-                : 'You haven\'t added any properties yet')
-                : 'Please login to view your properties',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (isLoggedIn && _searchQuery.isEmpty) ...[
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pushNamed('/addproperty');
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Property'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6418C3),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: CoustColors.lightPurple.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: CoustColors.lightPurple.withOpacity(0.3),
+                  width: 2,
                 ),
               ),
+              child: Icon(
+                Icons.house_outlined,
+                size: 64,
+                color: CoustColors.darkPurple.withOpacity(0.6),
+              ),
             ),
+            const SizedBox(height: 24),
+            Text(
+              'No properties found',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: CoustColors.darkPurple,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isLoggedIn
+                  ? (_searchQuery.isNotEmpty
+                  ? 'Try adjusting your search terms'
+                  : 'You haven\'t added any properties yet')
+                  : 'Please login to view your properties',
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                color: CoustColors.darkPurple.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (isLoggedIn && _searchQuery.isEmpty) ...[
+              const SizedBox(height: 32),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CoustColors.primaryPurple.withOpacity(0.3),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/addproperty');
+                  },
+                  icon: const Icon(Icons.add_rounded, color: Colors.white),
+                  label: const Text(
+                    'Add Property',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CoustColors.primaryPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -277,20 +330,25 @@ class VendorPropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: CoustColors.lightPurple.withOpacity(0.15),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, 4),
-            blurRadius: 10,
+            color: CoustColors.primaryPurple.withOpacity(0.12),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
+            spreadRadius: 2,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -300,6 +358,7 @@ class VendorPropertyCard extends StatelessWidget {
                 arguments: {'property': property, 'isVendor': true},
               );
             },
+            borderRadius: BorderRadius.circular(22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -310,23 +369,34 @@ class VendorPropertyCard extends StatelessWidget {
                       child: _buildPropertyImage(),
                     ),
                     Positioned(
-                      top: 15,
-                      left: 15,
+                      top: 16,
+                      left: 16,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [CoustColors.emerald, CoustColors.teal],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CoustColors.emerald.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.business,
+                              Icons.business_rounded,
                               color: Colors.white,
                               size: 16,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               "My Property",
                               style: GoogleFonts.poppins(
@@ -340,22 +410,34 @@ class VendorPropertyCard extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      top: 15,
-                      right: 15,
+                      top: 16,
+                      right: 16,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6418C3).withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [CoustColors.primaryPurple, CoustColors.accentPurple],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(22),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CoustColors.primaryPurple.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.meeting_room,
+                            const Icon(
+                              Icons.meeting_room_rounded,
                               color: Colors.white,
                               size: 16,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               "${property.halls?.length ?? 0}",
                               style: GoogleFonts.poppins(
@@ -371,65 +453,81 @@ class VendorPropertyCard extends StatelessWidget {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         property.propertyName ?? 'No Name',
                         style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: CoustColors.darkPurple,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: Color(0xFF6418C3),
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 18,
+                            color: CoustColors.primaryPurple,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               property.address ?? 'No Address',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: Colors.grey[600],
+                                color: CoustColors.darkPurple.withOpacity(0.7),
+                                fontWeight: FontWeight.w500,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      _buildPropertyFeatures(),
                       const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            '/hallscalendar',
-                            arguments: {'property': property, 'isVendor': true},
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: const Color(0xFF6418C3),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          minimumSize: const Size(double.infinity, 48),
+                      _buildPropertyFeatures(),
+                      const SizedBox(height: 20),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: CoustColors.primaryPurple.withOpacity(0.25),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          "Book Halls",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              '/hallscalendar',
+                              arguments: {'property': property, 'isVendor': true},
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: CoustColors.primaryPurple,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            minimumSize: const Size(double.infinity, 52),
+                          ),
+                          child: Text(
+                            "View & Book Halls",
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.3,
+                            ),
                           ),
                         ),
                       ),
@@ -450,9 +548,17 @@ class VendorPropertyCard extends StatelessWidget {
         : null;
 
     return Container(
-      height: 200,
+      height: 220,
       width: double.infinity,
-      color: Colors.grey[200],
+      decoration: BoxDecoration(
+        color: CoustColors.veryLightPurple,
+        border: Border(
+          bottom: BorderSide(
+            color: CoustColors.lightPurple.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+      ),
       child: imageUrl != null
           ? Image.network(
         imageUrl,
@@ -465,7 +571,8 @@ class VendorPropertyCard extends StatelessWidget {
                   ? loadingProgress.cumulativeBytesLoaded /
                   loadingProgress.expectedTotalBytes!
                   : null,
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6418C3)),
+              valueColor: AlwaysStoppedAnimation<Color>(CoustColors.primaryPurple),
+              strokeWidth: 3,
             ),
           );
         },
@@ -475,16 +582,17 @@ class VendorPropertyCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.image_not_supported,
-                  color: Colors.grey[400],
-                  size: 40,
+                  Icons.image_not_supported_rounded,
+                  color: CoustColors.darkPurple.withOpacity(0.4),
+                  size: 48,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   "Image not available",
                   style: GoogleFonts.poppins(
-                    color: Colors.grey[500],
-                    fontSize: 12,
+                    color: CoustColors.darkPurple.withOpacity(0.5),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -493,51 +601,81 @@ class VendorPropertyCard extends StatelessWidget {
         },
       )
           : Center(
-        child: Icon(
-          Icons.image,
-          color: Colors.grey[400],
-          size: 40,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image_rounded,
+              color: CoustColors.darkPurple.withOpacity(0.4),
+              size: 48,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "No image",
+              style: GoogleFonts.poppins(
+                color: CoustColors.darkPurple.withOpacity(0.5),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildPropertyFeatures() {
+    final features = [
+      {'icon': Icons.group_rounded, 'text': 'Capacity', 'color': CoustColors.teal},
+      {'icon': Icons.local_parking_rounded, 'text': 'Parking', 'color': CoustColors.magenta},
+      {'icon': Icons.restaurant_rounded, 'text': 'Food', 'color': CoustColors.gold},
+    ];
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildFeatureItem(Icons.group, "Capacity"),
-        _buildFeatureItem(Icons.local_parking, "Parking"),
-        _buildFeatureItem(Icons.restaurant, "Food"),
-      ],
+      children: features
+          .map((feature) => _buildFeatureItem(
+        feature['icon'] as IconData,
+        feature['text'] as String,
+        feature['color'] as Color,
+      ))
+          .toList(),
     );
   }
 
-  Widget _buildFeatureItem(IconData icon, String text) {
+  Widget _buildFeatureItem(IconData icon, String text, Color accentColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF6418C3).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [
+            accentColor.withOpacity(0.15),
+            accentColor.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFF6418C3).withOpacity(0.3),
-          width: 1,
+          color: accentColor.withOpacity(0.3),
+          width: 1.2,
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
             size: 16,
-            color: const Color(0xFF6418C3),
+            color: accentColor,
           ),
           const SizedBox(width: 6),
           Text(
             text,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              fontWeight: FontWeight.w600,
+              color: CoustColors.darkPurple.withOpacity(0.8),
             ),
           ),
         ],

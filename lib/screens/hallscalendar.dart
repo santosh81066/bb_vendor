@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:bb_vendor/Colors/coustcolors.dart';
 import '../Providers/auth.dart';
 import '../Providers/hall_booking_provider.dart';
 import '../Widgets/buildhallfeatures.dart';
@@ -401,56 +402,95 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.green.shade100,
+                gradient: const LinearGradient(
+                  colors: [CoustColors.emerald, CoustColors.teal],
+                ),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.business_center, color: Colors.green, size: 40),
+              child: const Icon(Icons.business_center_rounded, color: Colors.white, size: 40),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Booking Confirmed!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CoustColors.darkPurple,
+              ),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Your hall has been successfully booked.',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                color: CoustColors.darkPurple.withOpacity(0.7),
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Go back to venues list
-            },
-            child: const Text('OK'),
-          )
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: CoustColors.primaryPurple.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Go back to venues list
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CoustColors.primaryPurple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+
   void _showSnackBar(String message, {bool isError = false}) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(isError ? Icons.error : Icons.check, color: Colors.white),
+              Icon(
+                isError ? Icons.error_rounded : Icons.check_circle_rounded,
+                color: Colors.white,
+              ),
               const SizedBox(width: 8),
               Expanded(child: Text(message)),
             ],
           ),
-          backgroundColor: isError ? Colors.red : Colors.green,
+          backgroundColor: isError ? CoustColors.rose : CoustColors.emerald,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
@@ -468,7 +508,7 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
       opacity: _fadeAnimation,
       child: Column(
         children: [
-          _buildHeader('Choose Your Perfect Hall', Icons.home_work),
+          _buildHeader('Choose Your Perfect Hall', Icons.home_work_rounded),
           SizedBox(height: screenHeight * 0.02),
           Flexible(
             child: ListView.builder(
@@ -505,16 +545,20 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: screenWidth * 0.2, color: Colors.grey.shade300),
+          Icon(
+            icon,
+            size: screenWidth * 0.2,
+            color: CoustColors.darkPurple.withOpacity(0.3),
+          ),
           SizedBox(height: screenHeight * 0.025),
           Text(
-              message,
-              style: TextStyle(
-                  fontSize: screenWidth * 0.04,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500
-              ),
-              textAlign: TextAlign.center
+            message,
+            style: TextStyle(
+              fontSize: screenWidth * 0.04,
+              color: CoustColors.darkPurple.withOpacity(0.6),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -527,8 +571,21 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.04),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.deepPurple.shade400, Colors.deepPurple.shade600]),
-        borderRadius: BorderRadius.circular(screenWidth * 0.038),
+        gradient: const LinearGradient(
+          colors: [
+            CoustColors.gradientStart,
+            CoustColors.gradientMiddle,
+            CoustColors.gradientEnd,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
+        boxShadow: [
+          BoxShadow(
+            color: CoustColors.primaryPurple.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -536,12 +593,12 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
           SizedBox(width: screenWidth * 0.038),
           Expanded(
             child: Text(
-                title,
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: screenWidth * 0.05,
-                    fontWeight: FontWeight.bold
-                )
+              title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -555,13 +612,13 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.02),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.deepPurple.shade100,
+        color: backgroundColor ?? CoustColors.primaryPurple.withOpacity(0.1),
         borderRadius: BorderRadius.circular(screenWidth * 0.025),
       ),
       child: Icon(
-          icon,
-          color: backgroundColor != null ? Colors.white : Colors.deepPurple,
-          size: screenWidth * 0.06
+        icon,
+        color: backgroundColor != null ? Colors.white : CoustColors.primaryPurple,
+        size: screenWidth * 0.06,
       ),
     );
   }
@@ -572,37 +629,69 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
       children: [
         if (currentStep > 0) ...[
           Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _previousStep,
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Previous'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade100,
-                foregroundColor: Colors.grey.shade700,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: CoustColors.darkPurple.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: _previousStep,
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('Previous'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: CoustColors.darkPurple,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: CoustColors.lightPurple.withOpacity(0.3),
+                    ),
+                  ),
+                  elevation: 0,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 16),
         ],
         Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _isAuthInitialized ? _handleNextButton : null,
-            icon: Icon(currentStep == 3 ?
-            (_isVendor ? Icons.business_center : Icons.payment) :
-            Icons.arrow_forward),
-            label: Text(currentStep == 3 ?
-            (_isVendor ? 'Confirm Booking' : 'Proceed to Payment') :
-            'Next'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isAuthInitialized ?
-              (_isVendor ? Colors.green : Colors.deepPurple) :
-              Colors.grey,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 5,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: _isAuthInitialized
+                      ? (_isVendor ? CoustColors.emerald : CoustColors.primaryPurple).withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: _isAuthInitialized ? _handleNextButton : null,
+              icon: Icon(currentStep == 3
+                  ? (_isVendor ? Icons.business_center_rounded : Icons.payment_rounded)
+                  : Icons.arrow_forward_rounded),
+              label: Text(currentStep == 3
+                  ? (_isVendor ? 'Confirm Booking' : 'Proceed to Payment')
+                  : 'Next'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isAuthInitialized
+                    ? (_isVendor ? CoustColors.emerald : CoustColors.primaryPurple)
+                    : CoustColors.darkPurple.withOpacity(0.3),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
             ),
           ),
         ),
@@ -627,8 +716,12 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     final args = ModalRoute.of(context)?.settings.arguments as Map?;
     if (args == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Hall Booking')),
-        body: _buildEmpty('Property data not found', Icons.error_outline),
+        backgroundColor: CoustColors.veryLightPurple,
+        appBar: AppBar(
+          title: const Text('Hall Booking'),
+          backgroundColor: CoustColors.primaryPurple,
+        ),
+        body: _buildEmpty('Property data not found', Icons.error_outline_rounded),
       );
     }
 
@@ -636,8 +729,12 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     final halls = property.halls ?? [];
     if (halls.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Hall Booking')),
-        body: _buildEmpty('No halls found for this property', Icons.error_outline),
+        backgroundColor: CoustColors.veryLightPurple,
+        appBar: AppBar(
+          title: const Text('Hall Booking'),
+          backgroundColor: CoustColors.primaryPurple,
+        ),
+        body: _buildEmpty('No halls found for this property', Icons.error_outline_rounded),
       );
     }
 
@@ -645,19 +742,43 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
 
     if (!_isAuthInitialized) {
       return Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: CoustColors.veryLightPurple,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text('Hall Booking'),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  CoustColors.gradientStart,
+                  CoustColors.gradientMiddle,
+                  CoustColors.gradientEnd,
+                ],
+              ),
+            ),
+          ),
+          title: const Text(
+            'Hall Booking',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
-        body: const Center(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-              Text('Initializing authentication...'),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(CoustColors.primaryPurple),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Initializing authentication...',
+                style: TextStyle(
+                  color: CoustColors.darkPurple,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -665,37 +786,53 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: CoustColors.veryLightPurple,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                CoustColors.gradientStart,
+                CoustColors.gradientMiddle,
+                CoustColors.gradientEnd,
+              ],
+            ),
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text(
-                  property.propertyName ?? 'Hall Booking',
-                  style: TextStyle(
+                Expanded(
+                  child: Text(
+                    property.propertyName ?? 'Hall Booking',
+                    style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.045,
-                      color: Colors.deepPurple,
-                      fontWeight: FontWeight.bold
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (_isVendor) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: CoustColors.emerald.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
                     ),
                     child: Text(
                       'My Property',
                       style: TextStyle(
                         fontSize: MediaQuery.of(context).size.width * 0.025,
-                        color: Colors.green,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -705,28 +842,29 @@ class _VendorStepByStepHallBookingScreenState extends ConsumerState<VendorStepBy
             ),
             if (property.address != null)
               Text(
-                  property.address!,
-                  style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width * 0.03,
-                      color: Colors.grey.shade600
-                  )
+                property.address!,
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width * 0.03,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
           ],
         ),
-        leading: IconButton(
-          icon: Container(
-            padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.02),
-            decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
-              borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width * 0.025),
-            ),
-            child: Icon(
-              Icons.arrow_back,
-              color: Colors.deepPurple,
-              size: MediaQuery.of(context).size.width * 0.06,
-            ),
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
           ),
-          onPressed: () => Navigator.pop(context),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: MediaQuery.of(context).size.width * 0.05,
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
       ),
       body: Column(

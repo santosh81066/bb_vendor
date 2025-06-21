@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:bb_vendor/Colors/coustcolors.dart';
 
 class HallLocationWidget extends StatelessWidget {
   final String propertyName;
@@ -14,7 +15,12 @@ class HallLocationWidget extends StatelessWidget {
   void _openInMaps(BuildContext context) async {
     if (address == null || address!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address not available')),
+        SnackBar(
+          content: const Text('Address not available'),
+          backgroundColor: CoustColors.rose,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
       return;
     }
@@ -34,7 +40,12 @@ class HallLocationWidget extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open maps')),
+        SnackBar(
+          content: const Text('Could not open maps'),
+          backgroundColor: CoustColors.rose,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
     }
   }
@@ -45,8 +56,8 @@ class HallLocationWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.deepPurple.shade200),
-        color: Colors.deepPurple.shade50,
+        border: Border.all(color: CoustColors.lightPurple.withOpacity(0.3)),
+        color: CoustColors.veryLightPurple,
       ),
       child: InkWell(
         onTap: () => _openInMaps(context),
@@ -58,12 +69,12 @@ class HallLocationWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple.shade100,
+                  color: CoustColors.primaryPurple.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.location_on,
-                  color: Colors.deepPurple.shade800,
+                  color: CoustColors.darkPurple,
                   size: 20,
                 ),
               ),
@@ -76,7 +87,7 @@ class HallLocationWidget extends StatelessWidget {
                       'Location',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple.shade800,
+                        color: CoustColors.darkPurple,
                         fontSize: 14,
                       ),
                     ),
@@ -84,7 +95,7 @@ class HallLocationWidget extends StatelessWidget {
                     Text(
                       address ?? 'Address not available',
                       style: TextStyle(
-                        color: Colors.deepPurple.shade600,
+                        color: CoustColors.darkPurple.withOpacity(0.7),
                         fontSize: 12,
                       ),
                       maxLines: 2,
@@ -99,7 +110,7 @@ class HallLocationWidget extends StatelessWidget {
                   Text(
                     'View Map',
                     style: TextStyle(
-                      color: Colors.deepPurple.shade600,
+                      color: CoustColors.darkPurple.withOpacity(0.7),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -107,7 +118,7 @@ class HallLocationWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_forward_ios,
-                    color: Colors.deepPurple.shade600,
+                    color: CoustColors.darkPurple.withOpacity(0.7),
                     size: 14,
                   ),
                 ],

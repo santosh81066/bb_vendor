@@ -175,17 +175,17 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                     width: MediaQuery.of(context).size.width * 0.4,
                     height: MediaQuery.of(context).size.width * 0.4,
                     decoration: BoxDecoration(
-                      color: CoustColors.colrButton1,
+                      color: CoustColors.veryLightPurple,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.grey.shade300,
+                        color: CoustColors.lightPurple.withOpacity(0.5),
                         width: 3,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+                          color: CoustColors.primaryPurple.withOpacity(0.2),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -218,16 +218,38 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 AnimatedOpacity(
                   opacity: _fadeAnimation.value.clamp(0.0, 1.0),
                   duration: const Duration(milliseconds: 300),
-                  child: Text(
-                    'Tap to change photo',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                      fontWeight: FontWeight.w500,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: CoustColors.primaryPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: CoustColors.primaryPurple.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.camera_alt_rounded,
+                          size: 16,
+                          color: CoustColors.primaryPurple,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Tap to change photo',
+                          style: TextStyle(
+                            color: CoustColors.primaryPurple,
+                            fontSize: MediaQuery.of(context).size.width * 0.035,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -242,17 +264,18 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
   Widget _buildDefaultAvatar() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            CoustColors.colrButton3.withOpacity(0.7),
-            CoustColors.colrButton3,
+            CoustColors.gradientStart,
+            CoustColors.gradientMiddle,
+            CoustColors.gradientEnd,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Icon(
-        Icons.person_add_alt_1,
+        Icons.person_add_alt_1_rounded,
         size: MediaQuery.of(context).size.width * 0.15,
         color: Colors.white,
       ),
@@ -268,8 +291,8 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
           ),
           child: SafeArea(
@@ -279,30 +302,41 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                 Container(
                   width: 50,
                   height: 5,
-                  margin: const EdgeInsets.only(top: 10),
+                  margin: const EdgeInsets.only(top: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: CoustColors.lightPurple.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Select Photo Source',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: CoustColors.darkPurple,
                   ),
                 ),
                 const SizedBox(height: 20),
                 _buildBottomSheetOption(
-                  icon: Icons.camera_alt,
+                  icon: Icons.camera_alt_rounded,
                   title: 'Take a Photo',
+                  color: CoustColors.primaryPurple,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(context, ImageSource.camera);
                   },
                 ),
                 _buildBottomSheetOption(
-                  icon: Icons.photo_library,
+                  icon: Icons.photo_library_rounded,
                   title: 'Choose from Gallery',
+                  color: CoustColors.teal,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(context, ImageSource.gallery);
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -314,26 +348,40 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
   Widget _buildBottomSheetOption({
     required IconData icon,
     required String title,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          color: color.withOpacity(0.1),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: CoustColors.colrButton3),
-            const SizedBox(width: 15),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
+                color: CoustColors.darkPurple,
               ),
             ),
           ],
@@ -349,7 +397,7 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      backgroundColor: CoustColors.colrFill,
+      backgroundColor: CoustColors.veryLightPurple,
       appBar: _buildAnimatedAppBar(),
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
@@ -389,7 +437,8 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                                 "Please Enter User Name",
                                 ref,
                                 0,
-                                Icons.person_outline,
+                                Icons.person_outline_rounded,
+                                CoustColors.primaryPurple,
                               ),
                               _buildAnimatedFormField(
                                 "Email Id",
@@ -398,6 +447,7 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                                 ref,
                                 1,
                                 Icons.email_outlined,
+                                CoustColors.teal,
                               ),
                               _buildAnimatedFormField(
                                 "Contact Number",
@@ -406,6 +456,7 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                                 ref,
                                 2,
                                 Icons.phone_outlined,
+                                CoustColors.accentPurple,
                               ),
                               SizedBox(height: screenHeight * 0.04),
                               _buildAnimatedSaveButton(ref),
@@ -427,16 +478,33 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
 
   PreferredSizeWidget _buildAnimatedAppBar() {
     return AppBar(
-      backgroundColor: CoustColors.colrFill,
+      backgroundColor: Colors.white,
       elevation: 0,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              CoustColors.gradientStart,
+              CoustColors.gradientMiddle,
+              CoustColors.gradientEnd,
+            ],
+          ),
+        ),
+      ),
       title: AnimatedBuilder(
         animation: _fadeAnimation,
         builder: (context, child) {
           return Opacity(
             opacity: _fadeAnimation.value.clamp(0.0, 1.0),
-            child: const coustText(
-              sName: 'Edit Profile',
-              txtcolor: CoustColors.colrEdtxt2,
+            child: const Text(
+              'Edit Profile',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              ),
             ),
           );
         },
@@ -446,14 +514,21 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
         builder: (context, child) {
           return Opacity(
             opacity: _fadeAnimation.value.clamp(0.0, 1.0),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: CoustColors.colrHighlightedText,
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              child: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
           );
         },
@@ -468,6 +543,7 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
       WidgetRef ref,
       int index,
       IconData icon,
+      Color accentColor,
       ) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 200)),
@@ -483,47 +559,53 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
             opacity: clampedValue,
             child: Container(
               margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height * 0.02,
+                bottom: MediaQuery.of(context).size.height * 0.025,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        icon,
-                        size: 20,
-                        color: CoustColors.colrButton3,
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: accentColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 18,
+                          color: accentColor,
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Text(
                         label,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: MediaQuery.of(context).size.width * 0.04,
-                          color: CoustColors.colrEdtxt2,
+                          fontSize: MediaQuery.of(context).size.width * 0.042,
+                          color: CoustColors.darkPurple,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: CoustColors.lightPurple.withOpacity(0.3),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: CoustColors.primaryPurple.withOpacity(0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-                    child: CoustTextfield(
-                      radius: 12.0,
-                      width: 1.0,
-                      isVisible: true,
-                      hint: label,
-                      title: label,
+                    child: TextFormField(
                       controller: controller,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -531,6 +613,49 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                         }
                         return null;
                       },
+                      decoration: InputDecoration(
+                        hintText: label,
+                        hintStyle: TextStyle(
+                          color: CoustColors.darkPurple.withOpacity(0.5),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: CoustColors.primaryPurple,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: CoustColors.rose,
+                            width: 1.5,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          icon,
+                          color: accentColor,
+                          size: 20,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: CoustColors.darkPurple,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -560,21 +685,16 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                 scale: _buttonScaleAnimation.value.clamp(0.5, 1.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: CoustColors.colrButton3.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+                        color: CoustColors.primaryPurple.withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: CoustElevatedButton(
-                    buttonName: _isLoading ? "Saving..." : "Save Profile",
-                    width: double.infinity,
-                    bgColor: CoustColors.colrButton3,
-                    radius: 12,
-                    FontSize: MediaQuery.of(context).size.width * 0.045,
+                  child: ElevatedButton(
                     onPressed: _isLoading ? null : () async {
                       if (_validationkey.currentState!.validate()) {
                         setState(() {
@@ -606,6 +726,43 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
                         }
                       }
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CoustColors.primaryPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                      minimumSize: Size(double.infinity, 56),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isLoading)
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        else
+                          Icon(
+                            Icons.save_rounded,
+                            size: 20,
+                          ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isLoading ? "Saving..." : "Save Profile",
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.045,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -629,31 +786,53 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
             scale: 0.3 + (0.7 * value),
             child: AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(20),
               ),
+              backgroundColor: Colors.white,
               title: Row(
                 children: [
-                  Icon(
-                    title == 'Error' ? Icons.error : Icons.info,
-                    color: title == 'Error' ? Colors.red : CoustColors.colrButton3,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: title == 'Error' ? CoustColors.rose.withOpacity(0.1) : CoustColors.primaryPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      title == 'Error' ? Icons.error_rounded : Icons.info_rounded,
+                      color: title == 'Error' ? CoustColors.rose : CoustColors.primaryPurple,
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  Text(title),
+                  const SizedBox(width: 12),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: CoustColors.darkPurple,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
-              content: Text(message),
+              content: Text(
+                message,
+                style: TextStyle(
+                  color: CoustColors.darkPurple.withOpacity(0.7),
+                ),
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: CoustColors.colrButton3,
+                    foregroundColor: CoustColors.primaryPurple,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('OK'),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),
@@ -676,30 +855,33 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
             scale: 0.3 + (0.7 * value),
             child: AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
               ),
               backgroundColor: Colors.white,
               elevation: 10,
               title: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      gradient: const LinearGradient(
+                        colors: [CoustColors.emerald, CoustColors.teal],
+                      ),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
+                    child: const Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
                       size: 40,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: CoustColors.darkPurple,
+                      fontSize: 20,
                     ),
                   ),
                 ],
@@ -707,25 +889,37 @@ class _EditprofileScerenState extends ConsumerState<EditprofileSceren>
               content: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
+                  color: CoustColors.darkPurple.withOpacity(0.7),
                 ),
               ),
               actions: [
                 Container(
                   width: double.infinity,
-                  child: TextButton(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CoustColors.primaryPurple.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
                       _navigateToSettingsWithAnimation(); // Navigate to settings
                     },
-                    style: TextButton.styleFrom(
-                      backgroundColor: CoustColors.colrButton3,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CoustColors.primaryPurple,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 0,
                     ),
                     child: const Text(
                       'Go to Settings',

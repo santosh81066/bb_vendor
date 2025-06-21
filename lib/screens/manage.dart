@@ -93,8 +93,8 @@ class _ManageScreenState extends State<ManageScreen>
       'title': 'Manage Bookings',
       'subtitle': 'Handle reservations & events',
       'icon': Icons.event_note_rounded,
-      'color': const Color(0xFF6366F1),
-      'gradient': [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+      'color': CoustColors.primaryPurple,
+      'gradient': [CoustColors.primaryPurple, CoustColors.mediumPurple],
       'route': '/managebooking',
       'stats': '24 Active'
     },
@@ -102,8 +102,8 @@ class _ManageScreenState extends State<ManageScreen>
       'title': 'Manage Properties',
       'subtitle': 'Halls & venue management',
       'icon': Icons.store_rounded,
-      'color': const Color(0xFF10B981),
-      'gradient': [const Color(0xFF10B981), const Color(0xFF059669)],
+      'color': CoustColors.teal,
+      'gradient': [CoustColors.teal, CoustColors.deepBlue],
       'route': '/manageproperty',
       'stats': '8 Venues'
     },
@@ -111,8 +111,8 @@ class _ManageScreenState extends State<ManageScreen>
       'title': 'Transactions',
       'subtitle': 'Payments & financial records',
       'icon': Icons.account_balance_wallet_rounded,
-      'color': const Color(0xFFF59E0B),
-      'gradient': [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+      'color': CoustColors.gold,
+      'gradient': [CoustColors.gold, CoustColors.rose],
       'route': '/alltransactions',
       'stats': '₹45,230'
     },
@@ -120,8 +120,8 @@ class _ManageScreenState extends State<ManageScreen>
       'title': 'Calendar',
       'subtitle': 'Schedule & availability',
       'icon': Icons.calendar_month_rounded,
-      'color': const Color(0xFFEF4444),
-      'gradient': [const Color(0xFFEF4444), const Color(0xFFDC2626)],
+      'color': CoustColors.magenta,
+      'gradient': [CoustColors.magenta, CoustColors.accentPurple],
       'route': '/manageCalendar',
       'stats': '12 Events'
     },
@@ -155,13 +155,13 @@ class _ManageScreenState extends State<ManageScreen>
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: CoustColors.veryLightPurple,
       body: Consumer(
         builder: (BuildContext context, WidgetRef ref, Widget? child) {
           return SafeArea(
             child: Column(
               children: [
-                // Enhanced Premium Header with animations - Fixed height
+                // Enhanced Premium Header with purple theme animations - Fixed height
                 SlideTransition(
                   position: _headerSlideAnimation,
                   child: FadeTransition(
@@ -223,13 +223,13 @@ class _ManageScreenState extends State<ManageScreen>
         tablet: 140,
       ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF1E293B),
-            Color(0xFF334155),
-            Color(0xFF475569),
+            CoustColors.gradientStart,
+            CoustColors.gradientMiddle,
+            CoustColors.gradientEnd,
           ],
         ),
         borderRadius: const BorderRadius.only(
@@ -238,12 +238,12 @@ class _ManageScreenState extends State<ManageScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E293B).withOpacity(0.4),
+            color: CoustColors.primaryPurple.withOpacity(0.4),
             blurRadius: 25,
             offset: const Offset(0, 12),
           ),
           BoxShadow(
-            color: const Color(0xFF1E293B).withOpacity(0.2),
+            color: CoustColors.darkPurple.withOpacity(0.2),
             blurRadius: 40,
             offset: const Offset(0, 20),
           ),
@@ -251,7 +251,7 @@ class _ManageScreenState extends State<ManageScreen>
       ),
       child: Stack(
         children: [
-          // Enhanced decorative elements with animation
+          // Enhanced decorative elements with animation using purple theme
           ...List.generate(5, (index) {
             return AnimatedBuilder(
               animation: _headerController,
@@ -269,7 +269,7 @@ class _ManageScreenState extends State<ManageScreen>
                   top: -40 + (index * 20),
                   right: -40 + (index * 30),
                   child: Opacity(
-                    opacity: animation.value * 0.1,
+                    opacity: animation.value * 0.15,
                     child: Transform.scale(
                       scale: animation.value,
                       child: Container(
@@ -277,7 +277,7 @@ class _ManageScreenState extends State<ManageScreen>
                         height: 140 - (index * 15),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.05 + (index * 0.01)),
+                          color: CoustColors.veryLightPurple.withOpacity(0.1 + (index * 0.02)),
                         ),
                       ),
                     ),
@@ -287,7 +287,7 @@ class _ManageScreenState extends State<ManageScreen>
             );
           }),
 
-          // Animated floating particles (simplified without math)
+          // Animated floating particles with purple theme
           ...List.generate(3, (index) {
             return AnimatedBuilder(
               animation: _pulseController,
@@ -308,7 +308,7 @@ class _ManageScreenState extends State<ManageScreen>
                       height: 6 + (index * 2),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.3 - (index * 0.1)),
+                        color: CoustColors.veryLightPurple.withOpacity(0.4 - (index * 0.1)),
                       ),
                     ),
                   ),
@@ -345,7 +345,7 @@ class _ManageScreenState extends State<ManageScreen>
                               opacity: _headerController.value,
                               child: coustText(
                                 sName: "Vendor Hub",
-                                txtcolor: Colors.white,
+                                txtcolor: CoustColors.colrMainbg,
                                 textsize: _getResponsiveValue(
                                   context,
                                   mobile: 22,
@@ -371,7 +371,7 @@ class _ManageScreenState extends State<ManageScreen>
                               opacity: _headerController.value,
                               child: coustText(
                                 sName: "Manage Properties • Bookings • Calendar",
-                                txtcolor: Colors.white.withOpacity(0.8),
+                                txtcolor: CoustColors.colrMainbg.withOpacity(0.85),
                                 textsize: _getResponsiveValue(
                                   context,
                                   mobile: 12,
@@ -399,16 +399,16 @@ class _ManageScreenState extends State<ManageScreen>
                           width: _getResponsiveValue(context, mobile: 45, tablet: 50),
                           height: _getResponsiveValue(context, mobile: 45, tablet: 50),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: CoustColors.veryLightPurple.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: CoustColors.veryLightPurple.withOpacity(0.4),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             Icons.business_center_outlined,
-                            color: Colors.white,
+                            color: CoustColors.colrMainbg,
                             size: _getResponsiveValue(context, mobile: 20, tablet: 24),
                           ),
                         ),
@@ -590,17 +590,26 @@ class _ManageScreenState extends State<ManageScreen>
               colors: cardData['gradient'],
             ),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: CoustColors.colrStrock1.withOpacity(0.3),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
                 color: cardData['color'].withOpacity(0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
+              BoxShadow(
+                color: CoustColors.primaryPurple.withOpacity(0.1),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
             ],
           ),
           child: Stack(
             children: [
-              // Enhanced background decorative elements
+              // Enhanced background decorative elements with purple theme
               Positioned(
                 top: -20,
                 right: -20,
@@ -614,7 +623,7 @@ class _ManageScreenState extends State<ManageScreen>
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                          color: CoustColors.veryLightPurple.withOpacity(0.15),
                         ),
                       ),
                     );
@@ -622,7 +631,7 @@ class _ManageScreenState extends State<ManageScreen>
                 ),
               ),
 
-              // Floating particles (simplified movement)
+              // Floating particles with purple theme
               ...List.generate(2, (i) {
                 return AnimatedBuilder(
                   animation: _pulseController,
@@ -643,7 +652,7 @@ class _ManageScreenState extends State<ManageScreen>
                           height: 3 + (i * 1),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.3 - (i * 0.1)),
+                            color: CoustColors.veryLightPurple.withOpacity(0.4 - (i * 0.1)),
                           ),
                         ),
                       ),
@@ -652,7 +661,7 @@ class _ManageScreenState extends State<ManageScreen>
                 );
               }),
 
-              // Main content with enhanced animations
+              // Main content with enhanced animations and purple theme
               Padding(
                 padding: EdgeInsets.all(_getResponsiveValue(
                   context,
@@ -672,16 +681,16 @@ class _ManageScreenState extends State<ManageScreen>
                             width: _getResponsiveValue(context, mobile: 48, tablet: 54),
                             height: _getResponsiveValue(context, mobile: 48, tablet: 54),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: CoustColors.veryLightPurple.withOpacity(0.25),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
+                                color: CoustColors.veryLightPurple.withOpacity(0.4),
+                                width: 1.5,
                               ),
                             ),
                             child: Icon(
                               cardData['icon'],
-                              color: Colors.white,
+                              color: CoustColors.colrMainbg,
                               size: _getResponsiveValue(context, mobile: 24, tablet: 26),
                             ),
                           ),
@@ -692,16 +701,16 @@ class _ManageScreenState extends State<ManageScreen>
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: CoustColors.veryLightPurple.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: CoustColors.veryLightPurple.withOpacity(0.4),
                               width: 1,
                             ),
                           ),
                           child: coustText(
                             sName: cardData['stats'],
-                            txtcolor: Colors.white,
+                            txtcolor: CoustColors.colrMainbg,
                             textsize: _getResponsiveValue(context, mobile: 10, tablet: 11),
                             fontweight: FontWeight.w600,
                           ),
@@ -717,14 +726,14 @@ class _ManageScreenState extends State<ManageScreen>
                       children: [
                         coustText(
                           sName: cardData['title'],
-                          txtcolor: Colors.white,
+                          txtcolor: CoustColors.colrMainbg,
                           textsize: _getResponsiveValue(context, mobile: 16, tablet: 18),
                           fontweight: FontWeight.bold,
                         ),
                         SizedBox(height: 4),
                         coustText(
                           sName: cardData['subtitle'],
-                          txtcolor: Colors.white.withOpacity(0.85),
+                          txtcolor: CoustColors.colrMainbg.withOpacity(0.85),
                           textsize: _getResponsiveValue(context, mobile: 11, tablet: 12),
                           fontweight: FontWeight.w400,
                         ),
@@ -733,7 +742,7 @@ class _ManageScreenState extends State<ManageScreen>
 
                     SizedBox(height: 12),
 
-                    // Enhanced action arrow with animation
+                    // Enhanced action arrow with animation and purple theme
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -749,16 +758,16 @@ class _ManageScreenState extends State<ManageScreen>
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: CoustColors.veryLightPurple.withOpacity(0.25),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
+                                    color: CoustColors.veryLightPurple.withOpacity(0.4),
                                     width: 1,
                                   ),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.arrow_forward_rounded,
-                                  color: Colors.white,
+                                  color: CoustColors.colrMainbg,
                                   size: 16,
                                 ),
                               ),
