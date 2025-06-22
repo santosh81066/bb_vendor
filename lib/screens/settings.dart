@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:bb_vendor/providers/auth.dart";
 
+import 'contactsuport.dart';
+
+
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -354,6 +357,20 @@ class SettingsScreenState extends ConsumerState<SettingsScreen> {
                 accentColor: CoustColors.emerald,
                 onTap: () {
                   Navigator.of(context).pushNamed('/helpcenter');
+                },
+              ),
+              _buildSettingItem(
+                icon: Icons.support_agent,
+                title: "Contact Support",
+                accentColor: CoustColors.teal,
+                onTap: () {
+                  // Navigate to ContactSupportPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ContactSupportPage(),
+                    ),
+                  );
                 },
               ),
               _buildSettingItem(

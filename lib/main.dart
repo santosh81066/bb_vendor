@@ -109,7 +109,7 @@ class MyApp extends ConsumerWidget {
         '/sales': (BuildContext context) => const SalesScreen(),
         '/settings': (BuildContext context) => const SettingsScreen(),
         '/managebooking': (BuildContext context) => const ManageBookingScreen(),
-        '/bookingdetails': (BuildContext context) => const BookingDetailsScreen(),
+        /*'/bookingdetails': (BuildContext context) => const BookingDetailsScreen(),*/
         '/manageproperty': (BuildContext context) => const ManagePropertyScreen(),
         '/addproperty': (BuildContext context) => const AddPropertyScreen(),
         '/addhall': (BuildContext context) => const PropertyHallScreen(),

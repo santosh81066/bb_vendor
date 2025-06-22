@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'contactsuport.dart';
 
 class HelpCenterPage extends StatelessWidget {
   const HelpCenterPage({super.key});
@@ -18,6 +19,7 @@ class HelpCenterPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
+              // Add search functionality if needed
             },
           ),
         ],
@@ -133,7 +135,13 @@ class HelpCenterPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // Contact support action
+                      // Navigate to ContactSupportPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ContactSupportPage(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -192,7 +200,13 @@ class HelpCenterPage extends StatelessWidget {
             const SizedBox(height: 12),
             TextButton(
               onPressed: () {
-                // "Read more" action
+                // Navigate to ContactSupportPage for more detailed help
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ContactSupportPage(),
+                  ),
+                );
               },
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
@@ -200,7 +214,7 @@ class HelpCenterPage extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 foregroundColor: const Color(0xFF6418C3),
               ),
-              child: const Text('Read more'),
+              child: const Text('Need more help? Contact Support'),
             ),
           ],
         ),
