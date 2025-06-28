@@ -1,10 +1,9 @@
-// lib/screens/bookingdetails.dart (FIXED VERSION)
+// lib/screens/bookingdetails.dart (SIMPLIFIED VERSION)
 import 'dart:ui';
 import 'package:bb_vendor/Colors/coustcolors.dart';
 import 'package:bb_vendor/Providers/stateproviders.dart';
 import 'package:bb_vendor/models/vendor_booking_models.dart';
 import 'package:bb_vendor/providers/hall_booking_provider.dart';
-import 'package:bb_vendor/providers/user_details_provider.dart'; // ADDED: Import the new provider
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +91,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
       });
     } catch (e) {
       print('Error initializing animations: $e');
-      // Continue without animations if they fail
     }
   }
 
@@ -110,7 +108,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     return null;
   }
 
-  // Helper method to check if animations are ready
   bool get _animationsReady {
     return _fadeController != null &&
         _slideController != null &&
@@ -122,12 +119,12 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Get customer details using the FIXED provider
-    final customerDetailsAsync = ref.watch(enhancedUserDetailsProvider(widget.bookingData.userId));
-
-    // Debug: Print the user ID being fetched
-    print('🔍 Fetching details for user ID: ${widget.bookingData.userId}');
+    // Debug: Print the user info we have
     print('📋 Booking ID: ${widget.bookingData.booking.id}');
+    print('👤 User ID: ${widget.bookingData.userId}');
+    print('📧 User Email: ${widget.bookingData.userEmail}');
+    print('📱 User Mobile: ${widget.bookingData.userMobile}');
+    print('🏷️ User Name: ${widget.bookingData.userName}');
 
     return PopScope(
       onPopInvoked: _onWillPop,
@@ -136,7 +133,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
         appBar: _buildAppBar(),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: _buildContent(customerDetailsAsync),
+          child: _buildContent(),
         ),
       ),
     );
@@ -158,7 +155,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
               textsize: 18,
             ),
             Text(
-              'Customer ID: ${widget.bookingData.userId}',
+              'Customer: ${widget.bookingData.displayUserName}',
               style: TextStyle(
                 color: CoustColors.colrSubText,
                 fontSize: 12,
@@ -178,28 +175,10 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
           Navigator.pop(context);
         },
       ),
-      actions: [
-        _buildAnimatedWidget(
-          child: IconButton(
-            icon: Icon(
-              Icons.refresh,
-              color: CoustColors.primaryPurple,
-            ),
-            onPressed: () {
-              print('🔄 Force refreshing user details for ID: ${widget.bookingData.userId}');
-              // Force refresh customer data using the FIXED provider
-              ref.read(enhancedUserDetailsNotifierProvider.notifier)
-                  .forceRefreshUserDetails(widget.bookingData.userId);
-              ref.invalidate(enhancedUserDetailsProvider(widget.bookingData.userId));
-            },
-          ),
-          animationType: AnimationType.pulse,
-        ),
-      ],
     );
   }
 
-  Widget _buildContent(AsyncValue<UserDetails> customerDetailsAsync) {
+  Widget _buildContent() {
     return Column(
       children: [
         // Booking Information Card
@@ -208,9 +187,9 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
           delay: 0,
         ),
 
-        // Customer Details Card (using FIXED provider)
+        // Customer Details Card (using embedded data)
         _buildAnimatedCard(
-          child: _buildCustomerDetailsCard(customerDetailsAsync),
+          child: _buildCustomerDetailsCard(),
           delay: 200,
         ),
 
@@ -245,13 +224,12 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     );
   }
 
-  // Enhanced animation wrapper with better error handling
   Widget _buildAnimatedWidget({
     required Widget child,
     AnimationType animationType = AnimationType.fade,
   }) {
     if (!_animationsReady) {
-      return child; // Return child without animation if animations not ready
+      return child;
     }
 
     switch (animationType) {
@@ -344,7 +322,8 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     );
   }
 
-  Widget _buildCustomerDetailsCard(AsyncValue<UserDetails> customerDetailsAsync) {
+  // SIMPLIFIED: Customer details using embedded data
+  Widget _buildCustomerDetailsCard() {
     return _buildEnhancedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,29 +356,25 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
                   txtcolor: CoustColors.primaryPurple,
                 ),
               ),
-              // Show cached indicator using FIXED provider
-              Consumer(
-                builder: (context, ref, child) {
-                  final cached = ref.watch(userDetailsCacheProvider(widget.bookingData.userId));
-                  if (cached != null) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: CoustColors.emerald.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Cached',
-                        style: TextStyle(
-                          color: CoustColors.emerald,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
+              // Show embedded data indicator
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: widget.bookingData.hasUserInfo
+                      ? CoustColors.emerald.withOpacity(0.1)
+                      : CoustColors.gold.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  widget.bookingData.hasUserInfo ? 'Live Data' : 'Limited Info',
+                  style: TextStyle(
+                    color: widget.bookingData.hasUserInfo
+                        ? CoustColors.emerald
+                        : CoustColors.gold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -418,206 +393,95 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
             ),
           ),
           const SizedBox(height: 16),
-          customerDetailsAsync.when(
-            loading: () => _buildLoadingWidget(),
-            error: (error, stack) => _buildErrorWidget(error),
-            data: (customerDetails) => _buildCustomerDetailsContent(customerDetails),
-          ),
+          _buildCustomerDetailsContent(),
         ],
       ),
     );
   }
 
-  Widget _buildLoadingWidget() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
+  // SIMPLIFIED: Using embedded user data directly
+  Widget _buildCustomerDetailsContent() {
+    return Column(
+      children: [
+        // Customer avatar placeholder (since we don't have profile pic in embedded data)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Center(
+            child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
-                    CoustColors.primaryPurple,
-                    CoustColors.mediumPurple,
+                    CoustColors.primaryPurple.withOpacity(0.2),
+                    CoustColors.mediumPurple.withOpacity(0.1),
                   ],
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: CoustColors.primaryPurple.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(CoustColors.colrMainbg),
-                strokeWidth: 2,
+              padding: const EdgeInsets.all(4),
+              child: CircleAvatar(
+                radius: 40,
+                backgroundColor: CoustColors.primaryPurple.withOpacity(0.1),
+                child: Icon(
+                  Icons.person,
+                  size: 40,
+                  color: CoustColors.primaryPurple,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Loading customer details...',
-              style: TextStyle(
-                color: CoustColors.colrSubText,
-                fontSize: 14,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
 
-  Widget _buildErrorWidget(Object error) {
-    String errorMessage = error.toString();
-    IconData errorIcon = Icons.error_outline;
-    Color errorColor = CoustColors.rose;
+        // Customer details using embedded data
+        bookingDetailRow('Customer ID:', widget.bookingData.userId.toString()),
+        bookingDetailRow('Name:', widget.bookingData.displayUserName),
+        bookingDetailRow('Email:', widget.bookingData.displayUserEmail),
+        bookingDetailRow('Phone:', widget.bookingData.displayUserMobile),
 
-    if (errorMessage.contains('Authentication required')) {
-      errorIcon = Icons.login;
-      errorColor = CoustColors.gold;
-      errorMessage = 'Please login to view customer details';
-    } else if (errorMessage.contains('User not found')) {
-      errorIcon = Icons.person_off;
-      errorMessage = 'Customer not found';
-    } else if (errorMessage.contains('Network') || errorMessage.contains('timeout')) {
-      errorIcon = Icons.wifi_off;
-      errorMessage = 'Network connection error';
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  errorColor.withOpacity(0.2),
-                  errorColor.withOpacity(0.1),
+        // Show data source info
+        if (!widget.bookingData.hasUserInfo)
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CoustColors.gold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: CoustColors.gold.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: CoustColors.gold,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Limited customer information available. Contact details may not be current.',
+                      style: TextStyle(
+                        color: CoustColors.gold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Icon(errorIcon, color: errorColor, size: 30),
           ),
-          const SizedBox(height: 12),
-          Text(
-            errorMessage,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: errorColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildActionButton(
-                'Retry',
-                CoustColors.primaryPurple,
-                    () => ref.invalidate(enhancedUserDetailsProvider(widget.bookingData.userId)),
-              ),
-              if (errorMessage.contains('Authentication'))
-                _buildActionButton(
-                  'Refresh Auth',
-                  CoustColors.gold,
-                      () {
-                    // Navigate to login or refresh auth
-                    ref.read(authprovider.notifier).forceRefreshUserData();
-                  },
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String text, Color color, VoidCallback onPressed) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: CoustColors.colrMainbg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCustomerDetailsContent(UserDetails customerDetails) {
-    return Column(
-      children: [
-        if (customerDetails.profilePicture != null && customerDetails.profilePicture!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      CoustColors.primaryPurple.withOpacity(0.2),
-                      CoustColors.mediumPurple.withOpacity(0.1),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CoustColors.primaryPurple.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(4),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(customerDetails.profilePicture!),
-                  onBackgroundImageError: (exception, stackTrace) {
-                    print('Error loading profile image: $exception');
-                  },
-                  child: customerDetails.profilePicture!.isEmpty
-                      ? Icon(
-                    Icons.person,
-                    size: 40,
-                    color: CoustColors.primaryPurple,
-                  )
-                      : null,
-                ),
-              ),
-            ),
-          ),
-        bookingDetailRow('Customer ID:', customerDetails.userId.toString()),
-        bookingDetailRow('Name:', customerDetails.name),
-        bookingDetailRow('Email:', customerDetails.email),
-        bookingDetailRow('Phone:', customerDetails.phone),
-        bookingDetailRow('Address:', customerDetails.address),
-        if (customerDetails.createdAt != null)
-          bookingDetailRow('Member Since:', _formatDate(customerDetails.createdAt!)),
       ],
     );
   }
 
-  // Add the missing methods that were referenced in the original code
   Widget _buildBookingInfoCard() {
     final booking = widget.bookingData.booking;
 
@@ -1075,6 +939,11 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
         statusText = 'Cancelled';
         statusIcon = Icons.cancel;
         break;
+      case 'b':
+        chipColor = CoustColors.gold;
+        statusText = 'Blocked/Pending';
+        statusIcon = Icons.pending;
+        break;
       case '0':
         chipColor = CoustColors.colrSubText;
         statusText = 'Available';
@@ -1225,10 +1094,8 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     ) ?? false;
   }
 
+  // SIMPLIFIED: Contact customer using embedded data
   void _contactCustomer() {
-    // Get customer details from the provider
-    final customerDetailsAsync = ref.read(enhancedUserDetailsProvider(widget.bookingData.userId));
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1265,152 +1132,110 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Customer ID: ${widget.bookingData.userId}',
+              widget.bookingData.displayUserName,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 color: CoustColors.colrSubText,
               ),
             ),
             const SizedBox(height: 20),
 
-            // Show customer details for contact
-            customerDetailsAsync.when(
-              data: (customer) => Column(
+            // Customer info card
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CoustColors.primaryPurple.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
                 children: [
-                  // Customer info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: CoustColors.primaryPurple.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
+                  Icon(
+                    Icons.person,
+                    color: CoustColors.primaryPurple,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.person,
-                          color: CoustColors.primaryPurple,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                customer.name.isNotEmpty ? customer.name : 'Unknown Customer',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: CoustColors.primaryPurple,
-                                ),
-                              ),
-                              if (customer.email.isNotEmpty)
-                                Text(
-                                  customer.email,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: CoustColors.colrSubText,
-                                  ),
-                                ),
-                            ],
+                        Text(
+                          widget.bookingData.displayUserName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: CoustColors.primaryPurple,
                           ),
                         ),
+                        if (widget.bookingData.userEmail?.isNotEmpty == true)
+                          Text(
+                            widget.bookingData.userEmail!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: CoustColors.colrSubText,
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
-                  // Contact options with customer data
-                  _buildContactOption(
-                      Icons.phone,
-                      'Call Customer',
-                      customer.phone.isNotEmpty ? customer.phone : 'No phone number',
-                      customer.phone.isNotEmpty,
-                          () {
-                        Navigator.pop(context);
-                        if (customer.phone.isNotEmpty) {
-                          print('📞 Calling customer: ${customer.phone}');
-                          // Implement phone call functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Calling ${customer.phone}...'),
-                              backgroundColor: CoustColors.primaryPurple,
-                            ),
-                          );
-                        }
-                      }
-                  ),
-                  _buildContactOption(
-                      Icons.message,
-                      'Send SMS',
-                      customer.phone.isNotEmpty ? customer.phone : 'No phone number',
-                      customer.phone.isNotEmpty,
-                          () {
-                        Navigator.pop(context);
-                        if (customer.phone.isNotEmpty) {
-                          print('💬 Sending SMS to: ${customer.phone}');
-                          // Implement SMS functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Opening SMS to ${customer.phone}...'),
-                              backgroundColor: CoustColors.primaryPurple,
-                            ),
-                          );
-                        }
-                      }
-                  ),
-                  _buildContactOption(
-                      Icons.email,
-                      'Send Email',
-                      customer.email.isNotEmpty ? customer.email : 'No email address',
-                      customer.email.isNotEmpty,
-                          () {
-                        Navigator.pop(context);
-                        if (customer.email.isNotEmpty) {
-                          print('📧 Sending email to: ${customer.email}');
-                          // Implement email functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Opening email to ${customer.email}...'),
-                              backgroundColor: CoustColors.primaryPurple,
-                            ),
-                          );
-                        }
-                      }
-                  ),
-                ],
-              ),
-              loading: () => Column(
-                children: [
-                  CircularProgressIndicator(
-                    color: CoustColors.primaryPurple,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Loading customer contact details...',
-                    style: TextStyle(color: CoustColors.colrSubText),
-                  ),
-                ],
-              ),
-              error: (error, _) => Column(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: CoustColors.rose,
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Could not load customer contact details',
-                    style: TextStyle(color: CoustColors.rose),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  // Fallback contact options
-                  _buildContactOption(Icons.phone, 'Call Customer', 'Contact unavailable', false, () {}),
-                  _buildContactOption(Icons.message, 'Send SMS', 'Contact unavailable', false, () {}),
-                  _buildContactOption(Icons.email, 'Send Email', 'Contact unavailable', false, () {}),
-                ],
-              ),
+            // Contact options using embedded data
+            _buildContactOption(
+                Icons.phone,
+                'Call Customer',
+                widget.bookingData.displayUserMobile,
+                widget.bookingData.userMobile?.isNotEmpty == true,
+                    () {
+                  Navigator.pop(context);
+                  if (widget.bookingData.userMobile?.isNotEmpty == true) {
+                    print('📞 Calling customer: ${widget.bookingData.userMobile}');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Calling ${widget.bookingData.userMobile}...'),
+                        backgroundColor: CoustColors.primaryPurple,
+                      ),
+                    );
+                  }
+                }
+            ),
+            _buildContactOption(
+                Icons.message,
+                'Send SMS',
+                widget.bookingData.displayUserMobile,
+                widget.bookingData.userMobile?.isNotEmpty == true,
+                    () {
+                  Navigator.pop(context);
+                  if (widget.bookingData.userMobile?.isNotEmpty == true) {
+                    print('💬 Sending SMS to: ${widget.bookingData.userMobile}');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Opening SMS to ${widget.bookingData.userMobile}...'),
+                        backgroundColor: CoustColors.primaryPurple,
+                      ),
+                    );
+                  }
+                }
+            ),
+            _buildContactOption(
+                Icons.email,
+                'Send Email',
+                widget.bookingData.displayUserEmail,
+                widget.bookingData.userEmail?.isNotEmpty == true,
+                    () {
+                  Navigator.pop(context);
+                  if (widget.bookingData.userEmail?.isNotEmpty == true) {
+                    print('📧 Sending email to: ${widget.bookingData.userEmail}');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Opening email to ${widget.bookingData.userEmail}...'),
+                        backgroundColor: CoustColors.primaryPurple,
+                      ),
+                    );
+                  }
+                }
             ),
           ],
         ),
@@ -1499,10 +1324,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}, ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  String _formatDate(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-  }
-
   int _calculateGST(int baseAmount) {
     return (baseAmount * 0.18).round();
   }
@@ -1545,7 +1366,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
   }
 }
 
-// Enum for animation types
 enum AnimationType {
   fade,
   slide,

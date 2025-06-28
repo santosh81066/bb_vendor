@@ -1,10 +1,9 @@
-// lib/providers/vendor_booking_provider.dart (FIXED VERSION)
+// lib/providers/vendor_booking_provider.dart (FIXED VERSION - Compatible with your models)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/models/vendor_booking_models.dart';
 import 'package:bb_vendor/providers/addpropertynotifier.dart';
 import 'package:bb_vendor/providers/hall_booking_provider.dart';
 import 'package:bb_vendor/providers/auth.dart';
-
 import '../models/hall_booking.dart';
 
 // Enhanced provider for vendor bookings with proper auth dependency and error handling
@@ -121,13 +120,25 @@ final vendorBookingsProvider = FutureProvider.autoDispose<List<VendorBookingData
       final hallInfo = vendorHalls[booking.hallId];
       if (hallInfo != null) {
         try {
+          // ✨ UPDATED: Create VendorBookingData with embedded user info support
           vendorBookings.add(VendorBookingData(
             booking: booking,
             property: hallInfo.property,
             hall: hallInfo.hall,
+            // ✨ NEW: Extract embedded user info from HallBookingData
+            userName: booking.userName,
+            userEmail: booking.userEmail,
+            userMobile: booking.userMobile,
           ));
           matchedBookings++;
           print('✓ Matched booking ${booking.id} to hall: ${hallInfo.hall.name}');
+
+          // ✨ NEW: Log embedded user info
+          if (booking.hasUserInfo) {
+            print('  └─ 📧 User: ${booking.displayUserName} (${booking.displayUserEmail})');
+          } else {
+            print('  └─ ⚠️ No embedded user info for booking ${booking.id}');
+          }
         } catch (e) {
           print('⚠️ Error creating VendorBookingData for booking ${booking.id}: $e');
           // Continue with other bookings even if one fails
@@ -154,6 +165,10 @@ final vendorBookingsProvider = FutureProvider.autoDispose<List<VendorBookingData
     print('=== VENDOR BOOKINGS PROVIDER SUCCESS ===');
     print('Final result: ${vendorBookings.length} bookings for vendor');
 
+    // ✨ NEW: Log user info statistics
+    final bookingsWithUserInfo = vendorBookings.where((b) => b.hasUserInfo).length;
+    print('📊 Bookings with embedded user info: $bookingsWithUserInfo/${vendorBookings.length}');
+
     return vendorBookings;
 
   } catch (e, stackTrace) {
@@ -174,7 +189,7 @@ final vendorBookingsProvider = FutureProvider.autoDispose<List<VendorBookingData
   }
 });
 
-// Enhanced booking statistics provider with error handling
+// ✨ UPDATED: Enhanced booking statistics provider with better stats calculation
 final vendorBookingStatsProvider = Provider.autoDispose<BookingStats>((ref) {
   final authState = ref.watch(authprovider);
   final bookingsAsync = ref.watch(vendorBookingsProvider);
@@ -182,26 +197,8 @@ final vendorBookingStatsProvider = Provider.autoDispose<BookingStats>((ref) {
   return bookingsAsync.when(
     data: (bookings) {
       try {
-        int total = bookings.length;
-        int confirmed = bookings.where((b) => b.booking.isPaid == 'c').length;
-        int cancelled = bookings.where((b) => b.booking.isPaid == 'cl').length;
-        int pending = bookings.where((b) => b.booking.isPaid == '0').length;
-        int today = bookings.where((b) {
-          try {
-            return b.isToday;
-          } catch (e) {
-            print('Error checking if booking is today: $e');
-            return false;
-          }
-        }).length;
-
-        return BookingStats(
-          total: total,
-          confirmed: confirmed,
-          cancelled: cancelled,
-          pending: pending,
-          today: today,
-        );
+        // ✨ NEW: Use the enhanced BookingStats.fromBookings method
+        return BookingStats.fromBookings(bookings);
       } catch (e) {
         print('Error calculating booking stats: $e');
         return BookingStats.empty();
@@ -212,7 +209,7 @@ final vendorBookingStatsProvider = Provider.autoDispose<BookingStats>((ref) {
   );
 });
 
-// Enhanced filtered bookings provider with better error handling
+// ✨ UPDATED: Enhanced filtered bookings provider with embedded user info search
 final filteredBookingsProvider = Provider.family.autoDispose<List<VendorBookingData>, BookingFilter>((ref, filter) {
   final authState = ref.watch(authprovider);
   final bookingsAsync = ref.watch(vendorBookingsProvider);
@@ -221,23 +218,27 @@ final filteredBookingsProvider = Provider.family.autoDispose<List<VendorBookingD
     data: (bookings) {
       try {
         return bookings.where((booking) {
-          // Filter by status
-          if (filter.status != 'All' && booking.filterStatus != filter.status) {
-            return false;
+          // Filter by status with enhanced status matching
+          if (filter.status != 'All') {
+            switch (filter.status) {
+              case 'Current':
+              // Current bookings are confirmed bookings for today
+                return booking.isConfirmed && booking.isToday;
+              case 'Upcoming':
+              // Upcoming bookings are confirmed bookings in the future
+                return booking.isConfirmed && booking.isUpcoming;
+              case 'Cancelled':
+                return booking.isCancelled;
+              case 'Blocked':
+                return booking.isBlocked;
+              default:
+                return true;
+            }
           }
 
-          // Filter by search query
+          // ✨ ENHANCED: Filter by search query including embedded user info
           if (filter.searchQuery.isNotEmpty) {
-            final query = filter.searchQuery.toLowerCase();
-            try {
-              return booking.propertyName.toLowerCase().contains(query) ||
-                  booking.hallName.toLowerCase().contains(query) ||
-                  booking.bookingDate.toLowerCase().contains(query) ||
-                  booking.bookingId.toString().contains(query);
-            } catch (e) {
-              print('Error filtering booking ${booking.bookingId}: $e');
-              return false;
-            }
+            return booking.matchesSearchQuery(filter.searchQuery);
           }
 
           return true;
@@ -273,6 +274,50 @@ final currentUserProvider = Provider.autoDispose<int?>((ref) {
   return userId;
 });
 
+// ✨ NEW: Provider for getting a specific booking by ID
+final bookingByIdProvider = Provider.family.autoDispose<VendorBookingData?, int>(
+      (ref, bookingId) {
+    final bookingsAsync = ref.watch(vendorBookingsProvider);
+
+    return bookingsAsync.whenOrNull(
+      data: (bookings) {
+        try {
+          return bookings.firstWhere((booking) => booking.booking.id == bookingId);
+        } catch (e) {
+          return null;
+        }
+      },
+    );
+  },
+);
+
+// ✨ NEW: Provider for getting bookings by user ID
+final bookingsByUserProvider = Provider.family.autoDispose<List<VendorBookingData>, int>(
+      (ref, userId) {
+    final bookingsAsync = ref.watch(vendorBookingsProvider);
+
+    return bookingsAsync.when(
+      data: (bookings) {
+        return bookings.where((booking) => booking.booking.userId == userId).toList();
+      },
+      loading: () => <VendorBookingData>[],
+      error: (_, __) => <VendorBookingData>[],
+    );
+  },
+);
+
+// ✨ NEW: Provider for manual refresh functionality
+final manualRefreshProvider = StateProvider<int>((ref) => 0);
+
+// ✨ NEW: Provider for refreshable bookings
+final refreshableVendorBookingsProvider = FutureProvider.autoDispose<List<VendorBookingData>>((ref) {
+  // Watch the manual refresh counter to trigger refreshes
+  ref.watch(manualRefreshProvider);
+
+  // This will re-trigger the vendor bookings provider
+  return ref.watch(vendorBookingsProvider.future);
+});
+
 // Provider for checking if data needs refresh
 final dataRefreshProvider = Provider.autoDispose<bool>((ref) {
   final authState = ref.watch(authprovider);
@@ -283,3 +328,69 @@ final dataRefreshProvider = Provider.autoDispose<bool>((ref) {
 
   return false; // Default to not needing refresh
 });
+
+// ✨ NEW: Helper provider for user info quality stats
+final userInfoQualityProvider = Provider.autoDispose<Map<String, int>>((ref) {
+  final bookingsAsync = ref.watch(vendorBookingsProvider);
+
+  return bookingsAsync.when(
+    data: (bookings) {
+      int complete = 0;
+      int partial = 0;
+      int limited = 0;
+
+      for (final booking in bookings) {
+        switch (booking.userInfoQuality) {
+          case 'complete':
+            complete++;
+            break;
+          case 'partial':
+            partial++;
+            break;
+          case 'limited':
+            limited++;
+            break;
+        }
+      }
+
+      return {
+        'complete': complete,
+        'partial': partial,
+        'limited': limited,
+        'total': bookings.length,
+      };
+    },
+    loading: () => {'complete': 0, 'partial': 0, 'limited': 0, 'total': 0},
+    error: (_, __) => {'complete': 0, 'partial': 0, 'limited': 0, 'total': 0},
+  );
+});
+
+// ✨ NEW: Provider for today's bookings
+final todayBookingsProvider = Provider.autoDispose<List<VendorBookingData>>((ref) {
+  final bookingsAsync = ref.watch(vendorBookingsProvider);
+
+  return bookingsAsync.when(
+    data: (bookings) => bookings.where((booking) => booking.isToday).toList(),
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});
+
+// ✨ NEW: Provider for upcoming bookings
+final upcomingBookingsProvider = Provider.autoDispose<List<VendorBookingData>>((ref) {
+  final bookingsAsync = ref.watch(vendorBookingsProvider);
+
+  return bookingsAsync.when(
+    data: (bookings) => bookings.where((booking) => booking.isUpcoming).toList(),
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});
+
+// ✨ NEW: Extension methods for easier data access
+extension VendorBookingDataExtensions on VendorBookingData {
+  bool get needsUserInfo => !hasUserInfo;
+  bool get hasCompleteUserInfo => userInfoQuality == 'complete';
+  bool get hasPartialUserInfo => userInfoQuality == 'partial';
+  bool get hasLimitedUserInfo => userInfoQuality == 'limited';
+}
