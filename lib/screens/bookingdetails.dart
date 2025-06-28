@@ -1,15 +1,15 @@
+// lib/screens/bookingdetails.dart (FIXED VERSION)
 import 'dart:ui';
 import 'package:bb_vendor/Colors/coustcolors.dart';
 import 'package:bb_vendor/Providers/stateproviders.dart';
 import 'package:bb_vendor/models/vendor_booking_models.dart';
 import 'package:bb_vendor/providers/hall_booking_provider.dart';
+import 'package:bb_vendor/providers/user_details_provider.dart'; // ADDED: Import the new provider
 import 'package:bb_vendor/Widgets/elevatedbutton.dart';
 import 'package:bb_vendor/Widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../Providers/auth.dart';
-import '../providers/user_details_provider.dart';
 
 class BookingDetailsScreen extends ConsumerStatefulWidget {
   final VendorBookingData bookingData;
@@ -34,7 +34,6 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
   Animation<double>? _fadeAnimation;
   Animation<Offset>? _slideAnimation;
   Animation<double>? _pulseAnimation;
-  bool _animationsInitialized = false;
 
   @override
   void initState() {
@@ -43,51 +42,58 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+    try {
+      _fadeController = AnimationController(
+        duration: const Duration(milliseconds: 800),
+        vsync: this,
+      );
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
+      _slideController = AnimationController(
+        duration: const Duration(milliseconds: 1000),
+        vsync: this,
+      );
 
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
+      _pulseController = AnimationController(
+        duration: const Duration(seconds: 2),
+        vsync: this,
+      );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController!,
-      curve: Curves.easeInOut,
-    ));
+      _fadeAnimation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(
+        parent: _fadeController!,
+        curve: Curves.easeInOut,
+      ));
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController!,
-      curve: Curves.easeOutCubic,
-    ));
+      _slideAnimation = Tween<Offset>(
+        begin: const Offset(0, 0.3),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: _slideController!,
+        curve: Curves.easeOutCubic,
+      ));
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController!,
-      curve: Curves.easeInOut,
-    ));
+      _pulseAnimation = Tween<double>(
+        begin: 1.0,
+        end: 1.05,
+      ).animate(CurvedAnimation(
+        parent: _pulseController!,
+        curve: Curves.easeInOut,
+      ));
 
-    _animationsInitialized = true;
-
-    // Start animations
-    _fadeController!.forward();
-    _slideController!.forward();
-    _pulseController!.repeat(reverse: true);
+      // Start animations
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _fadeController?.forward();
+          _slideController?.forward();
+          _pulseController?.repeat(reverse: true);
+        }
+      });
+    } catch (e) {
+      print('Error initializing animations: $e');
+      // Continue without animations if they fail
+    }
   }
 
   @override
@@ -104,9 +110,19 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     return null;
   }
 
+  // Helper method to check if animations are ready
+  bool get _animationsReady {
+    return _fadeController != null &&
+        _slideController != null &&
+        _pulseController != null &&
+        _fadeAnimation != null &&
+        _slideAnimation != null &&
+        _pulseAnimation != null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Get customer details using the booking's user ID
+    // Get customer details using the FIXED provider
     final customerDetailsAsync = ref.watch(enhancedUserDetailsProvider(widget.bookingData.userId));
 
     // Debug: Print the user ID being fetched
@@ -117,115 +133,73 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
       onPopInvoked: _onWillPop,
       child: Scaffold(
         backgroundColor: CoustColors.veryLightPurple,
-        appBar: AppBar(
-          backgroundColor: CoustColors.veryLightPurple,
-          elevation: 0,
-          title: _animationsInitialized ? FadeTransition(
-            opacity: _fadeAnimation!,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                coustText(
-                  sName: 'Booking Details',
-                  txtcolor: CoustColors.primaryPurple,
-                  fontweight: FontWeight.bold,
-                  textsize: 18,
-                ),
-                Text(
-                  'Customer ID: ${widget.bookingData.userId}',
-                  style: TextStyle(
-                    color: CoustColors.colrSubText,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ) : Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              coustText(
-                sName: 'Booking Details',
-                txtcolor: CoustColors.primaryPurple,
-                fontweight: FontWeight.bold,
-                textsize: 18,
-              ),
-              Text(
-                'Customer ID: ${widget.bookingData.userId}',
-                style: TextStyle(
-                  color: CoustColors.colrSubText,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back,
-              color: CoustColors.primaryPurple,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          actions: [
-            _animationsInitialized ? AnimatedBuilder(
-              animation: _pulseAnimation!,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _pulseAnimation!.value,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.refresh,
-                      color: CoustColors.primaryPurple,
-                    ),
-                    onPressed: () {
-                      print('🔄 Force refreshing user details for ID: ${widget.bookingData.userId}');
-                      // Force refresh customer data
-                      ref.read(enhancedUserDetailsNotifierProvider.notifier)
-                          .forceRefreshUserDetails(widget.bookingData.userId);
-                      ref.invalidate(enhancedUserDetailsProvider(widget.bookingData.userId));
-                    },
-                  ),
-                );
-              },
-            ) : IconButton(
-              icon: Icon(
-                Icons.refresh,
-                color: CoustColors.primaryPurple,
-              ),
-              onPressed: () {
-                print('🔄 Force refreshing user details for ID: ${widget.bookingData.userId}');
-                // Force refresh customer data
-                ref.read(enhancedUserDetailsNotifierProvider.notifier)
-                    .forceRefreshUserDetails(widget.bookingData.userId);
-                ref.invalidate(enhancedUserDetailsProvider(widget.bookingData.userId));
-              },
-            ),
-          ],
-        ),
+        appBar: _buildAppBar(),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Consumer(
-            builder: (BuildContext context, WidgetRef ref, Widget? child) {
-              return _animationsInitialized ? FadeTransition(
-                opacity: _fadeAnimation!,
-                child: SlideTransition(
-                  position: _slideAnimation!,
-                  child: _buildContent(customerDetailsAsync, ref),
-                ),
-              ) : _buildContent(customerDetailsAsync, ref);
-            },
-          ),
+          child: _buildContent(customerDetailsAsync),
         ),
       ),
     );
   }
 
-  Widget _buildContent(AsyncValue<UserDetails> customerDetailsAsync, WidgetRef ref) {
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: CoustColors.veryLightPurple,
+      elevation: 0,
+      title: _buildAnimatedWidget(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            coustText(
+              sName: 'Booking Details',
+              txtcolor: CoustColors.primaryPurple,
+              fontweight: FontWeight.bold,
+              textsize: 18,
+            ),
+            Text(
+              'Customer ID: ${widget.bookingData.userId}',
+              style: TextStyle(
+                color: CoustColors.colrSubText,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+        animationType: AnimationType.fade,
+      ),
+      leading: IconButton(
+        icon: Icon(
+          Icons.arrow_back,
+          color: CoustColors.primaryPurple,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      actions: [
+        _buildAnimatedWidget(
+          child: IconButton(
+            icon: Icon(
+              Icons.refresh,
+              color: CoustColors.primaryPurple,
+            ),
+            onPressed: () {
+              print('🔄 Force refreshing user details for ID: ${widget.bookingData.userId}');
+              // Force refresh customer data using the FIXED provider
+              ref.read(enhancedUserDetailsNotifierProvider.notifier)
+                  .forceRefreshUserDetails(widget.bookingData.userId);
+              ref.invalidate(enhancedUserDetailsProvider(widget.bookingData.userId));
+            },
+          ),
+          animationType: AnimationType.pulse,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent(AsyncValue<UserDetails> customerDetailsAsync) {
     return Column(
       children: [
         // Booking Information Card
@@ -234,7 +208,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
           delay: 0,
         ),
 
-        // Customer Details Card (using enhanced provider)
+        // Customer Details Card (using FIXED provider)
         _buildAnimatedCard(
           child: _buildCustomerDetailsCard(customerDetailsAsync),
           delay: 200,
@@ -271,9 +245,48 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     );
   }
 
-  Widget _buildAnimatedCard({required Widget child, required int delay}) {
-    if (!_animationsInitialized) return child;
+  // Enhanced animation wrapper with better error handling
+  Widget _buildAnimatedWidget({
+    required Widget child,
+    AnimationType animationType = AnimationType.fade,
+  }) {
+    if (!_animationsReady) {
+      return child; // Return child without animation if animations not ready
+    }
 
+    switch (animationType) {
+      case AnimationType.fade:
+        return FadeTransition(
+          opacity: _fadeAnimation!,
+          child: child,
+        );
+      case AnimationType.slide:
+        return SlideTransition(
+          position: _slideAnimation!,
+          child: child,
+        );
+      case AnimationType.pulse:
+        return AnimatedBuilder(
+          animation: _pulseAnimation!,
+          builder: (context, _) {
+            return Transform.scale(
+              scale: _pulseAnimation!.value,
+              child: child,
+            );
+          },
+        );
+      case AnimationType.fadeSlide:
+        return FadeTransition(
+          opacity: _fadeAnimation!,
+          child: SlideTransition(
+            position: _slideAnimation!,
+            child: child,
+          ),
+        );
+    }
+  }
+
+  Widget _buildAnimatedCard({required Widget child, required int delay}) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + delay),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -364,7 +377,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
                   txtcolor: CoustColors.primaryPurple,
                 ),
               ),
-              // Show cached indicator
+              // Show cached indicator using FIXED provider
               Consumer(
                 builder: (context, ref, child) {
                   final cached = ref.watch(userDetailsCacheProvider(widget.bookingData.userId));
@@ -464,7 +477,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     } else if (errorMessage.contains('User not found')) {
       errorIcon = Icons.person_off;
       errorMessage = 'Customer not found';
-    } else if (errorMessage.contains('Network error')) {
+    } else if (errorMessage.contains('Network') || errorMessage.contains('timeout')) {
       errorIcon = Icons.wifi_off;
       errorMessage = 'Network connection error';
     }
@@ -580,7 +593,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
                   radius: 40,
                   backgroundImage: NetworkImage(customerDetails.profilePicture!),
                   onBackgroundImageError: (exception, stackTrace) {
-                    // Handle image loading error
+                    print('Error loading profile image: $exception');
                   },
                   child: customerDetails.profilePicture!.isEmpty
                       ? Icon(
@@ -604,103 +617,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
     );
   }
 
-  Widget _buildVendorDetailsCard(UserDetails vendorDetails) {
-    return _buildEnhancedCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      CoustColors.teal.withOpacity(0.2),
-                      CoustColors.teal.withOpacity(0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.business,
-                  color: CoustColors.teal,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: coustText(
-                  sName: "Vendor Details",
-                  textsize: 18,
-                  fontweight: FontWeight.bold,
-                  txtcolor: CoustColors.primaryPurple,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CoustColors.colrStrock1.withOpacity(0.1),
-                  CoustColors.colrStrock1.withOpacity(0.4),
-                  CoustColors.colrStrock1.withOpacity(0.1),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (vendorDetails.profilePicture != null && vendorDetails.profilePicture!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        CoustColors.teal.withOpacity(0.2),
-                        CoustColors.teal.withOpacity(0.1),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CoustColors.teal.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage(vendorDetails.profilePicture!),
-                    child: vendorDetails.profilePicture!.isEmpty
-                        ? Icon(
-                      Icons.business,
-                      size: 30,
-                      color: CoustColors.teal,
-                    )
-                        : null,
-                  ),
-                ),
-              ),
-            ),
-          bookingDetailRow('Vendor ID:', vendorDetails.userId.toString()),
-          bookingDetailRow('Name:', vendorDetails.name),
-          bookingDetailRow('Email:', vendorDetails.email),
-          bookingDetailRow('Phone:', vendorDetails.phone),
-          if (vendorDetails.address.isNotEmpty)
-            bookingDetailRow('Address:', vendorDetails.address),
-        ],
-      ),
-    );
-  }
-
+  // Add the missing methods that were referenced in the original code
   Widget _buildBookingInfoCard() {
     final booking = widget.bookingData.booking;
 
@@ -1217,34 +1134,40 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
         ref.read(refundissued.notifier).state = true;
         ref.read(canclebuttonprovider.notifier).state = CoustColors.colrSubText;
 
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Booking cancelled and refund initiated successfully'),
+              backgroundColor: CoustColors.emerald,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Failed to cancel booking');
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Booking cancelled and refund initiated successfully'),
-            backgroundColor: CoustColors.emerald,
+            content: Text('Failed to cancel booking: $e'),
+            backgroundColor: CoustColors.rose,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
         );
-      } else {
-        throw Exception('Failed to cancel booking');
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to cancel booking: $e'),
-          backgroundColor: CoustColors.rose,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -1589,7 +1512,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
   }
 
   Widget bookingDetailRow(String title, String detail,
-      {bool isTotal = false, Color color = CoustColors.colrMainText}) {
+      {bool isTotal = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -1601,7 +1524,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
               overflow: TextOverflow.ellipsis,
               sName: title,
               fontweight: isTotal ? FontWeight.bold : FontWeight.w500,
-              txtcolor: isTotal ? color : CoustColors.colrSubText,
+              txtcolor: isTotal ? (color ?? CoustColors.colrMainText) : CoustColors.colrSubText,
               textsize: 14,
             ),
           ),
@@ -1612,7 +1535,7 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
               overflow: TextOverflow.ellipsis,
               sName: detail,
               fontweight: isTotal ? FontWeight.bold : FontWeight.normal,
-              txtcolor: isTotal ? color : CoustColors.colrMainText,
+              txtcolor: isTotal ? (color ?? CoustColors.colrMainText) : CoustColors.colrMainText,
               textsize: 14,
             ),
           ),
@@ -1620,4 +1543,12 @@ class _BookingDetailsScreenState extends ConsumerState<BookingDetailsScreen>
       ),
     );
   }
+}
+
+// Enum for animation types
+enum AnimationType {
+  fade,
+  slide,
+  pulse,
+  fadeSlide,
 }

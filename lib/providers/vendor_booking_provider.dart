@@ -1,181 +1,285 @@
-// lib/providers/vendor_bookings_provider.dart
+// lib/providers/vendor_booking_provider.dart (FIXED VERSION)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bb_vendor/models/vendor_booking_models.dart';
 import 'package:bb_vendor/providers/addpropertynotifier.dart';
 import 'package:bb_vendor/providers/hall_booking_provider.dart';
 import 'package:bb_vendor/providers/auth.dart';
 
-// Enhanced provider for vendor bookings with proper auth dependency
+import '../models/hall_booking.dart';
+
+// Enhanced provider for vendor bookings with proper auth dependency and error handling
 final vendorBookingsProvider = FutureProvider.autoDispose<List<VendorBookingData>>((ref) async {
   try {
+    print('=== VENDOR BOOKINGS PROVIDER DEBUG ===');
+
     // Watch auth state to ensure provider refreshes when user changes
     final authState = ref.watch(authprovider);
+    final currentUserId = authState.data?.userId;
+    final accessToken = authState.data?.accessToken;
 
-    print('=== VENDOR BOOKINGS PROVIDER DEBUG ===');
-    print('Auth state: ${authState.data?.userId}');
-    print('Username: ${authState.data?.username}');
+    print('Auth state - User ID: $currentUserId, Has token: ${accessToken != null}');
 
-    // Check if user is authenticated
-    if (authState.data?.userId == null || authState.data?.accessToken == null) {
+    // Enhanced authentication check
+    if (currentUserId == null || accessToken == null || accessToken.isEmpty) {
+      print('❌ User not authenticated, attempting auto-login...');
+
       // Try auto-login
-      print('User not authenticated, trying auto-login...');
-      await ref.read(authprovider.notifier).tryAutoLogin();
+      final authNotifier = ref.read(authprovider.notifier);
+      final autoLoginSuccess = await authNotifier.tryAutoLogin();
 
-      // Re-read auth state after auto-login attempt
-      final newAuthState = ref.read(authprovider);
-      if (newAuthState.data?.userId == null) {
-        throw Exception('Please login to view your bookings');
+      if (!autoLoginSuccess) {
+        throw Exception('Authentication required - please login to view your bookings');
       }
+
+      // Re-read auth state after successful auto-login
+      final newAuthState = ref.read(authprovider);
+      final newUserId = newAuthState.data?.userId;
+      final newToken = newAuthState.data?.accessToken;
+
+      if (newUserId == null || newToken == null) {
+        throw Exception('Authentication failed - please login again');
+      }
+
+      print('✓ Auto-login successful for user: $newUserId');
     }
 
-    final currentUserId = ref.read(authprovider).data!.userId!;
-    print('Current user ID: $currentUserId');
+    // Get vendor properties with enhanced error handling
+    print('📋 Fetching vendor properties...');
+    final propertyNotifier = ref.read(propertyNotifierProvider.notifier);
 
-    // Get vendor properties with proper error handling
-    print('Fetching vendor properties...');
-    await ref.read(propertyNotifierProvider.notifier).getproperty();
+    try {
+      await propertyNotifier.getproperty();
+    } catch (e) {
+      print('❌ Error fetching properties: $e');
+      throw Exception('Failed to load properties: ${e.toString()}');
+    }
+
     final propertiesState = ref.read(propertyNotifierProvider);
 
     if (propertiesState.data == null) {
-      throw Exception('Failed to load properties. Please check your connection.');
+      print('❌ Properties state is null');
+      throw Exception('Failed to load properties - please try again');
     }
 
     final properties = propertiesState.data!;
-    print('Found ${properties.length} properties for vendor');
+    print('✓ Found ${properties.length} properties for vendor');
 
     if (properties.isEmpty) {
-      print('No properties found for this vendor');
-      return []; // Return empty list, not an error
+      print('ℹ️ No properties found for this vendor');
+      return []; // Return empty list for vendors with no properties
     }
 
-    // Get all hall IDs for this vendor with detailed logging
+    // Build vendor halls map with enhanced logging
     final Map<int, HallInfo> vendorHalls = {};
     int totalHalls = 0;
 
     for (final property in properties) {
-      print('Property: ${property.propertyName} (ID: ${property.propertyId})');
-      for (final hall in property.halls ?? []) {
+      print('🏢 Property: ${property.propertyName} (ID: ${property.propertyId})');
+
+      final halls = property.halls ?? [];
+      print('  └─ Halls count: ${halls.length}');
+
+      for (final hall in halls) {
         if (hall.hallId != null) {
           vendorHalls[hall.hallId!] = HallInfo(
             property: property,
             hall: hall,
           );
           totalHalls++;
-          print('  Hall: ${hall.name} (ID: ${hall.hallId})');
+          print('    └─ Hall: ${hall.name} (ID: ${hall.hallId})');
+        } else {
+          print('    └─ ⚠️ Hall without ID found: ${hall.name}');
         }
       }
     }
 
-    print('Total halls for vendor: $totalHalls');
+    print('✓ Total halls mapped: $totalHalls');
 
     if (vendorHalls.isEmpty) {
-      print('No halls found for this vendor');
+      print('ℹ️ No halls found for this vendor\'s properties');
       return []; // Return empty list if no halls
     }
 
-    // Get all bookings
-    print('Fetching all bookings...');
+    // Get all bookings with enhanced error handling
+    print('📅 Fetching all bookings...');
     final bookingNotifier = ref.read(hallBookingProvider.notifier);
-    final allBookings = await bookingNotifier.getBookings();
-    print('Total bookings in system: ${allBookings.length}');
 
-    // Filter bookings for vendor's halls and combine with property/hall info
+    List<HallBookingData> allBookings;
+    try {
+      allBookings = await bookingNotifier.getBookings();
+      print('✓ Retrieved ${allBookings.length} total bookings from system');
+    } catch (e) {
+      print('❌ Error fetching bookings: $e');
+      throw Exception('Failed to load bookings: ${e.toString()}');
+    }
+
+    // Filter and combine bookings with hall/property information
     final vendorBookings = <VendorBookingData>[];
+    int matchedBookings = 0;
 
     for (final booking in allBookings) {
       final hallInfo = vendorHalls[booking.hallId];
       if (hallInfo != null) {
-        vendorBookings.add(VendorBookingData(
-          booking: booking,
-          property: hallInfo.property,
-          hall: hallInfo.hall,
-        ));
-        print('Added booking: ${booking.id} for hall: ${hallInfo.hall.name}');
+        try {
+          vendorBookings.add(VendorBookingData(
+            booking: booking,
+            property: hallInfo.property,
+            hall: hallInfo.hall,
+          ));
+          matchedBookings++;
+          print('✓ Matched booking ${booking.id} to hall: ${hallInfo.hall.name}');
+        } catch (e) {
+          print('⚠️ Error creating VendorBookingData for booking ${booking.id}: $e');
+          // Continue with other bookings even if one fails
+        }
       }
     }
 
-    print('Vendor bookings found: ${vendorBookings.length}');
+    print('✓ Successfully matched $matchedBookings bookings to vendor halls');
 
-    // Sort by date (newest first), then by time
+    // Sort bookings by date (newest first), then by time
     vendorBookings.sort((a, b) {
-      final dateComparison = b.booking.date.compareTo(a.booking.date);
-      if (dateComparison != 0) return dateComparison;
+      try {
+        final dateComparison = b.booking.date.compareTo(a.booking.date);
+        if (dateComparison != 0) return dateComparison;
 
-      // If same date, sort by time
-      return b.booking.slotFromTime.compareTo(a.booking.slotFromTime);
+        // If same date, sort by time
+        return b.booking.slotFromTime.compareTo(a.booking.slotFromTime);
+      } catch (e) {
+        print('⚠️ Error sorting bookings: $e');
+        return 0; // Keep original order if sorting fails
+      }
     });
 
     print('=== VENDOR BOOKINGS PROVIDER SUCCESS ===');
+    print('Final result: ${vendorBookings.length} bookings for vendor');
+
     return vendorBookings;
 
   } catch (e, stackTrace) {
     print('=== VENDOR BOOKINGS PROVIDER ERROR ===');
     print('Error: $e');
     print('Stack trace: $stackTrace');
-    throw Exception('Failed to load bookings: ${e.toString()}');
+
+    // Provide more specific error messages
+    if (e.toString().contains('Authentication')) {
+      throw Exception('Please login to view your bookings');
+    } else if (e.toString().contains('Network') || e.toString().contains('SocketException')) {
+      throw Exception('Network error - please check your connection and try again');
+    } else if (e.toString().contains('timeout')) {
+      throw Exception('Request timeout - please try again');
+    } else {
+      throw Exception('Failed to load bookings: ${e.toString()}');
+    }
   }
 });
 
-// Provider for booking statistics that depends on auth state
+// Enhanced booking statistics provider with error handling
 final vendorBookingStatsProvider = Provider.autoDispose<BookingStats>((ref) {
-  // Watch auth state to ensure stats refresh when user changes
   final authState = ref.watch(authprovider);
   final bookingsAsync = ref.watch(vendorBookingsProvider);
 
   return bookingsAsync.when(
     data: (bookings) {
-      int total = bookings.length;
-      int confirmed = bookings.where((b) => b.booking.isPaid == 'c').length;
-      int cancelled = bookings.where((b) => b.booking.isPaid == 'cl').length;
-      int pending = bookings.where((b) => b.booking.isPaid == '0').length;
-      int today = bookings.where((b) => b.isToday).length;
+      try {
+        int total = bookings.length;
+        int confirmed = bookings.where((b) => b.booking.isPaid == 'c').length;
+        int cancelled = bookings.where((b) => b.booking.isPaid == 'cl').length;
+        int pending = bookings.where((b) => b.booking.isPaid == '0').length;
+        int today = bookings.where((b) {
+          try {
+            return b.isToday;
+          } catch (e) {
+            print('Error checking if booking is today: $e');
+            return false;
+          }
+        }).length;
 
-      return BookingStats(
-        total: total,
-        confirmed: confirmed,
-        cancelled: cancelled,
-        pending: pending,
-        today: today,
-      );
+        return BookingStats(
+          total: total,
+          confirmed: confirmed,
+          cancelled: cancelled,
+          pending: pending,
+          today: today,
+        );
+      } catch (e) {
+        print('Error calculating booking stats: $e');
+        return BookingStats.empty();
+      }
     },
     loading: () => BookingStats.empty(),
     error: (_, __) => BookingStats.empty(),
   );
 });
 
-// Provider for filtered bookings that depends on auth state
+// Enhanced filtered bookings provider with better error handling
 final filteredBookingsProvider = Provider.family.autoDispose<List<VendorBookingData>, BookingFilter>((ref, filter) {
-  // Watch auth state to ensure filtered bookings refresh when user changes
   final authState = ref.watch(authprovider);
   final bookingsAsync = ref.watch(vendorBookingsProvider);
 
   return bookingsAsync.when(
     data: (bookings) {
-      return bookings.where((booking) {
-        // Filter by status
-        if (filter.status != 'All' && booking.filterStatus != filter.status) {
-          return false;
-        }
+      try {
+        return bookings.where((booking) {
+          // Filter by status
+          if (filter.status != 'All' && booking.filterStatus != filter.status) {
+            return false;
+          }
 
-        // Filter by search query
-        if (filter.searchQuery.isNotEmpty) {
-          final query = filter.searchQuery.toLowerCase();
-          return booking.propertyName.toLowerCase().contains(query) ||
-              booking.hallName.toLowerCase().contains(query) ||
-              booking.bookingDate.toLowerCase().contains(query) ||
-              booking.bookingId.toString().contains(query);
-        }
+          // Filter by search query
+          if (filter.searchQuery.isNotEmpty) {
+            final query = filter.searchQuery.toLowerCase();
+            try {
+              return booking.propertyName.toLowerCase().contains(query) ||
+                  booking.hallName.toLowerCase().contains(query) ||
+                  booking.bookingDate.toLowerCase().contains(query) ||
+                  booking.bookingId.toString().contains(query);
+            } catch (e) {
+              print('Error filtering booking ${booking.bookingId}: $e');
+              return false;
+            }
+          }
 
-        return true;
-      }).toList();
+          return true;
+        }).toList();
+      } catch (e) {
+        print('Error filtering bookings: $e');
+        return [];
+      }
     },
     loading: () => [],
     error: (_, __) => [],
   );
 });
 
-// Provider to check if current user has changed
+// Provider to track current user with enhanced change detection
 final currentUserProvider = Provider.autoDispose<int?>((ref) {
   final authState = ref.watch(authprovider);
-  return authState.data?.userId;
+  final userId = authState.data?.userId;
+
+  // Add a listener to detect user changes
+  ref.listen(authprovider, (previous, next) {
+    final previousUserId = previous?.data?.userId;
+    final nextUserId = next.data?.userId;
+
+    if (previousUserId != nextUserId) {
+      print('🔄 User change detected: $previousUserId -> $nextUserId');
+      // Invalidate dependent providers when user changes
+      ref.invalidate(vendorBookingsProvider);
+      ref.invalidate(vendorBookingStatsProvider);
+    }
+  });
+
+  return userId;
+});
+
+// Provider for checking if data needs refresh
+final dataRefreshProvider = Provider.autoDispose<bool>((ref) {
+  final authState = ref.watch(authprovider);
+  final currentTime = DateTime.now();
+
+  // You could implement logic here to determine if data should be refreshed
+  // based on time elapsed, user changes, etc.
+
+  return false; // Default to not needing refresh
 });

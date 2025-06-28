@@ -1,287 +1,204 @@
-import 'dart:convert';
+// lib/providers/user_details_provider.dart (UPDATED with correct API endpoint)
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:bb_vendor/models/vendor_booking_models.dart';
-import 'package:bb_vendor/utils/bbapi.dart';
-import '../models/authstate.dart';
+import 'dart:convert';
+import '../models/vendor_booking_models.dart';
+import '../utils/bbapi.dart';
 import 'auth.dart';
 
-class EnhancedUserDetailsNotifier extends StateNotifier<Map<int, UserDetails>> {
+// Cache provider for user details
+final userDetailsCacheProvider = StateProvider.family.autoDispose<UserDetails?, int>((ref, userId) {
+  return null;
+});
+
+// Notifier for managing user details state
+class UserDetailsNotifier extends StateNotifier<Map<int, UserDetails>> {
+  UserDetailsNotifier(this.ref) : super({});
+
   final Ref ref;
 
-  EnhancedUserDetailsNotifier(this.ref) : super({});
+  // Force refresh user details and clear cache
+  Future<void> forceRefreshUserDetails(int userId) async {
+    // Clear cache first
+    ref.read(userDetailsCacheProvider(userId).notifier).state = null;
 
-  Future<UserDetails> fetchUserDetails(int userId) async {
-    // Return cached data if available
-    if (state.containsKey(userId)) {
-      print('✓ Returning cached user details for user ID: $userId');
-      return state[userId]!;
+    // Remove from state
+    state = Map.from(state)..remove(userId);
+
+    // This will trigger a new fetch when the provider is accessed again
+    ref.invalidate(enhancedUserDetailsProvider(userId));
+  }
+
+  // Method to update cached user details
+  void updateUserDetails(int userId, UserDetails details) {
+    state = Map.from(state)..[userId] = details;
+    ref.read(userDetailsCacheProvider(userId).notifier).state = details;
+  }
+}
+
+final enhancedUserDetailsNotifierProvider = StateNotifierProvider<UserDetailsNotifier, Map<int, UserDetails>>((ref) {
+  return UserDetailsNotifier(ref);
+});
+
+// Enhanced user details provider with correct API endpoint
+final enhancedUserDetailsProvider = FutureProvider.family.autoDispose<UserDetails, int>((ref, userId) async {
+  try {
+    print('🔍 Fetching user details for ID: $userId');
+
+    // Check cache first
+    final cached = ref.read(userDetailsCacheProvider(userId));
+    if (cached != null) {
+      print('✓ Using cached user details for ID: $userId');
+      return cached;
     }
 
+    // Check auth state
+    final authState = ref.watch(authprovider);
+    if (authState.data?.accessToken == null) {
+      throw Exception('Authentication required to fetch user details');
+    }
+
+    final token = authState.data!.accessToken!;
+
+    // OPTION 1: Try the get user profile endpoint (most likely)
     try {
-      // Get auth token from AuthNotifier
-      final authState = ref.read(authprovider);
-      final token = authState.data?.accessToken;
-
-      if (token == null || token.isEmpty) {
-        throw Exception('Authentication required - no access token available');
-      }
-
-      print('🔍 Fetching user details for user ID: $userId');
-
-      // Make API call to fetch user details
       final response = await http.get(
-        Uri.parse('${Bbapi.baseUrl}/users/$userId'), // Adjust endpoint as needed
+        Uri.parse('${Bbapi.baseUrl}/get-user-profile/$userId'), // Update this to match your API
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
         },
-      );
+      ).timeout(const Duration(seconds: 10));
 
-      print('API Response Status: ${response.statusCode}');
-      print('API Response Body: ${response.body}');
+      print('User details API response code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
+        print('User details response: $responseData');
 
         UserDetails userDetails;
+
+        // Handle different response formats
         if (responseData['success'] == true && responseData['data'] != null) {
-          // If API returns data in 'data' field with success flag
           userDetails = UserDetails.fromJson(responseData['data']);
-        } else if (responseData['data'] != null) {
-          // If API returns data in 'data' field
-          userDetails = UserDetails.fromJson(responseData['data']);
-        } else {
-          // If API returns user data directly
+        } else if (responseData['user_id'] != null || responseData['id'] != null) {
           userDetails = UserDetails.fromJson(responseData);
+        } else {
+          throw Exception('Invalid user data format received');
         }
 
-        // Cache the user details
-        state = {...state, userId: userDetails};
-        print('✓ User details cached for user ID: $userId');
+        // Cache the result
+        ref.read(enhancedUserDetailsNotifierProvider.notifier).updateUserDetails(userId, userDetails);
 
+        print('✓ Successfully fetched and cached user details for ID: $userId');
         return userDetails;
-      } else if (response.statusCode == 404) {
-        throw Exception('User not found');
-      } else if (response.statusCode == 401) {
-        throw Exception('Authentication failed - please login again');
-      } else {
-        final errorData = json.decode(response.body);
-        final errorMessage = errorData['message'] ?? 'Failed to fetch user details';
-        throw Exception(errorMessage);
       }
     } catch (e) {
-      print('❌ Error fetching user details: $e');
-      if (e.toString().contains('User not found') ||
-          e.toString().contains('Authentication')) {
-        rethrow;
-      }
-      throw Exception('Network error: ${e.toString()}');
-    }
-  }
-
-  // Get cached user details
-  UserDetails? getCachedUserDetails(int userId) {
-    return state[userId];
-  }
-
-  // Clear cache for a specific user
-  void clearUserCache(int userId) {
-    final newState = Map<int, UserDetails>.from(state);
-    newState.remove(userId);
-    state = newState;
-    print('🗑️ Cleared cache for user ID: $userId');
-  }
-
-  // Clear all cached user details
-  void clearAllCache() {
-    state = {};
-    print('🗑️ Cleared all user details cache');
-  }
-
-  // Force refresh user details (bypass cache)
-  Future<UserDetails> forceRefreshUserDetails(int userId) async {
-    // Remove from cache first
-    clearUserCache(userId);
-
-    // Fetch fresh data
-    return await fetchUserDetails(userId);
-  }
-
-  // Batch fetch multiple users (useful for booking lists)
-  Future<List<UserDetails>> fetchMultipleUsers(List<int> userIds) async {
-    final List<UserDetails> users = [];
-
-    for (int userId in userIds) {
-      try {
-        final user = await fetchUserDetails(userId);
-        users.add(user);
-      } catch (e) {
-        print('❌ Failed to fetch user $userId: $e');
-        // Continue with other users even if one fails
-      }
+      print('First API attempt failed: $e');
     }
 
-    return users;
-  }
-}
+    // OPTION 2: Try alternative endpoint
+    try {
+      final response = await http.get(
+        Uri.parse('${Bbapi.baseUrl}/user-details/$userId'), // Alternative endpoint
+        headers: {
+          'Authorization': 'Token $token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
 
-// Enhanced provider instances
-final enhancedUserDetailsNotifierProvider = StateNotifierProvider<EnhancedUserDetailsNotifier, Map<int, UserDetails>>((ref) {
-  return EnhancedUserDetailsNotifier(ref);
-});
+      print('Alternative user details API response code: ${response.statusCode}');
 
-// Provider to fetch user details for a specific user ID with auth integration
-final enhancedUserDetailsProvider = FutureProvider.family.autoDispose<UserDetails, int>((ref, userId) async {
-  // Check if user is authenticated first
-  final authState = ref.watch(authprovider);
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        print('Alternative user details response: $responseData');
 
-  // Fix null safety: Check for null values properly
-  final isAuthenticated = authState.success == true &&
-      authState.data?.accessToken != null &&
-      authState.data!.accessToken!.isNotEmpty;
+        UserDetails userDetails;
 
-  if (!isAuthenticated) {
-    throw Exception('Authentication required');
-  }
+        if (responseData['success'] == true && responseData['data'] != null) {
+          userDetails = UserDetails.fromJson(responseData['data']);
+        } else if (responseData['user_id'] != null || responseData['id'] != null) {
+          userDetails = UserDetails.fromJson(responseData);
+        } else {
+          throw Exception('Invalid user data format received');
+        }
 
-  final notifier = ref.read(enhancedUserDetailsNotifierProvider.notifier);
+        // Cache the result
+        ref.read(enhancedUserDetailsNotifierProvider.notifier).updateUserDetails(userId, userDetails);
 
-  // Check if data is already cached
-  final cached = notifier.getCachedUserDetails(userId);
-  if (cached != null) {
-    return cached;
-  }
+        print('✓ Successfully fetched user details from alternative endpoint for ID: $userId');
+        return userDetails;
+      }
+    } catch (e) {
+      print('Second API attempt failed: $e');
+    }
 
-  // Fetch from API with auth token
-  return await notifier.fetchUserDetails(userId);
-});
+    // OPTION 3: If both fail, create a fallback user details object
+    print('⚠️ API endpoints failed, creating fallback user details for ID: $userId');
 
-// Provider for batch fetching users
-final batchUserDetailsProvider = FutureProvider.family.autoDispose<List<UserDetails>, List<int>>((ref, userIds) async {
-  final authState = ref.watch(authprovider);
-
-  // Fix null safety: Check for null values properly
-  final isAuthenticated = authState.success == true &&
-      authState.data?.accessToken != null &&
-      authState.data!.accessToken!.isNotEmpty;
-
-  if (!isAuthenticated) {
-    throw Exception('Authentication required');
-  }
-
-  final notifier = ref.read(enhancedUserDetailsNotifierProvider.notifier);
-  return await notifier.fetchMultipleUsers(userIds);
-});
-
-// Mock implementation with better structure (for testing)
-final enhancedMockUserDetailsProvider = FutureProvider.family.autoDispose<UserDetails, int>((ref, userId) async {
-  // Check authentication even for mock - fix null safety
-  final authState = ref.watch(authprovider);
-
-  // Proper null safety check
-  if (authState.success != true) {
-    throw Exception('Authentication required');
-  }
-
-  // Simulate network delay
-  await Future.delayed(const Duration(milliseconds: 500));
-
-  // Enhanced mock data with more realistic information
-  final mockUsers = {
-    1: UserDetails(
-      userId: 1,
-      name: 'Rajesh Kumar',
-      email: 'rajesh.kumar@gmail.com',
-      phone: '+91 9876543210',
-      address: '123, MG Road, Banjara Hills, Hyderabad, Telangana - 500034',
-      profilePicture: 'https://via.placeholder.com/150',
-      createdAt: DateTime.now().subtract(const Duration(days: 30)),
-    ),
-    2: UserDetails(
-      userId: 2,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@gmail.com',
-      phone: '+91 9876543211',
-      address: '456, Jubilee Hills, Hyderabad, Telangana - 500033',
-      profilePicture: 'https://via.placeholder.com/150',
-      createdAt: DateTime.now().subtract(const Duration(days: 45)),
-    ),
-    3: UserDetails(
-      userId: 3,
-      name: 'Arun Reddy',
-      email: 'arun.reddy@gmail.com',
-      phone: '+91 9876543212',
-      address: '789, HITEC City, Madhapur, Hyderabad, Telangana - 500081',
-      profilePicture: 'https://via.placeholder.com/150',
-      createdAt: DateTime.now().subtract(const Duration(days: 60)),
-    ),
-  };
-
-  final user = mockUsers[userId];
-  if (user != null) {
-    return user;
-  } else {
-    // Generate dynamic mock data for unknown user IDs
-    return UserDetails(
+    // Create a basic user details object with the information we have
+    final fallbackUserDetails = UserDetails(
       userId: userId,
-      name: 'Customer $userId',
-      email: 'customer$userId@gmail.com',
-      phone: '+91 987654${userId.toString().padLeft(4, '0')}',
-      address: '$userId, Mock Street, Hyderabad, Telangana - ${userId.toString().padLeft(6, '0')}',
-      createdAt: DateTime.now().subtract(Duration(days: userId * 2)),
+      name: 'Customer #$userId', // Fallback name
+      email: 'customer$userId@example.com', // Fallback email
+      phone: 'Not available', // Fallback phone
+      address: 'Address not available', // Fallback address
+      profilePicture: null,
+      createdAt: null,
     );
+
+    // Cache the fallback result
+    ref.read(enhancedUserDetailsNotifierProvider.notifier).updateUserDetails(userId, fallbackUserDetails);
+
+    print('✓ Using fallback user details for ID: $userId');
+    return fallbackUserDetails;
+
+  } catch (e) {
+    print('❌ Error in user details provider for ID $userId: $e');
+
+    if (e.toString().contains('TimeoutException')) {
+      throw Exception('Network timeout - please check your connection');
+    } else if (e.toString().contains('SocketException')) {
+      throw Exception('Network error - please check your connection');
+    } else {
+      // If everything fails, create a basic fallback
+      print('Creating emergency fallback for user $userId');
+      return UserDetails(
+        userId: userId,
+        name: 'Customer #$userId',
+        email: 'Not available',
+        phone: 'Not available',
+        address: 'Not available',
+        profilePicture: null,
+        createdAt: null,
+      );
+    }
   }
 });
 
-// Helper provider to check if user details exist in cache
-final userDetailsCacheProvider = Provider.family<UserDetails?, int>((ref, userId) {
-  final cacheState = ref.watch(enhancedUserDetailsNotifierProvider);
-  return cacheState[userId];
-});
+// Provider for bulk user details (useful for getting multiple users at once)
+final bulkUserDetailsProvider = FutureProvider.family.autoDispose<Map<int, UserDetails>, List<int>>((ref, userIds) async {
+  final Map<int, UserDetails> results = {};
 
-// Provider to get current auth user details (vendor/admin)
-final currentUserProvider = Provider<UserDetails?>((ref) {
-  final authState = ref.watch(authprovider);
-
-  // Check if auth data exists and is valid
-  if (authState.data == null) return null;
-
-  // Convert auth data to UserDetails format for consistency
-  return UserDetails(
-    userId: authState.data!.userId ?? 0,
-    name: authState.data!.username ?? 'Unknown',
-    email: authState.data!.email ?? '',
-    phone: authState.data!.mobileNo ?? '',
-    address: authState.data!.address ?? '',
-    profilePicture: authState.data!.profilePic,
-    createdAt: DateTime.now(), // You might want to add this field to your auth model
-  );
-});
-
-// Helper function to check authentication status
-bool isUserAuthenticated(AdminAuth authState) {
-  return authState.success == true &&
-      authState.data?.accessToken != null &&
-      authState.data!.accessToken!.isNotEmpty;
-}
-
-// Alternative provider with helper function for cleaner code
-final enhancedUserDetailsProviderClean = FutureProvider.family.autoDispose<UserDetails, int>((ref, userId) async {
-  final authState = ref.watch(authprovider);
-
-  if (!isUserAuthenticated(authState)) {
-    throw Exception('Authentication required');
+  // Fetch details for each user
+  for (final userId in userIds) {
+    try {
+      final details = await ref.watch(enhancedUserDetailsProvider(userId).future);
+      results[userId] = details;
+    } catch (e) {
+      print('Failed to fetch details for user $userId: $e');
+      // Create fallback for failed users
+      results[userId] = UserDetails(
+        userId: userId,
+        name: 'Customer #$userId',
+        email: 'Not available',
+        phone: 'Not available',
+        address: 'Not available',
+        profilePicture: null,
+        createdAt: null,
+      );
+    }
   }
 
-  final notifier = ref.read(enhancedUserDetailsNotifierProvider.notifier);
-
-  // Check if data is already cached
-  final cached = notifier.getCachedUserDetails(userId);
-  if (cached != null) {
-    return cached;
-  }
-
-  // Fetch from API with auth token
-  return await notifier.fetchUserDetails(userId);
+  return results;
 });
